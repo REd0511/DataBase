@@ -9,10 +9,10 @@ app.use(express.json());
 
 // เชื่อมต่อ MySQL
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '12345',
-    database: 'shesparks' 
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '12345',
+    database: process.env.DB_NAME || 'shesparks'
 });
 
 db.connect((err) => {
@@ -24,7 +24,7 @@ db.connect((err) => {
 });
 
 // ==========================================
-// สร้าง API ทั้งหมด (ต้องอยู่ก่อน app.listen)
+// สร้าง API ทั้งหมด
 // ==========================================
 
 // 1. หน้าแรก
