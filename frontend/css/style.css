@@ -1,1 +1,185 @@
  
+/* ============================================
+   SheSparks Wellness - Main Stylesheet
+   FEATURES:
+   - Navbar, Hero Section, Cards
+   - Room/Trainer/Course Lists
+   - Login Form
+   - Responsive-friendly
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+body {
+    background: #fff5f7;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ff6f91;
+    padding: 15px 30px;
+    color: white;
+}
+
+.navbar .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.navbar nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-weight: 500;
+}
+
+.navbar nav a:hover {
+    text-decoration: underline;
+}
+
+.btn-login {
+    background: white;
+    color: #ff6f91 !important;
+    padding: 8px 15px;
+    border-radius: 20px;
+}
+
+/* Hero */
+.hero {
+    text-align: center;
+    padding: 80px 20px;
+    background: linear-gradient(135deg, #ffb6c1, #ff6f91);
+    color: white;
+}
+
+.hero h2 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.btn-primary {
+    display: inline-block;
+    background: #ff6f91;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 25px;
+    text-decoration: none;
+    margin-top: 20px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background: #e85a7a;
+}
+
+/* Cards */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 40px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    text-align: center;
+}
+
+/* Lists */
+.room-list, .trainer-list, .course-list, .reward-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 30px;
+}
+
+.room-card, .trainer-card, .course-card, .reward-card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Login */
+.login-container {
+    max-width: 400px;
+    margin: 100px auto;
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.login-container h2 {
+    text-align: center;
+    color: #ff6f91;
+    margin-bottom: 25px;
+}
+
+.login-container label {
+    display: block;
+    margin-top: 15px;
+    font-weight: 500;
+}
+
+.login-container input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+}
+
+.login-container button {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.hint {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #888;
+    text-align: center;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 20px;
+    background: #ff6f91;
+    color: white;
+    margin-top: 40px;
+}
+
+/* Filters */
+.filters {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    padding: 20px 30px;
+}
+
+.filters label {
+    font-weight: 500;
+}
+
+.filters input, .filters select {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}

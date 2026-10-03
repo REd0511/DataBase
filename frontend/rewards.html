@@ -1,1 +1,37 @@
- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rewards - SheSparks</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- ============================================
+         FEATURES:
+         - แสดงรายการรางวัล/คูปอง (Mock Data)
+         - แสดงแต้มที่ต้องใช้แลก
+         - ปุ่ม "แลกรางวัล"
+         - TODO: เชื่อมกับ API /api/rewards และ /api/redemptions
+         ============================================ -->
+    <header class="navbar">
+        <div class="logo">
+            <img src="assets/logo.png" alt="SheSparks" width="50">
+            <h1>Rewards</h1>
+        </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="booking.html">Booking</a>
+            <a href="course.html">Courses</a>
+            <a href="points.html">Points</a>
+            <a href="rewards.html">Rewards</a>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Redeem Your Points</h2>
+        <div id="reward-list" class="reward-list"></div>
+    </main>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
