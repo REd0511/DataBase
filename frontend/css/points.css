@@ -3,35 +3,115 @@
    ============================================ */
 
 .points-card {
-    background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
-    color: var(--white);
-    padding: 40px;
-    border-radius: var(--radius-lg);
-    text-align: center;
-    margin: 30px 40px;
-    box-shadow: var(--shadow-md);
+  background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
+  color: var(--white);
+  padding: 50px 40px;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  margin: 30px auto;
+  max-width: 500px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.points-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.points-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.points-icon svg {
+  width: 30px;
+  height: 30px;
+  stroke: var(--white);
 }
 
 .points-card h3 {
-    color: var(--white);
-    font-size: 1.1rem;
-    font-weight: 400;
-    opacity: 0.9;
-    margin-bottom: 12px;
+  color: var(--white);
+  font-size: 1rem;
+  font-weight: 400;
+  opacity: 0.9;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .points-card .points-value {
-    font-size: 3.5rem;
-    font-family: 'Playfair Display', serif;
-    font-weight: 700;
+  font-size: 4rem;
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 8px;
 }
 
+.points-card .points-hint {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  margin-bottom: 24px;
+}
+
+.points-card .btn-primary {
+  background: var(--white);
+  color: var(--pink-deep);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.points-card .btn-primary:hover {
+  background: var(--pink-bg);
+  transform: translateY(-2px);
+}
+
+/* History Table */
 .points-table-wrap {
-    margin: 0 40px 60px;
+  max-width: 800px;
+  margin: 40px auto 60px;
+  padding: 0 40px;
 }
 
 .points-table-wrap h3 {
-    color: var(--pink-deep);
-    margin-bottom: 16px;
-    font-size: 1.2rem;
+  color: var(--pink-deep);
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+  font-family: "Playfair Display", serif;
+}
+
+.points-table-wrap table {
+  box-shadow: var(--shadow-sm);
+}
+
+.points-table-wrap .earned {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.points-table-wrap .redeemed {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.points-table-wrap .balance {
+  color: var(--pink-deep);
+  font-weight: 600;
 }

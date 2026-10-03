@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking - Select Studio</title>
+    <title>Booking - Select Sport</title>
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/booking-flow.css">
     <link rel="stylesheet" href="css/responsive.css">
@@ -16,15 +16,17 @@
     <main>
         <h2 class="section-title">Book Your Room</h2>
         <div class="steps">
-            <div class="step active"><span>1</span> Studio</div>
-            <div class="step"><span>2</span> Sport</div>
+            <div class="step done"><span>1</span> Studio</div>
+            <div class="step active"><span>2</span> Sport</div>
             <div class="step"><span>3</span> Room</div>
             <div class="step"><span>4</span> Summary</div>
         </div>
 
         <section class="flow-section">
-            <h3 class="flow-title">Select a Studio</h3>
-            <div class="studio-list" id="studio-list"></div>
+            <button class="btn-back" onclick="goBack()">← Back to Studios</button>
+            <h3 class="flow-title">Select a Sport Type</h3>
+            <p class="flow-subtitle" id="selected-studio-label"></p>
+            <div class="sport-list" id="sport-list"></div>
         </section>
     </main>
 

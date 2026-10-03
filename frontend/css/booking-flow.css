@@ -1,178 +1,189 @@
 /* ============================================
    Booking Flow Styles
-   - Step Indicator
-   - Studio/Sport/Room Selection Cards
    ============================================ */
 
-/* Step Indicator */
 .steps {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding: 30px 20px;
-    flex-wrap: wrap;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 30px 20px;
+  flex-wrap: wrap;
 }
 
 .step {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border-radius: 50px;
-    background: var(--white);
-    color: var(--text-mid);
-    border: 1.5px solid var(--border);
-    font-weight: 500;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 50px;
+  background: var(--white);
+  color: var(--text-mid);
+  border: 1.5px solid var(--border);
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
 }
 
 .step span {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: var(--pink-soft);
-    color: var(--pink-deep);
-    font-weight: 600;
-    font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+  font-weight: 600;
+  font-size: 0.85rem;
 }
 
 .step.active {
-    background: var(--pink-main);
-    color: var(--white);
-    border-color: var(--pink-main);
-    box-shadow: var(--shadow-sm);
+  background: var(--pink-main);
+  color: var(--white);
+  border-color: var(--pink-main);
 }
 
 .step.active span {
-    background: var(--white);
-    color: var(--pink-deep);
+  background: var(--white);
+  color: var(--pink-deep);
 }
 
 .step.done {
-    background: var(--gold-soft);
-    border-color: var(--gold);
-    color: var(--pink-deep);
+  background: var(--gold-soft);
+  border-color: var(--gold);
+  color: var(--pink-deep);
 }
 
 /* Flow Section */
 .flow-section {
-    padding: 20px 40px 40px;
-    max-width: 1100px;
-    margin: 0 auto;
-}
-
-.flow-section.hidden {
-    display: none;
+  padding: 20px 40px 40px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .flow-title {
-    font-size: 1.4rem;
-    color: var(--pink-deep);
-    margin-bottom: 20px;
-    text-align: center;
+  font-size: 1.5rem;
+  color: var(--pink-deep);
+  margin-bottom: 8px;
+  text-align: center;
 }
 
-/* Selection Cards (Studio / Sport / Room) */
+.flow-subtitle {
+  text-align: center;
+  color: var(--text-mid);
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+}
+
+/* Back Button */
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--pink-deep);
+  font-family: "Poppins", sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 8px 0;
+  margin-bottom: 16px;
+  transition: color 0.2s;
+}
+
+.btn-back:hover {
+  color: var(--pink-main);
+}
+
+/* Selection Cards */
 .studio-list,
-.sport-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
+.sport-list,
+.room-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
 }
 
 .studio-card,
-.sport-card {
-    background: var(--white);
-    border-radius: var(--radius-md);
-    padding: 24px;
-    box-shadow: var(--shadow-sm);
-    border: 1.5px solid var(--border);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
+.sport-card,
+.room-card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
 }
 
 .studio-card:hover,
-.sport-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--pink-main);
-}
-
-.studio-card.selected,
-.sport-card.selected {
-    background: var(--pink-soft);
-    border-color: var(--pink-main);
-    box-shadow: var(--shadow-md);
+.sport-card:hover,
+.room-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--pink-main);
 }
 
 .studio-card h3,
-.sport-card h3 {
-    color: var(--pink-deep);
-    font-size: 1.15rem;
-    margin-bottom: 6px;
+.sport-card h3,
+.room-card h3 {
+  color: var(--pink-deep);
+  font-size: 1.15rem;
+  margin-bottom: 6px;
 }
 
 .studio-card p,
-.sport-card p {
-    color: var(--text-mid);
-    font-size: 0.88rem;
+.sport-card p,
+.room-card p {
+  color: var(--text-mid);
+  font-size: 0.88rem;
+  margin-bottom: 4px;
 }
 
-.studio-card .sports-tag,
-.sport-card .intensity-tag {
-    display: inline-block;
-    background: var(--gold-soft);
-    color: var(--pink-deep);
-    font-size: 0.75rem;
-    padding: 4px 10px;
-    border-radius: 50px;
-    margin-top: 10px;
-    font-weight: 500;
+.sports-tag {
+  display: inline-block;
+  background: var(--gold-soft);
+  color: var(--pink-deep);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 50px;
+  margin-top: 10px;
+  font-weight: 500;
 }
 
-/* Summary */
-.summary {
-    background: var(--pink-bg);
-    border: 1px dashed var(--pink-main);
-    border-radius: var(--radius-md);
-    padding: 20px;
-    margin: 20px 0;
+.room-card .times {
+  font-size: 0.8rem;
+  color: var(--pink-deep);
+  margin-top: 8px;
 }
 
-.summary h4 {
-    color: var(--pink-deep);
-    margin-bottom: 10px;
+.room-card .btn-primary {
+  margin-top: 12px;
+  width: 100%;
 }
 
-.summary p {
-    font-size: 0.92rem;
-    color: var(--text-dark);
-    margin-bottom: 4px;
+/* Filters (Room Page) */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+  align-items: end;
 }
 
-.summary span {
-    font-weight: 600;
-    color: var(--pink-deep);
+.filters label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  flex: 1;
+  min-width: 140px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .steps {
-        gap: 8px;
-        padding: 16px;
-    }
-
-    .step {
-        padding: 8px 12px;
-        font-size: 0.8rem;
-    }
-
-    .flow-section {
-        padding: 16px;
-    }
+.filters input,
+.filters select {
+  margin-top: 6px;
 }

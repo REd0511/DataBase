@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="css/login.css">
     <link rel="stylesheet" href="css/responsive.css">
 </head>
+
 <body>
     <div class="login-wrapper">
         <div class="login-container">
@@ -15,11 +17,15 @@
             <p class="subtitle">Welcome back, beautiful soul ✨</p>
 
             <form id="loginForm">
-                <label for="memberId">Member ID</label>
-                <input type="text" id="memberId" placeholder="M001" required>
+                <div class="form-group">
+                    <label for="memberId">Member ID</label>
+                    <input type="text" id="memberId" placeholder="M001" required>
+                </div>
 
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="1234" required>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="1234" required>
+                </div>
 
                 <button type="submit" class="btn-primary">Login</button>
             </form>
@@ -34,4 +40,5 @@
 
     <script src="js/main.js"></script>
 </body>
+
 </html>

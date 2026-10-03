@@ -2,52 +2,254 @@
    Admin Dashboard
    ============================================ */
 
+.section-subtitle {
+  text-align: center;
+  color: var(--text-mid);
+  font-size: 0.95rem;
+  margin-bottom: 30px;
+}
+
+/* ========== Summary Cards ========== */
 .summary-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    padding: 30px 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  padding: 20px 40px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .summary-cards .card {
-    text-align: center;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 28px 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-cards .card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--pink-main), var(--gold));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.summary-cards .card:hover::before {
+  transform: scaleX(1);
+}
+
+.summary-cards .card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.summary-cards .card-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--pink-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-cards .card-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--pink-deep);
 }
 
 .summary-cards .card h3 {
-    font-size: 0.9rem;
-    color: var(--text-mid);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 10px;
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  font-family: "Poppins", sans-serif;
 }
 
 .summary-cards .card p {
-    font-size: 2rem;
-    font-family: 'Playfair Display', serif;
-    color: var(--pink-deep);
-    font-weight: 700;
+  font-size: 2rem;
+  font-family: "Playfair Display", serif;
+  color: var(--pink-deep);
+  font-weight: 700;
+  line-height: 1;
 }
 
+/* ========== Reports ========== */
 .report {
-    margin: 30px 40px;
-    padding: 30px;
-    background: var(--white);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border);
+  max-width: 1000px;
+  margin: 20px auto 40px;
+  padding: 30px;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .report h2 {
-    color: var(--pink-deep);
-    font-size: 1.4rem;
-    margin-bottom: 20px;
+  color: var(--pink-deep);
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  font-family: "Playfair Display", serif;
 }
 
 .report .filters {
-    margin: 0 0 20px;
-    padding: 0;
-    box-shadow: none;
-    border: none;
-    background: transparent;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 0 0 20px;
+  margin: 0 0 20px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-bottom: 1px solid var(--border);
+  align-items: end;
+}
+
+.report .filters label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  flex: 1;
+  min-width: 140px;
+}
+
+.report .filters input {
+  margin-top: 6px;
+}
+
+/* Room List in Report 1 */
+.report .room-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 0;
+}
+
+.report .room-card {
+  background: var(--pink-bg);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.report .room-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--pink-main);
+}
+
+.report .room-card h3 {
+  color: var(--pink-deep);
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.report .room-card p {
+  color: var(--text-mid);
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+/* Reward Catalog in Admin */
+.report .reward-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 16px 0 0;
+}
+
+.report .reward-card {
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  border: 1px solid var(--border);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.report .reward-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--gold);
+}
+
+.report .reward-card .category {
+  display: inline-block;
+  background: var(--gold-soft);
+  color: var(--pink-deep);
+  font-size: 0.72rem;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.report .reward-card h3 {
+  color: var(--pink-deep);
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.report .reward-card .points {
+  font-size: 1.1rem;
+  color: var(--gold);
+  font-weight: 600;
+  margin: 10px 0;
+  font-family: "Playfair Display", serif;
+}
+
+.report .reward-card .btn-secondary,
+.report .reward-card .btn-danger {
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  margin: 4px 2px 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 16px;
+  }
+
+  .report {
+    margin: 16px;
+    padding: 20px;
+  }
+
+  .report .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-cards .card p {
+    font-size: 1.6rem;
+  }
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,46 +9,47 @@
     <link rel="stylesheet" href="css/home.css">
     <link rel="stylesheet" href="css/responsive.css">
 </head>
+
 <body>
-    <header class="navbar">
-        <div class="logo">
-            <img src="assets/logo.png" alt="SheSparks">
-            <h1>SheSparks Wellness</h1>
-        </div>
-        <nav>
-            <a href="index.html" class="active">Home</a>
-            <a href="booking.html">Booking</a>
-            <a href="trainer.html">Trainers</a>
-            <a href="course.html">Courses</a>
-            <a href="points.html">Points</a>
-            <a href="rewards.html">Rewards</a>
-            <a href="login.html" class="btn-login">Login</a>
-        </nav>
-    </header>
+    <!-- Navbar (will be filled by global.js) -->
+    <header class="navbar" id="navbar"></header>
 
     <main>
+        <!-- Hero Section with Background Image -->
         <section class="hero">
-            <h2>Women-Only Sports & Wellness</h2>
-            <p>จองห้องซ้อม, ยืมอุปกรณ์, หาเทรนเนอร์หญิง, สมัครคอร์ส และสะสมแต้มแลกรางวัล</p>
-            <a href="login.html" class="btn-primary">Get Started</a>
+            <div class="hero-content">
+                <h2>Women-Only Sports & Wellness</h2>
+                <p>จองห้องซ้อม, ยืมอุปกรณ์, หาเทรนเนอร์หญิง, สมัครคอร์ส และสะสมแต้มแลกรางวัล</p>
+                <a href="booking.html" class="btn-primary">Get Started</a>
+            </div>
         </section>
 
-        <section class="features">
-            <div class="feature-card">
-                <h3>Book Rooms</h3>
-                <p>จองห้องซ้อมกีฬาหลากหลายประเภท</p>
+        <!-- Recommendations Section -->
+        <section class="recommendations">
+            <h2 class="section-title">Recommended for You</h2>
+
+            <!-- Recommended Studios Carousel -->
+            <div class="carousel-section">
+                <h3>Studios</h3>
+                <div class="carousel" id="studio-carousel"></div>
             </div>
-            <div class="feature-card">
-                <h3>Female Trainers</h3>
-                <p>เทรนเนอร์หญิงมืออาชีพเฉพาะทาง</p>
+
+            <!-- Recommended Sports Carousel -->
+            <div class="carousel-section">
+                <h3>Sports</h3>
+                <div class="carousel" id="sport-carousel"></div>
             </div>
-            <div class="feature-card">
-                <h3>Sports Courses</h3>
-                <p>คอร์สเรียนโยคะ, พิลาทิส, มวยหญิง, แบดมินตัน</p>
+
+            <!-- Recommended Courses Carousel -->
+            <div class="carousel-section">
+                <h3>Courses</h3>
+                <div class="carousel" id="course-carousel"></div>
             </div>
-            <div class="feature-card">
-                <h3>Loyalty Points</h3>
-                <p>สะสมแต้มแลกคูปองสปาและอุปกรณ์</p>
+
+            <!-- Recommended Rewards Carousel -->
+            <div class="carousel-section">
+                <h3>Rewards</h3>
+                <div class="carousel" id="reward-carousel"></div>
             </div>
         </section>
     </main>
@@ -56,6 +58,14 @@
         <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
     </footer>
 
-    <script src="js/main.js"></script>
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profile-modal">
+        <!-- Content will be injected by global.js -->
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/global.js"></script>
+    <script src="js/home.js"></script>
 </body>
+
 </html>

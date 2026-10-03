@@ -2,33 +2,42 @@
    points.js - Points Page
    FEATURES:
    - แสดงแต้มสะสมทั้งหมด
-   - แสดงประวัติการได้/ใช้แต้ม
+   - แสดงประวัติการได้/ใช้แต้ม พร้อม Balance
    - TODO: เชื่อมกับ API /api/points/:memberId
    ============================================ */
 
-const MOCK_POINTS = {
-    total: 1250,
-    history: [
-        { Date: '2026-09-01', Earned: 300, Redeemed: 0 },
-        { Date: '2026-09-05', Earned: 0, Redeemed: 200 },
-        { Date: '2026-09-10', Earned: 500, Redeemed: 0 }
-    ]
-};
+document.addEventListener("DOMContentLoaded", () => {
+  renderPoints();
+});
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Total points
-    const totalEl = document.getElementById('totalPoints');
-    if (totalEl) totalEl.textContent = MOCK_POINTS.total;
+function renderPoints() {
+  const user = JSON.parse(localStorage.getItem("user"));
 
-    // History table
-    const tbody = document.querySelector('#pointsTable tbody');
-    if (tbody) {
-        tbody.innerHTML = MOCK_POINTS.history.map(h => `
+  // Total Points
+  const totalEl = document.getElementById("totalPoints");
+  if (totalEl) {
+    totalEl.textContent =
+      user && user.role === "admin" ? POINTS.total : POINTS.total;
+  }
+
+  // History Table with running balance
+  const tbody = document.querySelector("#pointsTable tbody");
+  if (!tbody) return;
+
+  let balance = 0;
+  const rows = POINTS.history
+    .map((h) => {
+      balance += h.Earned - h.Redeemed;
+      return `
             <tr>
                 <td>${h.Date}</td>
-                <td>${h.Earned}</td>
-                <td>${h.Redeemed}</td>
+                <td class="earned">${h.Earned > 0 ? "+" + h.Earned : "—"}</td>
+                <td class="redeemed">${h.Redeemed > 0 ? "-" + h.Redeemed : "—"}</td>
+                <td class="balance">${balance}</td>
             </tr>
-        `).join('');
-    }
-});
+        `;
+    })
+    .join("");
+
+  tbody.innerHTML = rows;
+}

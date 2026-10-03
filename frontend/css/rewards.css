@@ -2,55 +2,162 @@
    Rewards Page
    ============================================ */
 
-.reward-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 24px;
-    padding: 20px 40px 60px;
+.section-subtitle {
+  text-align: center;
+  color: var(--text-mid);
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
+/* Filters */
+.filters {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  min-width: 180px;
+}
+
+.filters select {
+  margin-top: 6px;
+}
+
+/* Reward Grid */
+.reward-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  padding: 20px 40px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Reward Card */
 .reward-card {
-    background: var(--white);
-    border-radius: var(--radius-md);
-    padding: 28px 24px;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border);
-    transition: all 0.3s ease;
-    text-align: center;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 28px 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.reward-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--pink-main), var(--gold));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.reward-card:hover::before {
+  transform: scaleX(1);
 }
 
 .reward-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--gold);
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--gold);
 }
 
 .reward-card .category {
-    display: inline-block;
-    background: var(--gold-soft);
-    color: var(--pink-deep);
-    font-size: 0.75rem;
-    padding: 4px 12px;
-    border-radius: 50px;
-    font-weight: 500;
-    margin-bottom: 12px;
+  display: inline-block;
+  align-self: center;
+  background: var(--gold-soft);
+  color: var(--pink-deep);
+  font-size: 0.72rem;
+  padding: 4px 14px;
+  border-radius: 50px;
+  font-weight: 500;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.reward-card .category[data-cat="Beauty"] {
+  background: #fce4ec;
+  color: #d6739a;
+}
+
+.reward-card .category[data-cat="Sports"] {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.reward-card .category[data-cat="Discount"] {
+  background: #fff3e0;
+  color: #ff9800;
+}
+
+.reward-card .reward-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: var(--pink-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reward-card .reward-icon svg {
+  width: 26px;
+  height: 26px;
+  stroke: var(--pink-deep);
 }
 
 .reward-card h3 {
-    color: var(--pink-deep);
-    font-size: 1.15rem;
-    margin-bottom: 8px;
+  color: var(--pink-deep);
+  font-size: 1.15rem;
+  margin-bottom: 8px;
+  font-family: "Playfair Display", serif;
 }
 
 .reward-card .points {
-    font-size: 1.3rem;
-    color: var(--gold);
-    font-weight: 600;
-    margin: 12px 0;
-    font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--gold);
+  font-weight: 600;
+  margin: 12px 0;
+  font-family: "Playfair Display", serif;
+}
+
+.reward-card .points::after {
+  content: " pts";
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  font-family: "Poppins", sans-serif;
 }
 
 .reward-card .btn-primary {
-    width: 100%;
-    margin-top: 10px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.reward-card .btn-primary:disabled {
+  background: var(--border);
+  color: var(--text-mid);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }

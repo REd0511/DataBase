@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,30 +9,30 @@
     <link rel="stylesheet" href="css/points.css">
     <link rel="stylesheet" href="css/responsive.css">
 </head>
+
 <body>
-    <header class="navbar">
-        <div class="logo">
-            <img src="assets/logo.png" alt="SheSparks">
-            <h1>My Points</h1>
-        </div>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="booking.html">Booking</a>
-            <a href="trainer.html">Trainers</a>
-            <a href="course.html">Courses</a>
-            <a href="points.html" class="active">Points</a>
-            <a href="rewards.html">Rewards</a>
-        </nav>
-    </header>
+    <header class="navbar" id="navbar"></header>
 
     <main>
-        <h2 class="section-title">Your Loyalty Points</h2>
+        <h2 class="section-title">My Loyalty Points</h2>
 
+        <!-- Points Card -->
         <div class="points-card">
+            <div class="points-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <polygon
+                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                    </polygon>
+                </svg>
+            </div>
             <h3>Total Points</h3>
             <p class="points-value" id="totalPoints">0</p>
+            <p class="points-hint">Earn 1 point for every ฿1 spent</p>
+            <a href="rewards.html" class="btn-primary">Redeem Rewards</a>
         </div>
 
+        <!-- Transaction History -->
         <div class="points-table-wrap">
             <h3>Transaction History</h3>
             <table id="pointsTable">
@@ -40,6 +41,7 @@
                         <th>Date</th>
                         <th>Earned</th>
                         <th>Redeemed</th>
+                        <th>Balance</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -51,6 +53,9 @@
         <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
     </footer>
 
+    <script src="js/data.js"></script>
+    <script src="js/global.js"></script>
     <script src="js/points.js"></script>
 </body>
+
 </html>

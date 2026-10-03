@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,24 +9,26 @@
     <link rel="stylesheet" href="css/course.css">
     <link rel="stylesheet" href="css/responsive.css">
 </head>
+
 <body>
-    <header class="navbar">
-        <div class="logo">
-            <img src="assets/logo.png" alt="SheSparks">
-            <h1>Courses</h1>
-        </div>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="booking.html">Booking</a>
-            <a href="trainer.html">Trainers</a>
-            <a href="course.html" class="active">Courses</a>
-            <a href="points.html">Points</a>
-            <a href="rewards.html">Rewards</a>
-        </nav>
-    </header>
+    <header class="navbar" id="navbar"></header>
 
     <main>
         <h2 class="section-title">Available Courses</h2>
+        <p class="section-subtitle">Choose from our curated selection of women-only sports courses</p>
+
+        <!-- Filter by Level -->
+        <div class="filters">
+            <label>Level
+                <select id="levelFilter" onchange="filterCourses()">
+                    <option value="">All Levels</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                </select>
+            </label>
+        </div>
+
         <div id="course-list" class="course-list"></div>
     </main>
 
@@ -33,6 +36,9 @@
         <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
     </footer>
 
+    <script src="js/data.js"></script>
+    <script src="js/global.js"></script>
     <script src="js/course.js"></script>
 </body>
+
 </html>

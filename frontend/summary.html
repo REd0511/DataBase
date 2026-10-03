@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking - Summary</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/booking-flow.css"> <!-- ← ต้องมีไฟล์นี้ด้วย! -->
+    <link rel="stylesheet" href="css/summary.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body>
+    <header class="navbar" id="navbar"></header>
+
+    <main>
+        <h2 class="section-title">Booking Summary</h2>
+        <div class="steps">
+            <div class="step done"><span>1</span> Studio</div>
+            <div class="step done"><span>2</span> Sport</div>
+            <div class="step done"><span>3</span> Room</div>
+            <div class="step active"><span>4</span> Summary</div>
+        </div>
+
+        <section class="flow-section">
+            <button class="btn-back" onclick="goBack()">← Back to Rooms</button>
+
+            <div class="summary-card" id="summary-card"></div>
+
+            <div class="trainer-option">
+                <h3>Do you want a Trainer?</h3>
+                <div class="trainer-option-buttons">
+                    <button class="btn-secondary" onclick="addTrainer(false)">No, thanks</button>
+                    <button class="btn-primary" onclick="addTrainer(true)">Yes, add Trainer</button>
+                </div>
+            </div>
+
+            <div class="confirm-section hidden" id="confirm-section">
+                <button class="btn-primary" onclick="confirmBooking()">Confirm Booking</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/global.js"></script>
+    <script src="js/booking-flow.js"></script>
+    <script src="js/summary.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,64 @@
+/* ============================================
+   Summary Page
+   ============================================ */
+
+.summary-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.summary-card h3 {
+  color: var(--pink-deep);
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.summary-card p {
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.summary-card p strong {
+  color: var(--text-mid);
+  font-weight: 500;
+}
+
+.trainer-option {
+  background: var(--pink-bg);
+  border: 1px dashed var(--pink-main);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.trainer-option h3 {
+  color: var(--pink-deep);
+  margin-bottom: 16px;
+}
+
+.trainer-option-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.confirm-section {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.confirm-section .btn-primary {
+  padding: 16px 50px;
+  font-size: 1.05rem;
+}

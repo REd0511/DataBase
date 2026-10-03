@@ -3,59 +3,98 @@
    ============================================ */
 
 .login-wrapper {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, var(--pink-soft), var(--pink-bg), var(--gold-soft));
-    padding: 24px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    var(--pink-soft),
+    var(--pink-bg),
+    var(--gold-soft)
+  );
+  padding: 24px;
 }
 
 .login-container {
-    width: 100%;
-    max-width: 420px;
-    background: var(--white);
-    padding: 48px 40px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    border: 1px solid var(--border);
+  width: 100%;
+  max-width: 420px;
+  background: var(--white);
+  padding: 48px 40px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
 }
 
 .login-container h2 {
-    text-align: center;
-    color: var(--pink-deep);
-    margin-bottom: 8px;
-    font-size: 1.8rem;
+  text-align: center;
+  color: var(--pink-deep);
+  margin-bottom: 8px;
+  font-size: 1.8rem;
 }
 
 .login-container .subtitle {
-    text-align: center;
-    color: var(--text-mid);
-    font-size: 0.9rem;
-    margin-bottom: 28px;
+  text-align: center;
+  color: var(--text-mid);
+  font-size: 0.9rem;
+  margin-bottom: 28px;
 }
 
 .login-container label {
-    margin-top: 16px;
+  margin-top: 16px;
 }
 
 .login-container button {
-    width: 100%;
-    margin-top: 24px;
-    padding: 14px;
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px;
 }
 
 .hint {
-    margin-top: 24px;
-    padding: 14px;
-    background: var(--pink-bg);
-    border-radius: var(--radius-sm);
-    font-size: 0.85rem;
-    color: var(--text-mid);
-    text-align: center;
-    border: 1px dashed var(--pink-main);
+  margin-top: 24px;
+  padding: 14px;
+  background: var(--pink-bg);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  text-align: center;
+  border: 1px dashed var(--pink-main);
 }
 
 .hint strong {
-    color: var(--pink-deep);
+  color: var(--pink-deep);
+}
+
+/* ============================================
+   Login Page - Enhanced Form
+   ============================================ */
+
+.login-container .form-group {
+  margin-bottom: 18px;
+}
+
+.login-container input {
+  padding: 14px 18px;
+  font-size: 1rem;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--pink-bg);
+  transition: all 0.25s ease;
+}
+
+.login-container input:focus {
+  background: var(--white);
+  border-color: var(--pink-main);
+  box-shadow: 0 0 0 4px var(--pink-soft);
+}
+
+.login-container input::placeholder {
+  color: #c9b5bd;
+}
+
+.login-container label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--pink-deep);
+  margin-bottom: 6px;
 }

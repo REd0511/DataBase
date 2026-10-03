@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,24 +9,26 @@
     <link rel="stylesheet" href="css/rewards.css">
     <link rel="stylesheet" href="css/responsive.css">
 </head>
+
 <body>
-    <header class="navbar">
-        <div class="logo">
-            <img src="assets/logo.png" alt="SheSparks">
-            <h1>Rewards</h1>
-        </div>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="booking.html">Booking</a>
-            <a href="trainer.html">Trainers</a>
-            <a href="course.html">Courses</a>
-            <a href="points.html">Points</a>
-            <a href="rewards.html" class="active">Rewards</a>
-        </nav>
-    </header>
+    <header class="navbar" id="navbar"></header>
 
     <main>
         <h2 class="section-title">Redeem Your Points</h2>
+        <p class="section-subtitle">Turn your hard work into beautiful rewards</p>
+
+        <!-- Filter by Category -->
+        <div class="filters">
+            <label>Category
+                <select id="categoryFilter" onchange="filterRewards()">
+                    <option value="">All Categories</option>
+                    <option value="Beauty">Beauty</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Discount">Discount</option>
+                </select>
+            </label>
+        </div>
+
         <div id="reward-list" class="reward-list"></div>
     </main>
 
@@ -33,6 +36,9 @@
         <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
     </footer>
 
-    <script src="js/main.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/global.js"></script>
+    <script src="js/rewards.js"></script>
 </body>
+
 </html>

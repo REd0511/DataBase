@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking - Select Room</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/booking-flow.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body>
+    <header class="navbar" id="navbar"></header>
+
+    <main>
+        <h2 class="section-title">Book Your Room</h2>
+        <div class="steps">
+            <div class="step done"><span>1</span> Studio</div>
+            <div class="step done"><span>2</span> Sport</div>
+            <div class="step active"><span>3</span> Room</div>
+            <div class="step"><span>4</span> Summary</div>
+        </div>
+
+        <section class="flow-section">
+            <button class="btn-back" onclick="goBack()">← Back to Sports</button>
+            <h3 class="flow-title">Select a Room</h3>
+            <p class="flow-subtitle" id="selected-sport-label"></p>
+
+            <div class="filters">
+                <label>Date <input type="date" id="filterDate"></label>
+                <label>Time
+                    <select id="filterTime">
+                        <option value="">Any</option>
+                        <option value="08:00">08:00</option>
+                        <option value="09:00">09:00</option>
+                        <option value="10:00">10:00</option>
+                        <option value="11:00">11:00</option>
+                        <option value="12:00">12:00</option>
+                        <option value="13:00">13:00</option>
+                        <option value="14:00">14:00</option>
+                        <option value="15:00">15:00</option>
+                        <option value="16:00">16:00</option>
+                        <option value="17:00">17:00</option>
+                        <option value="18:00">18:00</option>
+                        <option value="19:00">19:00</option>
+                    </select>
+                </label>
+                <label>Capacity
+                    <select id="filterCapacity">
+                        <option value="">Any</option>
+                        <option value="10">≤ 10</option>
+                        <option value="20">≤ 20</option>
+                        <option value="30">≤ 30</option>
+                    </select>
+                </label>
+                <button class="btn-primary" onclick="applyFilters()">Search</button>
+            </div>
+
+            <div class="room-list" id="room-list"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/global.js"></script>
+    <script src="js/booking-flow.js"></script>
+</body>
+
+</html>
