@@ -2,36 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Courses - SheSparks</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/course.css">
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
-    <!-- ============================================
-         FEATURES:
-         - แสดงคอร์สเรียน (Mock Data)
-         - แสดง Level (Beginner/Intermediate/Advanced)
-         - ปุ่ม "สมัครเรียน"
-         - TODO: เชื่อมกับ API /api/courses และ /api/enrollments
-         ============================================ -->
     <header class="navbar">
         <div class="logo">
-            <img src="assets/logo.png" alt="SheSparks" width="50">
+            <img src="assets/logo.png" alt="SheSparks">
             <h1>Courses</h1>
         </div>
         <nav>
             <a href="index.html">Home</a>
             <a href="booking.html">Booking</a>
             <a href="trainer.html">Trainers</a>
-            <a href="course.html">Courses</a>
+            <a href="course.html" class="active">Courses</a>
             <a href="points.html">Points</a>
             <a href="rewards.html">Rewards</a>
         </nav>
     </header>
 
     <main>
-        <h2>Available Courses</h2>
+        <h2 class="section-title">Available Courses</h2>
         <div id="course-list" class="course-list"></div>
     </main>
+
+    <footer>
+        <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
+    </footer>
 
     <script src="js/course.js"></script>
 </body>

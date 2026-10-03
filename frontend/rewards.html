@@ -2,35 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rewards - SheSparks</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/rewards.css">
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
-    <!-- ============================================
-         FEATURES:
-         - แสดงรายการรางวัล/คูปอง (Mock Data)
-         - แสดงแต้มที่ต้องใช้แลก
-         - ปุ่ม "แลกรางวัล"
-         - TODO: เชื่อมกับ API /api/rewards และ /api/redemptions
-         ============================================ -->
     <header class="navbar">
         <div class="logo">
-            <img src="assets/logo.png" alt="SheSparks" width="50">
+            <img src="assets/logo.png" alt="SheSparks">
             <h1>Rewards</h1>
         </div>
         <nav>
             <a href="index.html">Home</a>
             <a href="booking.html">Booking</a>
+            <a href="trainer.html">Trainers</a>
             <a href="course.html">Courses</a>
             <a href="points.html">Points</a>
-            <a href="rewards.html">Rewards</a>
+            <a href="rewards.html" class="active">Rewards</a>
         </nav>
     </header>
 
     <main>
-        <h2>Redeem Your Points</h2>
+        <h2 class="section-title">Redeem Your Points</h2>
         <div id="reward-list" class="reward-list"></div>
     </main>
+
+    <footer>
+        <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
+    </footer>
 
     <script src="js/main.js"></script>
 </body>

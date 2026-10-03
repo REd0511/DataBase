@@ -1,31 +1,64 @@
 /* ============================================
    Responsive Styles
-   FEATURES:
-   - ปรับ layout สำหรับมือถือ/แท็บเล็ต
    ============================================ */
+
+@media (max-width: 992px) {
+    .hero h2 { font-size: 2.4rem; }
+    .navbar { padding: 14px 20px; }
+    .navbar nav a { padding: 6px 10px; font-size: 0.88rem; }
+}
 
 @media (max-width: 768px) {
     .navbar {
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
+        padding: 16px;
     }
 
-    .navbar nav a {
-        margin: 0 10px;
-        font-size: 0.9rem;
+    .navbar nav {
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
-    .hero h2 {
-        font-size: 1.8rem;
-    }
+    .hero { padding: 60px 20px 80px; }
+    .hero h2 { font-size: 1.9rem; }
+    .hero p { font-size: 1rem; }
 
-    .features {
+    .features,
+    .room-list,
+    .trainer-list,
+    .course-list,
+    .reward-list,
+    .summary-cards {
         grid-template-columns: 1fr;
         padding: 20px;
     }
 
-    .room-list, .trainer-list, .course-list, .reward-list {
-        grid-template-columns: 1fr;
-        padding: 15px;
+    .filters {
+        margin: 16px;
+        padding: 16px;
     }
+
+    .points-card,
+    .report,
+    .points-table-wrap {
+        margin-left: 16px;
+        margin-right: 16px;
+        padding: 24px;
+    }
+
+    table { font-size: 0.85rem; }
+    th, td { padding: 10px 12px; }
+}
+
+@media (max-width: 480px) {
+    .hero h2 { font-size: 1.6rem; }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+
+    .points-card .points-value { font-size: 2.5rem; }
 }

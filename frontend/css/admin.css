@@ -1,0 +1,53 @@
+/* ============================================
+   Admin Dashboard
+   ============================================ */
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 30px 40px;
+}
+
+.summary-cards .card {
+    text-align: center;
+}
+
+.summary-cards .card h3 {
+    font-size: 0.9rem;
+    color: var(--text-mid);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.summary-cards .card p {
+    font-size: 2rem;
+    font-family: 'Playfair Display', serif;
+    color: var(--pink-deep);
+    font-weight: 700;
+}
+
+.report {
+    margin: 30px 40px;
+    padding: 30px;
+    background: var(--white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
+.report h2 {
+    color: var(--pink-deep);
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+}
+
+.report .filters {
+    margin: 0 0 20px;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+    background: transparent;
+}

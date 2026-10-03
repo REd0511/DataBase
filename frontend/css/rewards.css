@@ -1,0 +1,56 @@
+/* ============================================
+   Rewards Page
+   ============================================ */
+
+.reward-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    padding: 20px 40px 60px;
+}
+
+.reward-card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: 28px 24px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.reward-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--gold);
+}
+
+.reward-card .category {
+    display: inline-block;
+    background: var(--gold-soft);
+    color: var(--pink-deep);
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.reward-card h3 {
+    color: var(--pink-deep);
+    font-size: 1.15rem;
+    margin-bottom: 8px;
+}
+
+.reward-card .points {
+    font-size: 1.3rem;
+    color: var(--gold);
+    font-weight: 600;
+    margin: 12px 0;
+    font-family: 'Playfair Display', serif;
+}
+
+.reward-card .btn-primary {
+    width: 100%;
+    margin-top: 10px;
+}

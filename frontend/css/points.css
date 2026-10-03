@@ -1,0 +1,37 @@
+/* ============================================
+   Points Page
+   ============================================ */
+
+.points-card {
+    background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
+    color: var(--white);
+    padding: 40px;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    margin: 30px 40px;
+    box-shadow: var(--shadow-md);
+}
+
+.points-card h3 {
+    color: var(--white);
+    font-size: 1.1rem;
+    font-weight: 400;
+    opacity: 0.9;
+    margin-bottom: 12px;
+}
+
+.points-card .points-value {
+    font-size: 3.5rem;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+}
+
+.points-table-wrap {
+    margin: 0 40px 60px;
+}
+
+.points-table-wrap h3 {
+    color: var(--pink-deep);
+    margin-bottom: 16px;
+    font-size: 1.2rem;
+}

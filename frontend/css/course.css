@@ -1,0 +1,56 @@
+/* ============================================
+   Course Page
+   ============================================ */
+
+.course-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    padding: 20px 40px 60px;
+}
+
+.course-card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: 28px 24px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.course-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--pink-main);
+}
+
+.course-card h3 {
+    color: var(--pink-deep);
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+}
+
+.course-card .level {
+    display: inline-block;
+    background: var(--pink-soft);
+    color: var(--pink-deep);
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.course-card .fee {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--gold);
+    margin: 12px 0;
+    font-family: 'Playfair Display', serif;
+}
+
+.course-card .btn-primary {
+    width: 100%;
+    margin-top: 10px;
+}

@@ -2,35 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - SheSparks</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
-    <!-- ============================================
-         FEATURES:
-         - ฟอร์ม Login (Member ID + Password)
-         - ใช้ Hardcode User (Prototype)
-         - เมื่อ Login สำเร็จ → Redirect ตาม Role
-         - Member → booking.html
-         - Admin → admin.html (ถ้ามี)
-         - ไม่เชื่อมต่อ Database จริง (ตาม Out of Scope)
-         ============================================ -->
-    <div class="login-container">
-        <h2>Login to SheSparks</h2>
-        <form id="loginForm">
-            <label for="memberId">Member ID</label>
-            <input type="text" id="memberId" placeholder="M001" required>
+    <div class="login-wrapper">
+        <div class="login-container">
+            <h2>Login to SheSparks</h2>
+            <p class="subtitle">Welcome back, beautiful soul ✨</p>
 
-            <label for="password">Password</label>
-            <input type="password" id="password" placeholder="1234" required>
+            <form id="loginForm">
+                <label for="memberId">Member ID</label>
+                <input type="text" id="memberId" placeholder="M001" required>
 
-            <button type="submit" class="btn-primary">Login</button>
-        </form>
-        <p class="hint">
-            <strong>Prototype Users:</strong><br>
-            Member: M001 / 1234<br>
-            Admin: A001 / admin
-        </p>
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="1234" required>
+
+                <button type="submit" class="btn-primary">Login</button>
+            </form>
+
+            <div class="hint">
+                <strong>Prototype Users:</strong><br>
+                Member: M001 / 1234<br>
+                Admin: A001 / admin
+            </div>
+        </div>
     </div>
 
     <script src="js/main.js"></script>

@@ -1,0 +1,64 @@
+/* ============================================
+   Home Page
+   ============================================ */
+
+.hero {
+    text-align: center;
+    padding: 100px 24px 120px;
+    background: linear-gradient(135deg, var(--pink-soft) 0%, var(--pink-bg) 60%, var(--gold-soft) 100%);
+}
+
+.hero h2 {
+    font-size: 3rem;
+    color: var(--pink-deep);
+    margin-bottom: 18px;
+    font-weight: 700;
+}
+
+.hero p {
+    font-size: 1.1rem;
+    color: var(--text-mid);
+    max-width: 680px;
+    margin: 0 auto 32px;
+}
+
+.hero .btn-primary {
+    font-size: 1.05rem;
+    padding: 16px 40px;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    padding: 60px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.feature-card {
+    background: var(--white);
+    padding: 32px 24px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--pink-main);
+}
+
+.feature-card h3 {
+    font-size: 1.3rem;
+    color: var(--pink-deep);
+    margin-bottom: 10px;
+}
+
+.feature-card p {
+    color: var(--text-mid);
+    font-size: 0.92rem;
+}

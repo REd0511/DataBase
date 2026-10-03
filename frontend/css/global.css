@@ -1,0 +1,264 @@
+/* ============================================
+   SheSparks Wellness - Global Styles
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap');
+
+:root {
+    /* Primary Pink */
+    --pink-main: #d9738f;
+    --pink-soft: #f8d7e0;
+    --pink-bg: #fdf5f7;
+    --pink-deep: #b04e6e;
+
+    /* Accent Gold */
+    --gold: #d4af7a;
+    --gold-soft: #f1e0c4;
+
+    /* Neutral */
+    --white: #ffffff;
+    --text-dark: #3b2b30;
+    --text-mid: #7a6670;
+    --border: #f0dfe5;
+
+    /* Functional */
+    --success: #7ebc89;
+    --warning: #e0b45e;
+    --danger: #d97a7a;
+
+    /* Shadows & Radius */
+    --shadow-sm: 0 2px 8px rgba(217, 115, 143, 0.08);
+    --shadow-md: 0 6px 20px rgba(217, 115, 143, 0.12);
+    --shadow-lg: 0 12px 32px rgba(217, 115, 143, 0.16);
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--pink-bg);
+    color: var(--text-dark);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Playfair Display', serif;
+    color: var(--text-dark);
+    letter-spacing: 0.3px;
+}
+
+/* ========== Navbar ========== */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--white);
+    padding: 16px 40px;
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border);
+}
+
+.navbar .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.navbar .logo img {
+    height: 42px;
+}
+
+.navbar .logo h1 {
+    font-size: 1.4rem;
+    color: var(--pink-deep);
+    font-weight: 700;
+}
+
+.navbar nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.navbar nav a {
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    transition: all 0.25s ease;
+}
+
+.navbar nav a:hover {
+    background: var(--pink-soft);
+    color: var(--pink-deep);
+}
+
+.navbar nav a.active {
+    background: var(--pink-main);
+    color: var(--white);
+}
+
+/* ========== Buttons ========== */
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 26px;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
+    color: var(--white);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+    background: var(--white);
+    color: var(--pink-deep);
+    border: 1.5px solid var(--pink-main);
+}
+
+.btn-secondary:hover {
+    background: var(--pink-soft);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: var(--white);
+}
+
+.btn-login {
+    background: var(--pink-main) !important;
+    color: var(--white) !important;
+    padding: 8px 20px !important;
+    border-radius: 50px;
+}
+
+/* ========== Cards ========== */
+.card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: 28px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+/* ========== Forms ========== */
+input, select, textarea {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    color: var(--text-dark);
+    width: 100%;
+    transition: border-color 0.25s;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--pink-main);
+    box-shadow: 0 0 0 3px var(--pink-soft);
+}
+
+label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--text-mid);
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* ========== Tables ========== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+th {
+    background: var(--pink-soft);
+    color: var(--pink-deep);
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.92rem;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover td {
+    background: var(--pink-bg);
+}
+
+/* ========== Footer ========== */
+footer {
+    text-align: center;
+    padding: 30px 20px;
+    background: var(--white);
+    color: var(--text-mid);
+    margin-top: 60px;
+    border-top: 1px solid var(--border);
+    font-size: 0.9rem;
+}
+
+/* ========== Utility ========== */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    color: var(--pink-deep);
+    margin-bottom: 24px;
+    text-align: center;
+}

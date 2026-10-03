@@ -2,34 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - SheSparks</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
-    <!-- ============================================
-         FEATURES:
-         - Summary Cards (Total Members, Bookings, Revenue, Points)
-         - Report 1: Available rooms/equipment/trainers
-         - Report 2: Member points and redemption stats
-         - Report 3: Popular courses + monthly revenue
-         - Reward Catalog (CRUD)
-         - Booking List
-         - TODO: Connect to API /api/admin/*
-         ============================================ -->
     <header class="navbar">
         <div class="logo">
-            <img src="assets/logo.png" alt="SheSparks" width="50">
+            <img src="assets/logo.png" alt="SheSparks">
             <h1>Admin Dashboard</h1>
         </div>
         <nav>
-            <a href="admin.html">Dashboard</a>
+            <a href="admin.html" class="active">Dashboard</a>
             <a href="#" onclick="logout()">Logout</a>
         </nav>
     </header>
 
     <main>
-        <!-- Summary Cards -->
         <section class="summary-cards">
             <div class="card">
                 <h3>Total Members</h3>
@@ -49,7 +40,6 @@
             </div>
         </section>
 
-        <!-- Report 3: Popular Courses -->
         <section class="report">
             <h2>Report 3: Popular Courses</h2>
             <table id="popularCoursesTable">
@@ -60,23 +50,21 @@
                         <th>Revenue</th>
                     </tr>
                 </thead>
-                <tbody><!-- render ด้วย JS --></tbody>
+                <tbody></tbody>
             </table>
         </section>
 
-        <!-- Report 1: Available Rooms -->
         <section class="report">
             <h2>Report 1: Available Rooms</h2>
             <div class="filters">
-                <label>Date: <input type="date" id="adminDate"></label>
-                <label>Start: <input type="time" id="adminStart"></label>
-                <label>End: <input type="time" id="adminEnd"></label>
+                <label>Date <input type="date" id="adminDate"></label>
+                <label>Start <input type="time" id="adminStart"></label>
+                <label>End <input type="time" id="adminEnd"></label>
                 <button class="btn-primary" onclick="loadAvailableRooms()">Search</button>
             </div>
             <div id="availableRoomsList" class="room-list"></div>
         </section>
 
-        <!-- Report 2: Member Points Summary -->
         <section class="report">
             <h2>Report 2: Member Points Summary</h2>
             <table id="memberPointsTable">
@@ -88,17 +76,20 @@
                         <th>Balance</th>
                     </tr>
                 </thead>
-                <tbody><!-- render ด้วย JS --></tbody>
+                <tbody></tbody>
             </table>
         </section>
 
-        <!-- Reward Catalog -->
         <section class="report">
             <h2>Reward Catalog</h2>
             <button class="btn-primary" onclick="alert('TODO: Add reward form')">+ Add Reward</button>
             <div id="adminRewardList" class="reward-list"></div>
         </section>
     </main>
+
+    <footer>
+        <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
+    </footer>
 
     <script src="js/admin.js"></script>
 </body>
