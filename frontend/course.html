@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Courses - SheSparks</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- ============================================
+         FEATURES:
+         - แสดงคอร์สเรียน (Mock Data)
+         - แสดง Level (Beginner/Intermediate/Advanced)
+         - ปุ่ม "สมัครเรียน"
+         - TODO: เชื่อมกับ API /api/courses และ /api/enrollments
+         ============================================ -->
+    <header class="navbar">
+        <div class="logo">
+            <img src="assets/logo.png" alt="SheSparks" width="50">
+            <h1>Courses</h1>
+        </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="booking.html">Booking</a>
+            <a href="trainer.html">Trainers</a>
+            <a href="course.html">Courses</a>
+            <a href="points.html">Points</a>
+            <a href="rewards.html">Rewards</a>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Available Courses</h2>
+        <div id="course-list" class="course-list"></div>
+    </main>
+
+    <script src="js/course.js"></script>
+</body>
+</html>

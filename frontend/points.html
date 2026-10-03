@@ -1,1 +1,51 @@
- , reward.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Points - SheSparks</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- ============================================
+         FEATURES:
+         - แสดงแต้มสะสมของสมาชิก (Mock Data)
+         - แสดงประวัติการได้/ใช้แต้ม
+         - ปุ่มไปหน้า Rewards
+         - TODO: เชื่อมกับ API /api/points/:memberId
+         ============================================ -->
+    <header class="navbar">
+        <div class="logo">
+            <img src="assets/logo.png" alt="SheSparks" width="50">
+            <h1>My Points</h1>
+        </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="booking.html">Booking</a>
+            <a href="course.html">Courses</a>
+            <a href="points.html">Points</a>
+            <a href="rewards.html">Rewards</a>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Your Loyalty Points</h2>
+        <div class="points-card">
+            <h3>Total Points: <span id="totalPoints">0</span></h3>
+        </div>
+
+        <h3>Transaction History</h3>
+        <table id="pointsTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Earned</th>
+                    <th>Redeemed</th>
+                </tr>
+            </thead>
+            <tbody><!-- render ด้วย JS --></tbody>
+        </table>
+    </main>
+
+    <script src="js/points.js"></script>
+</body>
+</html>

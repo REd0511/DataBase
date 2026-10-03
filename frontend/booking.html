@@ -1,1 +1,58 @@
- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking - SheSparks</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <!-- ============================================
+         FEATURES:
+         - แสดงรายการห้องซ้อม (Mock Data)
+         - เลือกวันที่, เวลา, ประเภทกีฬา
+         - ปุ่ม "จอง" สำหรับแต่ละห้อง
+         - TODO: เชื่อมกับ API /api/rooms และ /api/bookings
+         ============================================ -->
+    <header class="navbar">
+        <div class="logo">
+            <img src="assets/logo.png" alt="SheSparks" width="50">
+            <h1>Booking</h1>
+        </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="booking.html">Booking</a>
+            <a href="trainer.html">Trainers</a>
+            <a href="course.html">Courses</a>
+            <a href="points.html">Points</a>
+            <a href="rewards.html">Rewards</a>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Available Rooms</h2>
+
+        <div class="filters">
+            <label>Date: <input type="date" id="bookingDate"></label>
+            <label>Start: <input type="time" id="startTime"></label>
+            <label>End: <input type="time" id="endTime"></label>
+            <label>Sport:
+                <select id="sportType">
+                    <option value="">All</option>
+                    <option value="Yoga">Yoga</option>
+                    <option value="Pilates">Pilates</option>
+                    <option value="Boxing">Boxing</option>
+                    <option value="Badminton">Badminton</option>
+                </select>
+            </label>
+        </div>
+
+        <div id="room-list" class="room-list">
+            <!-- ห้องจะถูก render ด้วย JavaScript -->
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/booking.js"></script>
+</body>
+</html>
