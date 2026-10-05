@@ -23,14 +23,16 @@
 
 .filters label {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
   font-size: 0.85rem;
   color: var(--text-mid);
   min-width: 180px;
 }
 
 .filters select {
-  margin-top: 6px;
+  margin-top: 0;
 }
 
 /* Course Grid */
@@ -132,4 +134,18 @@
 .course-card .btn-primary {
   width: 100%;
   margin-top: auto;
+}
+
+@media (max-width: 768px) {
+  .course-list {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .filters {
+    margin: 16px;
+    padding: 16px;
+  }
 }

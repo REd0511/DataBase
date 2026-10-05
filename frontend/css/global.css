@@ -1,19 +1,18 @@
 /* ============================================
-   SheSparks Wellness - Global Styles
-   Theme: Luxury Pink & White (from Logo)
+   SheSparks Wellness - Global Styles & Variables
    ============================================ */
 
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap");
 
 :root {
-  /* Primary Pink (from Logo) */
-  --pink-main: #f4b8d0; /* Soft, elegant pink */
-  --pink-soft: #fce4ec; /* Very light pink background */
-  --pink-bg: #fff9fb; /* Almost white with pink tint */
-  --pink-deep: #d6739a; /* Deeper pink for headings */
-  --pink-accent: #e89bb5; /* For buttons/hover */
+  /* Primary Pink */
+  --pink-main: #f4b8d0;
+  --pink-soft: #fce4ec;
+  --pink-bg: #fff9fb;
+  --pink-deep: #d6739a;
+  --pink-accent: #e89bb5;
 
-  /* Accent Gold/Beige (from logo's 'by PorWoPor') */
+  /* Accent Gold */
   --gold: #d4af7a;
   --gold-soft: #f1e0c4;
 
@@ -66,314 +65,6 @@ h4 {
   letter-spacing: 0.3px;
 }
 
-/* ========== Navbar ========== */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--white);
-  padding: 12px 40px;
-  box-shadow: var(--shadow-sm);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  border-bottom: 1px solid var(--border);
-}
-
-.navbar .logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
-}
-
-.navbar .logo img {
-  height: 70px;
-}
-
-.navbar nav {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.navbar nav a {
-  color: var(--text-dark);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.95rem;
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
-  transition: all 0.25s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 38px;
-}
-
-.navbar nav a:hover {
-  background: var(--pink-soft);
-  color: var(--pink-deep);
-}
-
-.navbar nav a.active {
-  background: var(--pink-main);
-  color: var(--white);
-}
-
-.navbar nav a.home-icon.active {
-  padding: 8px 10px;
-  border-radius: var(--radius-sm);
-}
-
-/* Home Icon */
-.navbar nav a.home-icon {
-  padding: 8px 10px;
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.navbar nav a.home-icon svg {
-  width: 18px;
-  height: 18px;
-  display: block;
-  stroke-width: 2;
-}
-
-/* Profile Icon */
-.profile-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--pink-soft);
-  color: var(--pink-deep);
-  font-weight: 600;
-  cursor: pointer;
-  margin-left: 10px;
-  transition: all 0.3s ease;
-  border: 2px solid var(--pink-main);
-}
-
-.profile-btn:hover {
-  background: var(--pink-main);
-  color: var(--white);
-}
-
-/* ============================================
-   Profile Popover (Top-Right)
-   ============================================ */
-
-/* Wrapper ของ profile button + popover */
-.profile-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-/* ปุ่ม Profile (วงกลม) */
-.profile-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
-  color: var(--white);
-  font-weight: 600;
-  font-size: 1rem;
-  font-family: "Playfair Display", serif;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px solid var(--white);
-  box-shadow: var(--shadow-sm);
-  user-select: none;
-}
-
-.profile-btn:hover {
-  transform: scale(1.05);
-  box-shadow: var(--shadow-md);
-}
-
-/* Popover Card */
-.profile-popover {
-  position: absolute;
-  top: calc(100% + 12px);
-  right: 0;
-  width: 300px;
-  background: var(--white);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--border);
-  padding: 20px;
-  z-index: 2000;
-
-  /* Animation */
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-8px);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
-}
-
-.profile-popover.active {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-  pointer-events: auto;
-}
-
-/* Arrow (สามเหลี่ยมชี้ขึ้นไปที่ปุ่ม) */
-.profile-popover::before {
-  content: "";
-  position: absolute;
-  top: -8px;
-  right: 16px;
-  width: 14px;
-  height: 14px;
-  background: var(--white);
-  border-left: 1px solid var(--border);
-  border-top: 1px solid var(--border);
-  transform: rotate(45deg);
-}
-
-/* Header ของ popover */
-.profile-popover .popover-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 16px;
-}
-
-.profile-popover .avatar-small {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
-  color: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  font-weight: 700;
-  font-family: "Playfair Display", serif;
-  flex-shrink: 0;
-}
-
-.profile-popover .user-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.profile-popover .user-info h4 {
-  font-size: 1rem;
-  color: var(--pink-deep);
-  margin-bottom: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.profile-popover .user-info p {
-  font-size: 0.78rem;
-  color: var(--text-mid);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Points Box */
-.profile-popover .popover-points {
-  background: var(--pink-bg);
-  border: 1px dashed var(--pink-main);
-  border-radius: var(--radius-sm);
-  padding: 12px 16px;
-  margin-bottom: 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.profile-popover .popover-points span {
-  font-size: 0.8rem;
-  color: var(--text-mid);
-}
-
-.profile-popover .popover-points .points-value {
-  font-size: 1.2rem;
-  font-family: "Playfair Display", serif;
-  font-weight: 700;
-  color: var(--pink-deep);
-}
-
-/* Menu Links */
-.profile-popover .popover-links {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 12px;
-}
-
-.profile-popover .popover-links a {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-  color: var(--text-dark);
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-}
-
-.profile-popover .popover-links a:hover {
-  background: var(--pink-soft);
-  color: var(--pink-deep);
-}
-
-.profile-popover .popover-links a svg {
-  width: 16px;
-  height: 16px;
-  stroke: currentColor;
-  flex-shrink: 0;
-}
-
-/* Logout Button */
-.profile-popover .btn-logout {
-  width: 100%;
-  padding: 10px;
-  background: transparent;
-  color: var(--danger);
-  border: 1.5px solid var(--danger);
-  border-radius: var(--radius-sm);
-  font-family: "Poppins", sans-serif;
-  font-weight: 500;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.profile-popover .btn-logout:hover {
-  background: var(--danger);
-  color: var(--white);
-}
-
-/* Responsive */
-@media (max-width: 480px) {
-  .profile-popover {
-    width: 260px;
-    right: -8px;
-  }
-}
-
 /* ========== Buttons ========== */
 .btn-primary,
 .btn-secondary,
@@ -414,7 +105,7 @@ h4 {
   background: var(--pink-soft);
 }
 
-/* ========== Footer ========== */
+/* ========== Layout Basics ========== */
 footer {
   text-align: center;
   padding: 20px;
@@ -422,10 +113,10 @@ footer {
   color: var(--text-mid);
   border-top: 1px solid var(--border);
   font-size: 0.9rem;
-  margin-top: auto; /* Fix footer at bottom */
+  margin-top: auto;
 }
 
-/* ========== Utility ========== */
+/* ========== Utilities ========== */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -444,129 +135,12 @@ footer {
 }
 
 /* ============================================
-   Enhanced Form Inputs
+   Responsive: Global Elements (Buttons)
    ============================================ */
-
-input[type="text"],
-input[type="password"],
-input[type="date"],
-input[type="time"],
-select {
-  font-family: "Poppins", sans-serif;
-  font-size: 0.95rem;
-  padding: 12px 16px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--white);
-  color: var(--text-dark);
-  width: 100%;
-  transition: all 0.25s ease;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d6739a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  background-size: 14px;
-  padding-right: 40px;
-}
-
-input[type="date"],
-input[type="time"] {
-  background-image: none;
-  padding-right: 16px;
-}
-
-input:focus,
-select:focus {
-  outline: none;
-  border-color: var(--pink-main);
-  box-shadow: 0 0 0 3px var(--pink-soft);
-}
-
-/* Custom Date/Time icon color */
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="time"]::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.2s;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator:hover,
-input[type="time"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
-}
-
-/* ============================================
-   Tables (ใช้ร่วมกันทุกหน้า)
-   ============================================ */
-
-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  background: var(--white);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border);
-}
-
-thead th {
-  background: var(--pink-soft);
-  color: var(--pink-deep);
-  padding: 16px 20px;
-  text-align: left;
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--border);
-}
-
-thead th:last-child {
-  text-align: right;
-}
-
-tbody td {
-  padding: 16px 20px;
-  font-size: 0.95rem;
-  color: var(--text-dark);
-  border-bottom: 1px solid var(--border);
-  transition: background 0.2s ease;
-}
-
-tbody td:last-child {
-  text-align: right;
-}
-
-tbody tr:last-child td {
-  border-bottom: none;
-}
-
-tbody tr:hover td {
-  background: var(--pink-bg);
-}
-
-/* Column colors (utility) */
-td.earned {
-  color: var(--success);
-  font-weight: 600;
-}
-td.redeemed {
-  color: var(--danger);
-  font-weight: 600;
-}
-td.balance {
-  color: var(--pink-deep);
-  font-weight: 700;
-  font-family: "Playfair Display", serif;
-  font-size: 1rem;
-}
-
-@media (max-width: 600px) {
-  thead th,
-  tbody td {
-    padding: 12px 10px;
-    font-size: 0.85rem;
+@media (max-width: 480px) {
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 20px;
+    font-size: 0.9rem;
   }
 }

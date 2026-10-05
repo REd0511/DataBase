@@ -115,3 +115,17 @@
   color: var(--pink-deep);
   font-weight: 600;
 }
+
+@media (max-width: 768px) {
+  .points-card,
+  .points-table-wrap {
+    margin-left: 16px;
+    margin-right: 16px;
+    padding: 24px;
+  }
+}
+@media (max-width: 480px) {
+  .points-card .points-value {
+    font-size: 2.5rem;
+  }
+}

@@ -1,0 +1,294 @@
+/* ============================================
+   Navbar & Profile Popover
+   ============================================ */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--white);
+  padding: 12px 40px;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar .logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.navbar .logo img {
+  height: 70px;
+}
+
+.navbar nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navbar nav a {
+  color: var(--text-dark);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+}
+
+.navbar nav a:hover {
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+}
+
+.navbar nav a.active {
+  background: var(--pink-main);
+  color: var(--white);
+}
+
+.navbar nav a.home-icon {
+  padding: 8px 10px;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.navbar nav a.home-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  stroke-width: 2;
+}
+
+/* Profile Popover Components */
+.profile-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
+  color: var(--white);
+  font-weight: 600;
+  font-size: 1rem;
+  font-family: "Playfair Display", serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid var(--white);
+  box-shadow: var(--shadow-sm);
+  user-select: none;
+}
+
+.profile-btn:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.profile-popover {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 300px;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  padding: 20px;
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.profile-popover.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.profile-popover::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  right: 16px;
+  width: 14px;
+  height: 14px;
+  background: var(--white);
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+
+.profile-popover .popover-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.profile-popover .avatar-small {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-family: "Playfair Display", serif;
+  flex-shrink: 0;
+}
+
+.profile-popover .user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-popover .user-info h4 {
+  font-size: 1rem;
+  color: var(--pink-deep);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-popover .user-info p {
+  font-size: 0.78rem;
+  color: var(--text-mid);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-popover .popover-points {
+  background: var(--pink-bg);
+  border: 1px dashed var(--pink-main);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-popover .popover-points span {
+  font-size: 0.8rem;
+  color: var(--text-mid);
+}
+
+.profile-popover .popover-points .points-value {
+  font-size: 1.2rem;
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  color: var(--pink-deep);
+}
+
+.profile-popover .popover-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.profile-popover .popover-links a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--text-dark);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.profile-popover .popover-links a:hover {
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+}
+
+.profile-popover .popover-links a svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  flex-shrink: 0;
+}
+
+.profile-popover .btn-logout {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  color: var(--danger);
+  border: 1.5px solid var(--danger);
+  border-radius: var(--radius-sm);
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.profile-popover .btn-logout:hover {
+  background: var(--danger);
+  color: var(--white);
+}
+/* ============================================
+   Responsive: Navbar
+   ============================================ */
+@media (max-width: 992px) {
+  .navbar {
+    padding: 14px 20px;
+  }
+  .navbar nav a {
+    padding: 6px 10px;
+    font-size: 0.88rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+  .navbar nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   Responsive: Popover
+   ============================================ */
+@media (max-width: 480px) {
+  .profile-popover {
+    width: 260px;
+    right: -8px;
+  }
+}

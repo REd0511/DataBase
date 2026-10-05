@@ -121,3 +121,34 @@
   color: var(--text-mid);
   font-size: 0.85rem;
 }
+
+/* ============================================
+   Responsive: Home Page
+   ============================================ */
+@media (max-width: 992px) {
+  .hero h2 {
+    font-size: 2.4rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 60px 20px 80px;
+  }
+  .hero h2 {
+    font-size: 1.9rem;
+  }
+  .hero p {
+    font-size: 1rem;
+  }
+  .features {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero h2 {
+    font-size: 1.6rem;
+  }
+}

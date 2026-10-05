@@ -62,3 +62,15 @@
   padding: 16px 50px;
   font-size: 1.05rem;
 }
+
+@media (max-width: 768px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+  .report {
+    margin-left: 16px;
+    margin-right: 16px;
+    padding: 24px;
+  }
+}

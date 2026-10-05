@@ -1,0 +1,87 @@
+/* ============================================
+   Data Tables
+   ============================================ */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+
+thead th {
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
+thead th:last-child {
+  text-align: right;
+}
+
+tbody td {
+  padding: 16px 20px;
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s ease;
+}
+
+tbody td:last-child {
+  text-align: right;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr:hover td {
+  background: var(--pink-bg);
+}
+
+td.earned {
+  color: var(--success);
+  font-weight: 600;
+}
+
+td.redeemed {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+td.balance {
+  color: var(--pink-deep);
+  font-weight: 700;
+  font-family: "Playfair Display", serif;
+  font-size: 1rem;
+}
+
+/* ============================================
+   Responsive: Tables
+   ============================================ */
+@media (max-width: 768px) {
+  table {
+    font-size: 0.85rem;
+  }
+  th,
+  td {
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  thead th,
+  tbody td {
+    padding: 12px 10px;
+    font-size: 0.85rem;
+  }
+}
