@@ -27,9 +27,9 @@ if (loginForm) {
       localStorage.setItem("user", JSON.stringify(user));
       alert(`Welcome, ${user.name}!`);
       if (user.role === "admin") {
-        window.location.href = "admin.html"; // TODO: admin.html
+        window.location.href = "/views/admin.html"; // TODO: /views/admin.html
       } else {
-        window.location.href = "index.html"; // TODO: index.html
+        window.location.href = "/views/index.html"; // TODO: /views/index.html
       }
     } else {
       alert("ID หรือ Password ไม่ถูกต้อง");
@@ -104,5 +104,5 @@ if (rewardList) {
 // ==================== LOGOUT (optional) ====================
 function logout() {
   localStorage.removeItem("user");
-  window.location.href = "login.html";
+  window.location.href = "/views/login.html";
 }

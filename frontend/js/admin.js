@@ -55,7 +55,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const user = JSON.parse(localStorage.getItem("user"));
   if (!user || user.role !== "admin") {
     alert("Please login as Admin");
-    window.location.href = "login.html";
+    window.location.href = "/views/login.html";
     return;
   }
   loadDashboard();

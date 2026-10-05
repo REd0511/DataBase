@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
   if (!flow || !flow.room) {
     alert("Please complete the booking flow first");
-    window.location.href = "booking.html";
+    window.location.href = "/views/booking.html";
     return;
   }
   renderSummary(flow);
@@ -30,7 +30,7 @@ function addTrainer(wantTrainer) {
   if (wantTrainer) {
     flow.wantTrainer = true;
     localStorage.setItem("bookingFlow", JSON.stringify(flow));
-    window.location.href = "trainer.html";
+    window.location.href = "/views/trainer.html";
   } else {
     flow.trainer = null;
     localStorage.setItem("bookingFlow", JSON.stringify(flow));
@@ -44,7 +44,7 @@ function confirmBooking() {
 
   if (!user) {
     alert("Please login first");
-    window.location.href = "login.html";
+    window.location.href = "/views/login.html";
     return;
   }
 
@@ -54,5 +54,5 @@ function confirmBooking() {
   );
 
   localStorage.removeItem("bookingFlow");
-  window.location.href = "points.html";
+  window.location.href = "/views/points.html";
 }

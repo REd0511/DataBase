@@ -18,8 +18,8 @@ login:
          - ฟอร์ม Login (Member ID + Password)
          - ใช้ Hardcode User (Prototype)
          - เมื่อ Login สำเร็จ → Redirect ตาม Role
-         - Member → booking.html
-         - Admin → admin.html (ถ้ามี)
+         - Member → views/booking.html
+         - Admin → views/admin.html (ถ้ามี)
          - ไม่เชื่อมต่อ Database จริง (ตาม Out of Scope)
          ============================================ -->
 

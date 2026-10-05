@@ -23,7 +23,7 @@ function renderStudios() {
 function selectStudio(code) {
   flow.studio = STUDIOS.find((s) => s.StudioCode === code);
   saveFlow();
-  window.location.href = "sport.html";
+  window.location.href = "/views/sport.html";
 }
 
 // ==================== STEP 2: SPORT ====================
@@ -52,7 +52,7 @@ function renderSports() {
 function selectSport(name) {
   flow.sport = SPORT_TYPES.find((s) => s.SportName === name);
   saveFlow();
-  window.location.href = "room.html";
+  window.location.href = "/views/room.html";
 }
 
 // ==================== STEP 3: ROOM ====================
@@ -98,7 +98,7 @@ function selectRoom(id) {
   if (time) flow.time = time;
 
   saveFlow();
-  window.location.href = "summary.html";
+  window.location.href = "/views/summary.html";
 }
 
 function applyFilters() {

@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
   if (!flow || !flow.sport) {
     alert("Please complete the booking flow first");
-    window.location.href = "booking.html";
+    window.location.href = "/views/booking.html";
     return;
   }
   renderTrainers(flow.sport.SportName);
@@ -40,12 +40,12 @@ function selectTrainer(id) {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
   flow.trainer = TRAINERS.find((t) => t.TrainerID === id);
   localStorage.setItem("bookingFlow", JSON.stringify(flow));
-  window.location.href = "summary.html";
+  window.location.href = "/views/summary.html";
 }
 
 /* ============================================
                     GO BACK 
    ============================================ */
 function goBack() {
-  window.location.href = "summary.html";
+  window.location.href = "/views/summary.html";
 }
