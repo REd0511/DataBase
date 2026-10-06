@@ -1,7 +1,7 @@
 {
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "liveServer.settings.port": 5500,
+  "liveServer.settings.port": 5501,
   "liveServer.settings.root": "/frontend",
   "files.exclude": {
     "**/node_modules": true
