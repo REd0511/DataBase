@@ -1,22 +1,15 @@
--- ใช้ Database
+CREATE DATABASE IF NOT EXISTS shesparks;
 USE shesparks;
 
 -- ============================
--- 1. ตาราง Master (ไม่มี FK)
+-- MASTER TABLES
 -- ============================
-
-CREATE TABLE MEMBER (
-    MemberID INT PRIMARY KEY AUTO_INCREMENT,
-    Name VARCHAR(100) NOT NULL,
-    Phone VARCHAR(20) UNIQUE NOT NULL,
-    DOB DATE,
-    MemberLevel ENUM('Silver','Gold','Platinum') DEFAULT 'Silver'
-);
 
 CREATE TABLE STUDIO (
     StudioCode INT PRIMARY KEY AUTO_INCREMENT,
-    Location VARCHAR(200),
-    Capacity INT
+    Location VARCHAR(200) NOT NULL,
+    Capacity INT NOT NULL,
+    NumberOfRooms INT DEFAULT 0
 );
 
 CREATE TABLE SPORT_TYPE (
@@ -35,17 +28,29 @@ CREATE TABLE REWARD_ITEM (
     RewardID INT PRIMARY KEY AUTO_INCREMENT,
     Name VARCHAR(100) NOT NULL,
     PointCost INT NOT NULL,
-    Category ENUM('Beauty','Sports','Discount') NOT NULL
+    Value DECIMAL(10,2) DEFAULT 0,
+    Category VARCHAR(30) NOT NULL
 );
 
 -- ============================
--- 2. ตารางที่มี FK ชั้นที่ 1
+-- TABLES WITH FOREIGN KEYS
 -- ============================
+
+CREATE TABLE MEMBER (
+    MemberID INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(100) NOT NULL,
+    Phone VARCHAR(20) UNIQUE NOT NULL,
+    DOB DATE,
+    MemberLevel VARCHAR(20) DEFAULT 'Silver',
+    StudioCode INT NOT NULL,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode)
+);
 
 CREATE TABLE ROOM (
     RoomID INT PRIMARY KEY AUTO_INCREMENT,
     RoomName VARCHAR(100),
-    Capacity INT CHECK (Capacity > 0),
+    Capacity INT,
     StudioCode INT,
     FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode)
 );
@@ -80,5 +85,120 @@ CREATE TABLE COURSE (
     DurationHours INT,
     StandardFee DECIMAL(10,2),
     SportTypeID INT,
+    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
+);
+
+CREATE TABLE DEPENDENT (
+    DependentID INT,
+    Name VARCHAR(100) NOT NULL,
+    Age INT,
+    Relationship VARCHAR(50),
+    TrainerID INT NOT NULL,
+    PRIMARY KEY (DependentID, TrainerID),
+    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID)
+);
+
+CREATE TABLE BOOKING (
+    BookingID INT PRIMARY KEY AUTO_INCREMENT,
+    BookingDate DATE NOT NULL,
+    StartTime TIME NOT NULL,
+    EndTime TIME NOT NULL,
+    MemberID INT NOT NULL,
+    RoomID INT NOT NULL,
+    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
+    FOREIGN KEY (RoomID) REFERENCES ROOM(RoomID)
+);
+
+CREATE TABLE PAYMENT (
+    PaymentID INT PRIMARY KEY AUTO_INCREMENT,
+    Amount DECIMAL(10,2) NOT NULL,
+    PaymentDate DATETIME NOT NULL,
+    PaymentMethod VARCHAR(30) NOT NULL,
+    BookingID INT NOT NULL UNIQUE,
+    FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID)
+);
+
+CREATE TABLE POINT_TRANSACTION (
+    TransactionID INT PRIMARY KEY AUTO_INCREMENT,
+    PointsEarned INT DEFAULT 0,
+    PointsRedeemed INT DEFAULT 0,
+    `Date` DATETIME NOT NULL,
+    PaymentID INT NOT NULL,
+    FOREIGN KEY (PaymentID) REFERENCES PAYMENT(PaymentID)
+);
+
+CREATE TABLE BOOKING_EQUIPMENT (
+    BookingID INT,
+    EquipmentID INT,
+    Quantity INT DEFAULT 1,
+    ReturnStatus VARCHAR(30) DEFAULT 'Pending',
+    PRIMARY KEY (BookingID, EquipmentID),
+    FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID),
+    FOREIGN KEY (EquipmentID) REFERENCES EQUIPMENT(EquipmentID)
+);
+
+CREATE TABLE BOOKING_TRAINER (
+    BookingID INT,
+    TrainerID INT,
+    TrainerRole VARCHAR(50),
+    HourlyRateAtBooking DECIMAL(10,2),
+    PRIMARY KEY (BookingID, TrainerID),
+    FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID),
+    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID)
+);
+
+CREATE TABLE TRAINER_QUALIFICATION (
+    TrainerID INT,
+    QualID INT,
+    DateObtained DATE,
+    ExpiryDate DATE,
+    PRIMARY KEY (TrainerID, QualID),
+    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID),
+    FOREIGN KEY (QualID) REFERENCES QUALIFICATION(QualID)
+);
+
+CREATE TABLE TRAINER_COURSE (
+    TrainerID INT,
+    CourseID INT,
+    AssignedDate DATE NOT NULL,
+    TeachingRole VARCHAR(50),
+    PRIMARY KEY (TrainerID, CourseID),
+    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID),
+    FOREIGN KEY (CourseID) REFERENCES COURSE(CourseID)
+);
+
+CREATE TABLE ENROLLMENT (
+    MemberID INT,
+    CourseID INT,
+    EnrollmentDate DATE NOT NULL,
+    PaymentStatus VARCHAR(20) DEFAULT 'Pending',
+    PRIMARY KEY (MemberID, CourseID),
+    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
+    FOREIGN KEY (CourseID) REFERENCES COURSE(CourseID)
+);
+
+CREATE TABLE REDEMPTION (
+    MemberID INT,
+    RewardID INT,
+    RedemptionDate DATE NOT NULL,
+    PointsUsed INT,
+    PRIMARY KEY (MemberID, RewardID),
+    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
+    FOREIGN KEY (RewardID) REFERENCES REWARD_ITEM(RewardID)
+);
+
+CREATE TABLE COURSE_PREREQUISITE (
+    CourseID INT,
+    PrerequisiteCourseID INT,
+    PRIMARY KEY (CourseID, PrerequisiteCourseID),
+    FOREIGN KEY (CourseID) REFERENCES COURSE(CourseID),
+    FOREIGN KEY (PrerequisiteCourseID) REFERENCES COURSE(CourseID)
+);
+
+CREATE TABLE STUDIO_SPORT_TYPE (
+    StudioCode INT,
+    SportTypeID INT,
+    PRIMARY KEY (StudioCode, SportTypeID),
+    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
     FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
 );
