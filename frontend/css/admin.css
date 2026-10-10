@@ -226,7 +226,292 @@
   margin: 4px 2px 0;
 }
 
-/* Responsive */
+/* ============================================ */
+/* Admin Tabs (NEW) */
+/* ============================================ */
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+  padding: 8px 18px;
+  border-radius: 50px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--text-dark);
+  font-family: "Poppins", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.tab-btn:hover {
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+}
+
+.tab-btn.active {
+  background: var(--pink-main);
+  color: var(--white);
+  border-color: var(--pink-main);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ============================================ */
+/* Admin Table (NEW) */
+/* ============================================ */
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.admin-table thead th {
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-table tbody td {
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table tbody tr:hover td {
+  background: var(--pink-bg);
+}
+
+.admin-table .table-thumb {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.admin-table .no-image {
+  width: 44px;
+  height: 44px;
+  background: var(--pink-bg);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-mid);
+  font-size: 0.7rem;
+  border: 1px solid var(--border);
+}
+
+.admin-table .action-btn {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-right: 4px;
+}
+
+.admin-table .btn-edit {
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+}
+
+.admin-table .btn-edit:hover {
+  background: var(--pink-main);
+  color: var(--white);
+}
+
+.admin-table .btn-delete {
+  background: #ffe5e5;
+  color: var(--danger);
+}
+
+.admin-table .btn-delete:hover {
+  background: var(--danger);
+  color: var(--white);
+}
+
+/* ============================================ */
+/* Recommend Settings (NEW) */
+/* ============================================ */
+.recommend-setting {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 0;
+}
+
+.recommend-setting label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 12px 16px;
+  background: var(--pink-bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.recommend-setting label:hover {
+  border-color: var(--pink-main);
+  background: var(--pink-soft);
+}
+
+.recommend-setting input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--pink-main);
+  cursor: pointer;
+}
+
+/* ============================================ */
+/* Modal (NEW) */
+/* ============================================ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(59, 43, 48, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  padding: 20px;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal-content {
+  transform: translateY(0);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+  color: var(--pink-deep);
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.8rem;
+  color: var(--text-mid);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: var(--danger);
+}
+
+.modal-form {
+  padding: 24px 28px 28px;
+}
+
+.modal-form .form-group {
+  margin-bottom: 18px;
+}
+
+.modal-form label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-mid);
+  margin-bottom: 6px;
+}
+
+.modal-form input,
+.modal-form select,
+.modal-form textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: "Poppins", sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+  background: var(--white);
+  transition: all 0.25s ease;
+}
+
+.modal-form input:focus,
+.modal-form select:focus,
+.modal-form textarea:focus {
+  outline: none;
+  border-color: var(--pink-main);
+  box-shadow: 0 0 0 3px var(--pink-soft);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* ============================================ */
+/* Responsive (NEW) */
+/* ============================================ */
 @media (max-width: 768px) {
   .summary-cards {
     grid-template-columns: repeat(2, 1fr);
@@ -242,6 +527,19 @@
     flex-direction: column;
     align-items: stretch;
   }
+
+  .admin-tabs {
+    justify-content: center;
+  }
+
+  .admin-table {
+    font-size: 0.8rem;
+  }
+
+  .admin-table thead th,
+  .admin-table tbody td {
+    padding: 10px 8px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -252,16 +550,13 @@
   .summary-cards .card p {
     font-size: 1.6rem;
   }
-}
 
-@media (max-width: 768px) {
-  .summary-cards {
-    grid-template-columns: 1fr;
-    padding: 20px;
+  .modal-content {
+    max-width: 100%;
   }
-  .report {
-    margin-left: 16px;
-    margin-right: 16px;
-    padding: 24px;
+
+  .modal-header,
+  .modal-form {
+    padding: 20px;
   }
 }

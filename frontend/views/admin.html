@@ -24,8 +24,7 @@
     <section class="summary-cards">
       <div class="card">
         <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
             <circle cx="9" cy="7" r="4"></circle>
             <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -37,8 +36,7 @@
       </div>
       <div class="card">
         <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="16" y1="2" x2="16" y2="6"></line>
             <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -50,8 +48,7 @@
       </div>
       <div class="card">
         <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="1" x2="12" y2="23"></line>
             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
           </svg>
@@ -61,11 +58,8 @@
       </div>
       <div class="card">
         <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <polygon
-              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-            </polygon>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
           </svg>
         </div>
         <h3>Points Redeemed</h3>
@@ -95,9 +89,7 @@
         <label>Date <input type="date" id="adminDate" /></label>
         <label>Start <input type="time" id="adminStart" /></label>
         <label>End <input type="time" id="adminEnd" /></label>
-        <button class="btn-primary" onclick="loadAvailableRooms()">
-          Search
-        </button>
+        <button class="btn-primary" onclick="loadAvailableRooms()">Search</button>
       </div>
       <div id="availableRoomsList" class="room-list"></div>
     </section>
@@ -118,20 +110,53 @@
       </table>
     </section>
 
-
-    <!-- Reward Catalog -->
+    <!-- ============================================ -->
+    <!-- Manage Content (NEW) -->
+    <!-- ============================================ -->
     <section class="report">
-      <h2>Reward Catalog</h2>
-      <button class="btn-primary" onclick="alert('TODO: Add reward form')">
-        + Add Reward
-      </button>
-      <div id="adminRewardList" class="reward-list"></div>
+      <h2>Manage Content</h2>
+      <p style="color: var(--text-mid); font-size: 0.9rem; margin-bottom: 20px;">
+        เพิ่ม / แก้ไข / ลบ ข้อมูลทั้งหมดในระบบ
+      </p>
+
+      <!-- Tabs -->
+      <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="studios" onclick="showTab('studios', event)">Studios</button>
+        <button class="tab-btn" data-tab="sports" onclick="showTab('sports', event)">Sports</button>
+        <button class="tab-btn" data-tab="rooms" onclick="showTab('rooms', event)">Rooms</button>
+        <button class="tab-btn" data-tab="courses" onclick="showTab('courses', event)">Courses</button>
+        <button class="tab-btn" data-tab="trainers" onclick="showTab('trainers', event)">Trainers</button>
+        <button class="tab-btn" data-tab="rewards" onclick="showTab('rewards', event)">Rewards</button>
+        <button class="tab-btn" data-tab="recommend" onclick="showTab('recommend', event)">Recommend</button>
+      </div>
+
+      <!-- Content -->
+      <div id="admin-content"></div>
     </section>
   </main>
 
   <footer>
     <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
   </footer>
+
+  <!-- ============================================ -->
+  <!-- Modal Form (NEW) -->
+  <!-- ============================================ -->
+  <div class="modal-overlay" id="admin-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Add Item</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <form id="admin-form" class="modal-form">
+        <div id="modal-fields"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script src="/js/data.js"></script>
   <script src="/js/global.js"></script>

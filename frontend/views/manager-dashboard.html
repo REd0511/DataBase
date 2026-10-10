@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Studio Manager Dashboard - SheSparks</title>
+    <link rel="stylesheet" href="/css/global.css" />
+    <link rel="stylesheet" href="/css/navbar.css" />
+    <link rel="stylesheet" href="/css/tables.css" />
+    <link rel="stylesheet" href="/css/manager-dashboard.css" />
+    <link rel="stylesheet" href="/css/responsive.css" />
+  </head>
+
+  <body>
+    <header class="navbar" id="navbar"></header>
+
+    <main>
+      <h2 class="section-title">Studio Manager Dashboard</h2>
+      <p class="section-subtitle">จัดการสตูดิโอของคุณได้ที่นี่ ✨</p>
+
+      <!-- Studio Profile Card -->
+      <section class="manager-profile">
+        <div class="profile-header">
+          <div class="profile-avatar" id="profile-avatar">M</div>
+          <div class="profile-info">
+            <h3 id="manager-name">-</h3>
+            <p id="manager-studio">-</p>
+            <p id="manager-location">-</p>
+            <p id="manager-sporttypes">-</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Summary Cards -->
+      <section class="summary-cards">
+        <div class="card">
+          <h3>Rooms</h3>
+          <p id="roomCount">0</p>
+        </div>
+        <div class="card">
+          <h3>Trainers</h3>
+          <p id="trainerCount">0</p>
+        </div>
+        <div class="card">
+          <h3>Today's Bookings</h3>
+          <p id="bookingCount">0</p>
+        </div>
+        <div class="card">
+          <h3>Equipment</h3>
+          <p id="equipmentCount">0</p>
+        </div>
+      </section>
+
+      <!-- Rooms Management -->
+      <section class="report">
+        <h2>Rooms in My Studio</h2>
+        <div id="roomsList" class="room-list"></div>
+      </section>
+
+      <!-- Trainers Management -->
+      <section class="report">
+        <h2>Trainers in My Studio</h2>
+        <div id="trainersList" class="trainer-list"></div>
+      </section>
+
+      <!-- Today's Bookings -->
+      <section class="report">
+        <h2>Today's Bookings</h2>
+        <table id="bookingsTable">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Room</th>
+              <th>Sport</th>
+              <th>Member</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <!-- Equipment Inventory -->
+      <section class="report">
+        <h2>Equipment Inventory</h2>
+        <table id="equipmentTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Sport</th>
+              <th>Condition</th>
+              <th>Late Fee</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </main>
+
+    <footer>
+      <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
+    </footer>
+
+    <script src="/js/data.js"></script>
+    <script src="/js/global.js"></script>
+    <script src="/js/manager-dashboard.js"></script>
+  </body>
+</html>
