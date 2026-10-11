@@ -162,43 +162,55 @@ function renderAdminContent() {
       name: (x) => x.Name,
       extra: (x) => `${x.PointCost} pts • ${x.Category} • ฿${x.Value}`,
     },
+    equipments: {
+      data: EQUIPMENTS,
+      name: (x) => x.Name,
+      extra: (x) => `${getSportName(x.SportTypeID)} • ${getStudioName(x.StudioCode)} • ${x.Condition}`,
+    },
   };
 
   const config = dataMap[currentTab];
   if (!config) return;
 
+  const data = config.data;
+
   content.innerHTML = `
-    <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
-      <button class="btn-primary" onclick="openAddForm()">+ Add New</button>
-    </div>
-    <table class="admin-table">
-      <thead>
+  <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+    <button class="btn-primary" onclick="openAddForm()">+ Add New</button>
+  </div>
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Image</th>
+        <th>Name</th>
+        <th>Details</th>
+        <th style="text-align: right;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${data.map(item => `
         <tr>
-          <th>Image</th>
-          <th>Name</th>
-          <th>Details</th>
-          <th style="text-align: right;">Actions</th>
+          <td>
+            ${item.ImageURL
+              ? `<img src="${item.ImageURL}" class="table-thumb" alt="${config.name(item)}" onerror="this.style.display='none'">`
+              : `<div class="no-image">No img</div>`}
+          </td>
+          <td><strong>${config.name(item)}</strong></td>
+          <td>
+            ${currentTab === "equipments"
+              ? `${getSportName(item.SportTypeID)} • ${getStudioName(item.StudioCode)}
+                 <br><span class="condition-badge ${item.Condition.toLowerCase()}">${item.Condition}</span>`
+              : config.extra(item)}
+          </td>
+          <td style="text-align: right;">
+            <button class="action-btn btn-edit" onclick='openEditForm(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
+            <button class="action-btn btn-delete" onclick='deleteItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Delete</button>
+          </td>
         </tr>
-      </thead>
-      <tbody>
-        ${config.data.map(item => `
-          <tr>
-            <td>
-              ${item.ImageURL
-                ? `<img src="${item.ImageURL}" class="table-thumb" alt="${config.name(item)}" onerror="this.style.display='none'">`
-                : `<div class="no-image">No img</div>`}
-            </td>
-            <td><strong>${config.name(item)}</strong></td>
-            <td>${config.extra(item)}</td>
-            <td style="text-align: right;">
-              <button class="action-btn btn-edit" onclick='openEditForm(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
-              <button class="action-btn btn-delete" onclick='deleteItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Delete</button>
-            </td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>
-  `;
+      `).join("")}
+    </tbody>
+  </table>
+`;
 }
 
 // ==================== RECOMMEND SETTINGS ====================
@@ -281,6 +293,9 @@ function renderModalFields(item) {
       break;
     case "rewards":
       html = renderRewardFields(item, isEdit);
+      break;
+    case "equipments":
+      html = renderEquipmentFields(item, isEdit);
       break;
   }
 
@@ -524,6 +539,48 @@ function renderRewardFields(item, isEdit) {
   `;
 }
 
+// ==================== EQUIPMENT FIELDS ====================
+function renderEquipmentFields(item, isEdit) {
+  return `
+    <div class="form-group">
+      <label>Equipment ID</label>
+      <input type="number" name="EquipmentID" value="${item?.EquipmentID || ""}" placeholder="1" ${isEdit ? "disabled" : ""}>
+    </div>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" name="Name" value="${item?.Name || ""}" placeholder="Yoga Mat Pro">
+    </div>
+    <div class="form-group">
+      <label>Sport Type</label>
+      <select name="SportTypeID">
+        <option value="">-- เลือก Sport --</option>
+        ${SPORT_TYPES.map(s => `<option value="${s.SportTypeID}" ${item?.SportTypeID === s.SportTypeID ? "selected" : ""}>${s.SportName}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Studio</label>
+      <select name="StudioCode">
+        <option value="">-- เลือก Studio --</option>
+        ${STUDIOS.map(s => `<option value="${s.StudioCode}" ${item?.StudioCode === s.StudioCode ? "selected" : ""}>${s.Name}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Condition</label>
+      <select name="Condition">
+        ${["Good", "Fair", "Damaged", "Maintenance"].map(opt => `<option value="${opt}" ${item?.Condition === opt ? "selected" : ""}>${opt}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Late Fee (฿)</label>
+      <input type="number" name="LateFee" value="${item?.LateFee || ""}" placeholder="50">
+    </div>
+    <div class="form-group">
+      <label>Image URL</label>
+      <input type="url" name="ImageURL" value="${item?.ImageURL || ""}" placeholder="https://...">
+    </div>
+  `;
+}
+
 // ==================== SAVE ITEM ====================
 function saveItem() {
   const form = document.getElementById("admin-form");
@@ -611,6 +668,7 @@ function getCurrentDataArray() {
     courses: COURSES,
     trainers: TRAINERS,
     rewards: REWARDS,
+    equipments: EQUIPMENTS,
   };
   return map[currentTab];
 }

@@ -1,50 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Booking - Summary</title>
-    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/global.css" />
     <link rel="stylesheet" href="/css/navbar.css" />
-    <link rel="stylesheet" href="/css/booking-flow.css">
-    <link rel="stylesheet" href="/css/summary.css">
-    <link rel="stylesheet" href="/css/modal.css">
-</head>
+    <link rel="stylesheet" href="/css/booking-flow.css" />
+    <link rel="stylesheet" href="/css/summary.css" />
+    <link rel="stylesheet" href="/css/modal.css" />
+  </head>
 
-<body>
+  <body>
     <header class="navbar" id="navbar"></header>
 
     <main>
-        <h2 class="section-title">Booking Summary</h2>
-        <div class="steps">
-            <div class="step done"><span>1</span> Studio</div>
-            <div class="step done"><span>2</span> Sport</div>
-            <div class="step done"><span>3</span> Room</div>
-            <div class="step active"><span>4</span> Summary</div>
+      <h2 class="section-title">Booking Summary</h2>
+      <div class="steps">
+        <div class="step done"><span>1</span> Studio</div>
+        <div class="step done"><span>2</span> Sport</div>
+        <div class="step done"><span>3</span> Room</div>
+        <div class="step active"><span>4</span> Summary</div>
+      </div>
+
+      <section class="flow-section">
+        <button class="btn-back" onclick="goBack()">← Back to Rooms</button>
+
+        <div class="summary-card" id="summary-card"></div>
+
+        <div class="trainer-option">
+          <h3>Do you want a Trainer?</h3>
+          <div class="trainer-option-buttons">
+            <button class="btn-secondary" onclick="addTrainer(false)">
+              No, thanks
+            </button>
+            <button class="btn-primary" onclick="addTrainer(true)">
+              Yes, add Trainer
+            </button>
+          </div>
         </div>
 
-        <section class="flow-section">
-            <button class="btn-back" onclick="goBack()">← Back to Rooms</button>
+        <div class="confirm-section hidden" id="confirm-section">
+          <button class="btn-primary" onclick="confirmBooking()">
+            Confirm Booking
+          </button>
+        </div>
 
-            <div class="summary-card" id="summary-card"></div>
+        <!-- ส่วน Equipment (ใหม่) -->
+        <div class="equipment-option" id="equipment-option">
+          <h3>Do you want to rent Equipment?</h3>
+          <div class="equipment-option-buttons">
+            <button class="btn-secondary" onclick="showEquipmentList(false)">
+              No, thanks
+            </button>
+            <button class="btn-primary" onclick="showEquipmentList(true)">
+              Yes, show Equipment
+            </button>
+          </div>
+        </div>
 
-            <div class="trainer-option">
-                <h3>Do you want a Trainer?</h3>
-                <div class="trainer-option-buttons">
-                    <button class="btn-secondary" onclick="addTrainer(false)">No, thanks</button>
-                    <button class="btn-primary" onclick="addTrainer(true)">Yes, add Trainer</button>
-                </div>
-            </div>
-
-            <div class="confirm-section hidden" id="confirm-section">
-                <button class="btn-primary" onclick="confirmBooking()">Confirm Booking</button>
-            </div>
-        </section>
+        <!-- รายการ Equipment (ซ่อนไว้ก่อน) -->
+        <div class="equipment-list-section hidden" id="equipment-list-section">
+          <h3>Available Equipment</h3>
+          <div class="equipment-grid" id="equipment-grid"></div>
+          <button class="btn-primary" onclick="confirmEquipment()">
+            Confirm Equipment
+          </button>
+        </div>
+      </section>
     </main>
 
     <footer>
-        <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
+      <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
     </footer>
 
     <script src="/js/data.js"></script>
@@ -52,6 +79,5 @@
     <script src="/js/booking-flow.js"></script>
     <script src="/js/modal.js"></script>
     <script src="/js/summary.js"></script>
-</body>
-
+  </body>
 </html>

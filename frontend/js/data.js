@@ -95,6 +95,39 @@ const USERS = [
   { id: "S002", password: "manager", role: "manager", name: "Manager Phayathai", email: "phayathai@shesparks.com", studioCode: "ST002" },
   { id: "S003", password: "manager", role: "manager", name: "Manager Ramkhamhaeng", email: "ramkhamhaeng@shesparks.com", studioCode: "ST003" },
 ];
+// ==================== EQUIPMENT ====================
+const EQUIPMENTS = [
+  { EquipmentID: 1, Name: "Yoga Mat Pro", SportTypeID: 1, StudioCode: "ST001", Condition: "Good", LateFee: 50, ImageURL: "https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=400" },
+  { EquipmentID: 2, Name: "Yoga Block", SportTypeID: 1, StudioCode: "ST001", Condition: "Good", LateFee: 30, ImageURL: "https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=400" },
+  { EquipmentID: 3, Name: "Pilates Ball", SportTypeID: 2, StudioCode: "ST001", Condition: "Good", LateFee: 80, ImageURL: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400" },
+  { EquipmentID: 4, Name: "Pilates Ring", SportTypeID: 2, StudioCode: "ST001", Condition: "Good", LateFee: 100, ImageURL: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400" },
+  { EquipmentID: 5, Name: "Boxing Gloves", SportTypeID: 3, StudioCode: "ST002", Condition: "Good", LateFee: 120, ImageURL: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=400" },
+  { EquipmentID: 6, Name: "Boxing Wraps", SportTypeID: 3, StudioCode: "ST002", Condition: "Good", LateFee: 60, ImageURL: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=400" },
+  { EquipmentID: 7, Name: "Badminton Racket", SportTypeID: 4, StudioCode: "ST002", Condition: "Good", LateFee: 90, ImageURL: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400" },
+  { EquipmentID: 8, Name: "Shuttlecock", SportTypeID: 4, StudioCode: "ST002", Condition: "Good", LateFee: 20, ImageURL: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400" },
+];
+
+// ==================== LOYALTY POINTS RULES ====================
+const LOYALTY_RULES = {
+  pointsPerHour: 30,        // คะแนนต่อชั่วโมง (Room)
+  pointsPerTrainer: 50,     // คะแนนต่อ Trainer
+  pointsPerEquipment: 20,   // คะแนนต่อ Equipment
+  pointsPerCapacity: 2,     // คะแนนต่อคน
+};
+
+// ==================== HELPER FUNCTIONS (Equipment) ====================
+function getEquipmentsByStudio(studioCode) {
+  return EQUIPMENTS.filter(e => e.StudioCode === studioCode);
+}
+
+function getEquipmentsBySport(sportTypeID) {
+  return EQUIPMENTS.filter(e => e.SportTypeID === sportTypeID);
+}
+
+function getEquipmentName(equipmentID) {
+  const eq = EQUIPMENTS.find(e => e.EquipmentID === equipmentID);
+  return eq ? eq.Name : "Unknown";
+}
 
 // ==================== HELPER FUNCTIONS ====================
 

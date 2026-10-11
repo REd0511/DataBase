@@ -63,6 +63,116 @@
   font-size: 1.05rem;
 }
 
+/* ========== Equipment Section ========== */
+.equipment-option {
+  background: var(--pink-bg);
+  border: 1px dashed var(--pink-main);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.equipment-option h3 {
+  color: var(--pink-deep);
+  margin-bottom: 16px;
+}
+
+.equipment-option-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ========== Equipment List ========== */
+.equipment-list-section {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+
+.equipment-list-section h3 {
+  color: var(--pink-deep);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.equipment-card {
+  background: var(--pink-bg);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.equipment-card:hover {
+  border-color: var(--pink-main);
+  transform: translateY(-3px);
+}
+
+.equipment-card.selected {
+  border-color: var(--pink-main);
+  background: var(--pink-soft);
+  box-shadow: var(--shadow-sm);
+}
+
+.equipment-card.selected::before {
+  content: "✓";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--pink-main);
+  color: var(--white);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.equipment-card img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+}
+
+.equipment-card h4 {
+  color: var(--pink-deep);
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.equipment-card p {
+  color: var(--text-mid);
+  font-size: 0.82rem;
+  margin-bottom: 4px;
+}
+
+.equipment-list-section .btn-primary {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* ========== Responsive ========== */
+
 @media (max-width: 768px) {
   .summary-cards {
     grid-template-columns: 1fr;
@@ -72,5 +182,8 @@
     margin-left: 16px;
     margin-right: 16px;
     padding: 24px;
+  }
+  .equipment-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

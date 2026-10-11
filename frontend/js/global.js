@@ -109,82 +109,89 @@ function renderProfilePopover() {
 
     if (role === "admin") {
         popoverContent = `
-      <div class="popover-links">
-        <a href="/views/admin.html">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-          Admin Dashboard
-        </a>
-      </div>
-    `;
+          <div class="popover-links">
+            <a href="/views/admin.html">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              Admin Dashboard
+            </a>
+          </div>
+        `;
     } else if (role === "trainer") {
         popoverContent = `
-      <div class="popover-links">
-        <a href="/views/trainer-dashboard.html">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-          My Dashboard
-        </a>
-      </div>
-    `;
+          <div class="popover-links">
+            <a href="/views/trainer-dashboard.html">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              My Dashboard
+            </a>
+          </div>
+        `;
     } else if (role === "manager") {
         popoverContent = `
-      <div class="popover-links">
-        <a href="/views/manager-dashboard.html">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-          My Dashboard
-        </a>
-      </div>
-    `;
+          <div class="popover-links">
+            <a href="/views/manager-dashboard.html">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              My Dashboard
+            </a>
+          </div>
+        `;
     } else {
-        // Member
+        // ==================== Member ====================
         popoverContent = `
-      <div class="popover-points">
-        <span>Total Points</span>
-        <span class="points-value">${POINTS.total}</span>
-      </div>
-      <div class="popover-links">
-        <a href="/views/points.html">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
-          Points History
-        </a>
-        <a href="/views/rewards.html">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <polyline points="20 12 20 22 4 22 4 12"></polyline>
-    <rect x="2" y="7" width="20" height="5"></rect>
-    <line x1="12" y1="22" x2="12" y2="7"></line>
-    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
-    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
-  </svg>
-  My Rewards
-</a>
-        <a href="/views/booking.html">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-    <line x1="16" y1="2" x2="16" y2="6"></line>
-    <line x1="8" y1="2" x2="8" y2="6"></line>
-    <line x1="3" y1="10" x2="21" y2="10"></line>
-  </svg>
-  My Bookings
-</a>
-      </div>
-    `;
+          <div class="popover-points">
+            <span>Total Points</span>
+            <span class="points-value">${POINTS.total}</span>
+          </div>
+          <div class="popover-links">
+            <a href="/views/points.html">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 6v6l4 2"></path>
+              </svg>
+              Points History
+            </a>
+            <a href="/views/rewards.html">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 12 20 22 4 22 4 12"></polyline>
+                <rect x="2" y="7" width="20" height="5"></rect>
+                <line x1="12" y1="22" x2="12" y2="7"></line>
+                <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
+                <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
+              </svg>
+              My Rewards
+            </a>
+            <a href="/views/booking-history.html">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              My Bookings
+            </a>
+          </div>
+        `;
     }
 
     // ==================== Render Popover ====================
     popover.innerHTML = `
-    <div class="popover-header">
-      <div class="avatar-small">${user.name.charAt(0)}</div>
-      <div class="user-info">
-        <h4>${user.name}</h4>
-        <p>${user.email}</p>
-        <span class="role-badge">${getRoleLabel(role)}</span>
+      <div class="popover-header">
+        <div class="avatar-small">${user.name.charAt(0)}</div>
+        <div class="user-info">
+          <h4>${user.name}</h4>
+          <p>${user.email}</p>
+          <span class="role-badge">${getRoleLabel(role)}</span>
+        </div>
       </div>
-    </div>
-    ${popoverContent}
-    <button class="btn-logout" onclick="logout()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-      Sign Out
-    </button>
-  `;
+      ${popoverContent}
+      <button class="btn-logout" onclick="logout()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        Sign Out
+      </button>
+    `;
 }
 
 function getRoleLabel(role) {

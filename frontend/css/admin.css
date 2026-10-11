@@ -550,6 +550,45 @@
   font-weight: 600;
 }
 
+/* ========== Equipment Tab ========== */
+.admin-table .equipment-thumb {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.admin-table .condition-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.admin-table .condition-badge.good {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.admin-table .condition-badge.fair {
+  background: #fff3e0;
+  color: #ff9800;
+}
+
+.admin-table .condition-badge.damaged {
+  background: #ffebee;
+  color: #f44336;
+}
+
+.admin-table .condition-badge.maintenance {
+  background: #f3e5f5;
+  color: #9c27b0;
+}
+
 /* ============================================ */
 /* Responsive (NEW) */
 /* ============================================ */
