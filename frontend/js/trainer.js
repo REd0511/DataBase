@@ -1,5 +1,8 @@
 /* ============================================
    trainer.js - Trainer Selection
+   FEATURES:
+   - แสดง Trainer เฉพาะ Sport ที่เลือก
+   - เลือก Trainer → กลับ Summary
    ============================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -9,43 +12,40 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "/views/booking.html";
     return;
   }
-  renderTrainers(flow.sport.SportName);
+  renderTrainers(flow.sport.SportTypeID);
 });
 
-function renderTrainers(sportName) {
+function renderTrainers(sportTypeID) {
   const container = document.getElementById("trainer-list");
-  const trainers = TRAINERS.filter((t) => t.SportType === sportName);
+  if (!container) return;
+
+  // กรอง Trainer ตาม SportTypeID
+  const trainers = TRAINERS.filter(t => t.SportTypeID === sportTypeID);
 
   if (trainers.length === 0) {
     container.innerHTML = "<p>No trainers available for this sport.</p>";
     return;
   }
 
-  container.innerHTML = trainers
-    .map(
-      (t) => `
-        <div class="trainer-card">
-            <div class="avatar">${t.Name.split(" ")[1]?.[0] || "T"}</div>
-            <h3>${t.Name}</h3>
-            <span class="specialty">${t.SportType}</span>
-            <p>${t.Phone}</p>
-            <button class="btn-primary" onclick="selectTrainer(${t.TrainerID})">Select</button>
-        </div>
-    `,
-    )
-    .join("");
+  container.innerHTML = trainers.map(t => `
+    <div class="trainer-card">
+      ${t.ImageURL ? `<img src="${t.ImageURL}" class="trainer-image" alt="${t.Name}" onerror="this.style.display='none'">` : ""}
+      <div class="avatar">${t.Name.split(" ")[1]?.[0] || "T"}</div>
+      <h3>${t.Name}</h3>
+      <span class="specialty">${getSportName(t.SportTypeID)}</span>
+      <p>${t.Phone}</p>
+      <button class="btn-primary" onclick="selectTrainer(${t.TrainerID})">Select</button>
+    </div>
+  `).join("");
 }
 
 function selectTrainer(id) {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
-  flow.trainer = TRAINERS.find((t) => t.TrainerID === id);
+  flow.trainer = TRAINERS.find(t => t.TrainerID === id);
   localStorage.setItem("bookingFlow", JSON.stringify(flow));
   window.location.href = "/views/summary.html";
 }
 
-/* ============================================
-                    GO BACK 
-   ============================================ */
 function goBack() {
   window.location.href = "/views/summary.html";
 }

@@ -19,27 +19,22 @@ function renderCourses(courses) {
   if (!container) return;
 
   if (courses.length === 0) {
-    container.innerHTML =
-      '<p style="text-align:center;grid-column:1/-1;color:var(--text-mid);">No courses match your filter.</p>';
+    container.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:var(--text-mid);">No courses match your filter.</p>';
     return;
   }
 
-  container.innerHTML = courses
-    .map(
-      (c) => `
-        <div class="course-card">
-            <span class="level" data-level="${c.Level}">${c.Level}</span>
-            <h3>${c.Title}</h3>
-            <p class="duration">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                ${c.DurationHours} hours
-            </p>
-            <p class="fee">${c.StandardFee.toLocaleString()}</p>
-            <button class="btn-primary" onclick="enrollCourse(${c.CourseID})">Enroll Now</button>
-        </div>
-    `,
-    )
-    .join("");
+  container.innerHTML = courses.map(c => `
+    <div class="course-card">
+      ${c.ImageURL ? `<img src="${c.ImageURL}" class="card-image" alt="${c.Title}" onerror="this.style.display='none'">` : ""}
+      <span class="level" data-level="${c.Level}">${c.Level}</span>
+      <h3>${c.Title}</h3>
+      <p class="duration">⏱ ${c.DurationHours} hours</p>
+      <p>📍 ${getStudioName(c.StudioCode)}</p>
+      <p>👤 ${getTrainerName(c.TrainerID)}</p>
+      <p class="fee">฿${c.StandardFee.toLocaleString()}</p>
+      <button class="btn-primary" onclick="enrollCourse(${c.CourseID})">Enroll Now</button>
+    </div>
+  `).join("");
 }
 
 function filterCourses() {

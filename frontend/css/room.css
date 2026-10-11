@@ -1,0 +1,406 @@
+/* ============================================
+   Room Page + Room Modal
+   ============================================ */
+
+/* ========== Room List (แสดงการ์ด) ========== */
+.room-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.room-card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1.5px solid var(--border);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.room-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--pink-main);
+}
+
+.room-card .card-image {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    margin-bottom: 14px;
+}
+
+.room-card h3 {
+    color: var(--pink-deep);
+    font-size: 1.15rem;
+    margin-bottom: 8px;
+    font-family: "Playfair Display", serif;
+}
+
+.room-card p {
+    color: var(--text-mid);
+    font-size: 0.88rem;
+    margin-bottom: 4px;
+}
+
+.room-card .room-status {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.room-card .room-status.available {
+    background: #e8f5e9;
+    color: #4caf50;
+}
+
+.room-card .room-status.booked {
+    background: #ffebee;
+    color: #f44336;
+}
+
+.room-card .btn-primary {
+    width: 100%;
+    margin-top: 12px;
+}
+
+/* ============================================
+   Room Modal - UI Fix
+   ============================================ */
+
+.room-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(59, 43, 48, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  padding: 20px;
+}
+
+.room-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Modal Box */
+.room-modal {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;              /* ✅ ซ่อน scrollbar แนวนอน */
+  padding: 28px 24px;
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.room-modal-overlay.active .room-modal {
+  transform: scale(1);
+}
+
+/* ซ่อน Scrollbar ของ Body ขณะเปิด Modal */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* ✅ Custom Scrollbar (วงรีสีชมพู) */
+.room-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.room-modal::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.room-modal::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--pink-main), var(--pink-deep));
+  border-radius: 10px;
+  border: 2px solid var(--white);
+}
+
+.room-modal::-webkit-scrollbar-thumb:hover {
+  background: var(--pink-deep);
+}
+
+/* Firefox */
+.room-modal {
+  scrollbar-width: thin;
+  scrollbar-color: var(--pink-main) transparent;
+}
+
+/* ========== ปุ่มปิด Modal (Sticky) ========== */
+.room-modal-close {
+  position: sticky;                /* ✅ Sticky อยู่บนสุดเสมอ */
+  top: 0;
+  float: right;                    /* ✅ ชิดขวา */
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 100;
+  margin-bottom: -36px;            /* ✅ ดึงขึ้นมาให้ซ้อนทับ */
+}
+
+.room-modal-close:hover {
+  background: var(--pink-main);
+  color: var(--white);
+  transform: rotate(90deg);
+}
+
+/* ========== รูป Room ========== */
+.room-modal-image {
+  width: 100%;
+  height: 200px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+
+  /*background-image */
+  background-color: var(--pink-bg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  /* image error */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-mid);
+  font-size: 0.9rem;
+}
+
+.room-modal-image img[src=""] {
+  display: none;
+}
+
+/* ========== ชื่อ Room ========== */
+.room-modal-title {
+  color: var(--pink-deep);
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+  text-align: center;
+  font-family: "Playfair Display", serif;
+}
+
+/* ========== Section ========== */
+.room-modal-section {
+  margin-bottom: 24px;
+}
+
+.room-modal-section h4 {
+  color: var(--text-dark);
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+}
+
+/* ========== Date Slots ========== */
+.date-slots {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;                /* ✅ เลื่อนได้แค่ซ้าย-ขวา */
+  overflow-y: hidden;              /* ✅ ไม่ให้เลื่อนขึ้นลง */
+  padding: 4px 4px 28px;           /* ✅ padding ล่างสำหรับ Today */
+  scroll-behavior: smooth;
+  flex-wrap: nowrap;               /* ✅ ไม่ตัดบรรทัด */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom Scrollbar ของ Date Slots */
+.date-slots::-webkit-scrollbar {
+  height: 6px;
+}
+
+.date-slots::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.date-slots::-webkit-scrollbar-thumb {
+  background: var(--pink-main);
+  border-radius: 10px;
+}
+
+.date-slots::-webkit-scrollbar-thumb:hover {
+  background: var(--pink-deep);
+}
+
+.date-slot {
+  flex: 0 0 auto;
+  min-width: 90px;                 /* ✅ กว้างขึ้น */
+  padding: 12px 16px;
+  border-radius: 50px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--text-dark);
+  font-family: "Poppins", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
+  position: relative;
+  white-space: nowrap;
+}
+
+.date-slot:hover {
+  border-color: var(--pink-main);
+  background: var(--pink-soft);
+}
+
+.date-slot.selected {
+  background: var(--pink-main);
+  color: var(--white);
+  border-color: var(--pink-main);
+  box-shadow: var(--shadow-sm);
+}
+
+.date-slot .today-label {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.68rem;
+  color: var(--pink-deep);
+  font-weight: 600;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.date-slot.disabled {
+  background: var(--border);
+  color: var(--text-mid);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ========== Time Slots ========== */
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.time-slot {
+  padding: 12px 8px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--text-dark);
+  font-family: "Poppins", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
+}
+
+.time-slot:hover:not(.disabled) {
+  border-color: var(--pink-main);
+  background: var(--pink-soft);
+}
+
+.time-slot.selected {
+  background: var(--pink-main);
+  color: var(--white);
+  border-color: var(--pink-main);
+  box-shadow: var(--shadow-sm);
+}
+
+.time-slot.disabled {
+  background: #f5f5f5;
+  color: #bbb;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* ========== ช่องกรอก Capacity ========== */
+#modal-capacity {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: "Poppins", sans-serif;
+  font-size: 0.95rem;
+  background: var(--white);
+  color: var(--text-dark);
+  transition: all 0.25s ease;
+}
+
+#modal-capacity:focus {
+  outline: none;
+  border-color: var(--pink-main);
+  box-shadow: 0 0 0 3px var(--pink-soft);
+}
+
+/* ========== ปุ่ม Select ========== */
+.room-modal-select {
+  width: 100%;
+  padding: 14px;
+  margin-top: 20px;
+  font-size: 1rem;
+}
+
+.room-modal-select:disabled {
+  background: var(--border);
+  color: var(--text-mid);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
+  .room-modal {
+    padding: 20px 16px;
+    max-height: 95vh;
+  }
+
+  .room-modal-image {
+    height: 160px;
+  }
+
+  .time-slots {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .date-slot {
+    min-width: 80px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+  }
+}

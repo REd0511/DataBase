@@ -258,6 +258,21 @@
   background: var(--danger);
   color: var(--white);
 }
+
+/* ========== Role Badge (ใน Popover) ========== */
+.profile-popover .user-info .role-badge {
+  display: inline-block;
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 50px;
+  font-weight: 500;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* ============================================
    Responsive: Navbar
    ============================================ */
