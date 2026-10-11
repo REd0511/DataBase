@@ -1,13 +1,10 @@
 /* ============================================
-   admin.js - Admin Dashboard + CRUD + Recommend
+   admin.js - Admin Dashboard + CRUD (Phase D)
    FEATURES:
-   - ตรวจสอบสิทธิ์ Admin
-   - Summary Cards
-   - Report 1, 2, 3
-   - Admin Tabs: Studios, Sports, Rooms, Courses, Trainers, Rewards, Recommend
-   - CRUD ผ่าน Modal + ImageURL
-   - Recommend Settings (บันทึกใน localStorage)
-   TODO: เชื่อมกับ API /api/admin/* เมื่อ Backend พร้อม
+   - CRUD ทั้ง 7 Tabs (Studios, Sports, Rooms, Courses, Trainers, Rewards, Recommend)
+   - Modal Form พร้อม Dropdown
+   - Studio เลือกได้หลาย Sports (Multi-select)
+   - Course เลือก Studio → Room → Trainer → Prerequisite
    ============================================ */
 
 // ==================== MOCK DATA ====================
@@ -81,11 +78,10 @@ function loadDashboard() {
     `).join("");
   }
 
-  // Render Tab Content
   renderAdminContent();
 }
 
-// ==================== REPORT 1: AVAILABLE ROOMS ====================
+// ==================== REPORT 1 ====================
 function loadAvailableRooms() {
   const date = document.getElementById("adminDate").value;
   const start = document.getElementById("adminStart").value;
@@ -99,11 +95,6 @@ function loadAvailableRooms() {
   const container = document.getElementById("availableRoomsList");
   if (!container) return;
 
-  if (MOCK_ADMIN.availableRooms.length === 0) {
-    container.innerHTML = '<p style="color:var(--text-mid);">No rooms available.</p>';
-    return;
-  }
-
   container.innerHTML = MOCK_ADMIN.availableRooms.map(r => `
     <div class="room-card">
       <h3>${r.RoomName}</h3>
@@ -114,16 +105,13 @@ function loadAvailableRooms() {
 }
 
 // ============================================
-// ADMIN TABS - CRUD
+// ADMIN TABS
 // ============================================
 
-// ==================== TAB SWITCHING ====================
 function showTab(tab, event) {
   currentTab = tab;
-
   document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
   if (event) event.target.classList.add("active");
-
   renderAdminContent();
 }
 
@@ -137,20 +125,47 @@ function renderAdminContent() {
     return;
   }
 
-  // Data Map
   const dataMap = {
-    studios: { data: STUDIOS, key: "StudioCode", name: (x) => x.Name, extra: (x) => x.Location },
-    sports: { data: SPORT_TYPES, key: "SportTypeID", name: (x) => x.SportName, extra: (x) => x.IntensityLevel },
-    rooms: { data: ROOMS, key: "RoomID", name: (x) => x.RoomName, extra: (x) => `${x.SportType} • ${x.Capacity} people` },
-    courses: { data: COURSES, key: "CourseID", name: (x) => x.Title, extra: (x) => `${x.Level} • ฿${x.StandardFee}` },
-    trainers: { data: TRAINERS, key: "TrainerID", name: (x) => x.Name, extra: (x) => `${x.SportType} • ${x.Phone}` },
-    rewards: { data: REWARDS, key: "RewardID", name: (x) => x.Name, extra: (x) => `${x.PointCost} pts • ${x.Category}` },
+    studios: {
+      data: STUDIOS,
+      name: (x) => x.Name,
+      extra: (x) => {
+        const sports = getStudioSports(x.StudioCode).map(s => s.SportName).join(", ");
+        return `${x.Location} • ${sports || "No sports"}`;
+      },
+    },
+    sports: {
+      data: SPORT_TYPES,
+      name: (x) => x.SportName,
+      extra: (x) => `Intensity: ${x.IntensityLevel}`,
+    },
+    rooms: {
+      data: ROOMS,
+      name: (x) => x.RoomName,
+      extra: (x) => `${getStudioName(x.StudioCode)} • ${getSportName(x.SportTypeID)} • ${x.Capacity} people`,
+    },
+    courses: {
+      data: COURSES,
+      name: (x) => x.Title,
+      extra: (x) => {
+        const prereq = x.PrerequisiteCourseID ? ` ← ${getCourseName(x.PrerequisiteCourseID)}` : "";
+        return `${x.Level} • ${getStudioName(x.StudioCode)} • ${getRoomName(x.RoomID)}${prereq}`;
+      },
+    },
+    trainers: {
+      data: TRAINERS,
+      name: (x) => x.Name,
+      extra: (x) => `${getSportName(x.SportTypeID)} • ${getStudioName(x.StudioCode)} • ${x.Phone}`,
+    },
+    rewards: {
+      data: REWARDS,
+      name: (x) => x.Name,
+      extra: (x) => `${x.PointCost} pts • ${x.Category} • ฿${x.Value}`,
+    },
   };
 
   const config = dataMap[currentTab];
   if (!config) return;
-
-  const data = config.data;
 
   content.innerHTML = `
     <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
@@ -166,7 +181,7 @@ function renderAdminContent() {
         </tr>
       </thead>
       <tbody>
-        ${data.map(item => `
+        ${config.data.map(item => `
           <tr>
             <td>
               ${item.ImageURL
@@ -176,8 +191,8 @@ function renderAdminContent() {
             <td><strong>${config.name(item)}</strong></td>
             <td>${config.extra(item)}</td>
             <td style="text-align: right;">
-              <button class="action-btn btn-edit" onclick="openEditForm(${JSON.stringify(item).replace(/"/g, '&quot;')})">Edit</button>
-              <button class="action-btn btn-delete" onclick="deleteItem(${JSON.stringify(item).replace(/"/g, '&quot;')})">Delete</button>
+              <button class="action-btn btn-edit" onclick='openEditForm(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
+              <button class="action-btn btn-delete" onclick='deleteItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Delete</button>
             </td>
           </tr>
         `).join("")}
@@ -189,10 +204,7 @@ function renderAdminContent() {
 // ==================== RECOMMEND SETTINGS ====================
 function renderRecommendSettings(content) {
   const settings = JSON.parse(localStorage.getItem("recommendSettings")) || {
-    studios: true,
-    sports: true,
-    courses: true,
-    rewards: true,
+    studios: true, sports: true, courses: true, rewards: true,
   };
 
   content.innerHTML = `
@@ -201,22 +213,10 @@ function renderRecommendSettings(content) {
       เลือกสิ่งที่ต้องการให้แสดงในหน้า Home
     </p>
     <div class="recommend-setting">
-      <label>
-        <input type="checkbox" id="rec-studios" ${settings.studios ? "checked" : ""}>
-        Show Recommended Studios
-      </label>
-      <label>
-        <input type="checkbox" id="rec-sports" ${settings.sports ? "checked" : ""}>
-        Show Recommended Sports
-      </label>
-      <label>
-        <input type="checkbox" id="rec-courses" ${settings.courses ? "checked" : ""}>
-        Show Recommended Courses
-      </label>
-      <label>
-        <input type="checkbox" id="rec-rewards" ${settings.rewards ? "checked" : ""}>
-        Show Recommended Rewards
-      </label>
+      <label><input type="checkbox" id="rec-studios" ${settings.studios ? "checked" : ""}> Show Recommended Studios</label>
+      <label><input type="checkbox" id="rec-sports" ${settings.sports ? "checked" : ""}> Show Recommended Sports</label>
+      <label><input type="checkbox" id="rec-courses" ${settings.courses ? "checked" : ""}> Show Recommended Courses</label>
+      <label><input type="checkbox" id="rec-rewards" ${settings.rewards ? "checked" : ""}> Show Recommended Rewards</label>
     </div>
     <button class="btn-primary" onclick="saveRecommendSettings()">Save Settings</button>
   `;
@@ -233,7 +233,10 @@ function saveRecommendSettings() {
   alert("✅ บันทึกการตั้งค่าแล้ว");
 }
 
-// ==================== MODAL FORM ====================
+// ============================================
+// MODAL FORM
+// ============================================
+
 function openAddForm() {
   editingId = null;
   document.getElementById("modal-title").textContent = "Add New " + capitalize(currentTab);
@@ -253,82 +256,35 @@ function closeModal() {
   editingId = null;
 }
 
+// ==================== RENDER MODAL FIELDS ====================
 function renderModalFields(item) {
   const fields = document.getElementById("modal-fields");
   const isEdit = !!item;
 
-  const fieldMap = {
-    studios: [
-      { key: "StudioCode", label: "Studio Code", type: "text", placeholder: "ST001" },
-      { key: "Name", label: "Name", type: "text", placeholder: "SheSparks Silom" },
-      { key: "Location", label: "Location", type: "text", placeholder: "Silom, Bangkok" },
-      { key: "ImageURL", label: "Image URL", type: "url", placeholder: "https://..." },
-    ],
-    sports: [
-      { key: "SportTypeID", label: "Sport Type ID", type: "number", placeholder: "1" },
-      { key: "SportName", label: "Sport Name", type: "text", placeholder: "Yoga" },
-      { key: "IntensityLevel", label: "Intensity Level", type: "select", options: ["Low", "Medium", "High"] },
-      { key: "ImageURL", label: "Image URL", type: "url", placeholder: "https://..." },
-    ],
-    rooms: [
-      { key: "RoomID", label: "Room ID", type: "number", placeholder: "1" },
-      { key: "RoomName", label: "Room Name", type: "text", placeholder: "Yoga Room A" },
-      { key: "StudioCode", label: "Studio Code", type: "text", placeholder: "ST001" },
-      { key: "SportType", label: "Sport Type", type: "text", placeholder: "Yoga" },
-      { key: "Capacity", label: "Capacity", type: "number", placeholder: "20" },
-      { key: "ImageURL", label: "Image URL", type: "url", placeholder: "https://..." },
-    ],
-    courses: [
-      { key: "CourseID", label: "Course ID", type: "number", placeholder: "1" },
-      { key: "Title", label: "Title", type: "text", placeholder: "Basic Yoga" },
-      { key: "Level", label: "Level", type: "select", options: ["Beginner", "Intermediate", "Advanced"] },
-      { key: "DurationHours", label: "Duration (Hours)", type: "number", placeholder: "10" },
-      { key: "StandardFee", label: "Standard Fee (฿)", type: "number", placeholder: "1500" },
-      { key: "ImageURL", label: "Image URL", type: "url", placeholder: "https://..." },
-    ],
-    trainers: [
-      { key: "TrainerID", label: "Trainer ID", type: "number", placeholder: "1" },
-      { key: "Name", label: "Name", type: "text", placeholder: "Coach Mali" },
-      { key: "Phone", label: "Phone", type: "text", placeholder: "081-111-1111" },
-      { key: "SportType", label: "Sport Type", type: "text", placeholder: "Yoga" },
-      { key: "StudioCode", label: "Studio Code", type: "text", placeholder: "ST001" },
-      { key: "Qualification", label: "Qualification", type: "text", placeholder: "Certified Yoga Instructor" },
-      { key: "ImageURL", label: "Image URL", type: "url", placeholder: "https://..." },
-    ],
-    rewards: [
-      { key: "RewardID", label: "Reward ID", type: "number", placeholder: "1" },
-      { key: "Name", label: "Name", type: "text", placeholder: "Spa Voucher 500 THB" },
-      { key: "PointCost", label: "Point Cost", type: "number", placeholder: "500" },
-      { key: "Category", label: "Category", type: "select", options: ["Beauty", "Sports", "Discount"] },
-      { key: "Value", label: "Value (฿)", type: "number", placeholder: "500" },
-      { key: "ImageURL", label: "Image URL", type: "url", placeholder: "https://..." },
-    ],
-  };
+  let html = "";
 
-  const fieldsConfig = fieldMap[currentTab] || [];
+  switch (currentTab) {
+    case "studios":
+      html = renderStudioFields(item, isEdit);
+      break;
+    case "sports":
+      html = renderSportFields(item, isEdit);
+      break;
+    case "rooms":
+      html = renderRoomFields(item, isEdit);
+      break;
+    case "courses":
+      html = renderCourseFields(item, isEdit);
+      break;
+    case "trainers":
+      html = renderTrainerFields(item, isEdit);
+      break;
+    case "rewards":
+      html = renderRewardFields(item, isEdit);
+      break;
+  }
 
-  fields.innerHTML = fieldsConfig.map(f => {
-    const value = isEdit ? (item[f.key] || "") : "";
-    const disabled = isEdit && f.key.includes("ID") ? "disabled" : "";
-
-    if (f.type === "select") {
-      return `
-        <div class="form-group">
-          <label>${f.label}</label>
-          <select name="${f.key}" ${disabled}>
-            ${f.options.map(opt => `<option value="${opt}" ${value === opt ? "selected" : ""}>${opt}</option>`).join("")}
-          </select>
-        </div>
-      `;
-    }
-
-    return `
-      <div class="form-group">
-        <label>${f.label}</label>
-        <input type="${f.type}" name="${f.key}" value="${value}" placeholder="${f.placeholder || ""}" ${disabled}>
-      </div>
-    `;
-  }).join("");
+  fields.innerHTML = html;
 
   // Bind Submit
   const form = document.getElementById("admin-form");
@@ -338,20 +294,278 @@ function renderModalFields(item) {
   };
 }
 
+// ==================== STUDIO FIELDS ====================
+function renderStudioFields(item, isEdit) {
+  const sports = item ? getStudioSports(item.StudioCode).map(s => s.SportTypeID) : [];
+  return `
+    <div class="form-group">
+      <label>Studio Code</label>
+      <input type="text" name="StudioCode" value="${item?.StudioCode || ""}" placeholder="ST001" ${isEdit ? "disabled" : ""}>
+    </div>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" name="Name" value="${item?.Name || ""}" placeholder="SheSparks Silom">
+    </div>
+    <div class="form-group">
+      <label>Location</label>
+      <input type="text" name="Location" value="${item?.Location || ""}" placeholder="Silom, Bangkok">
+    </div>
+    <div class="form-group">
+      <label>Capacity</label>
+      <input type="number" name="Capacity" value="${item?.Capacity || ""}" placeholder="50">
+    </div>
+    <div class="form-group">
+      <label>Sports (เลือกได้หลายอย่าง)</label>
+      <div class="checkbox-group">
+        ${SPORT_TYPES.map(s => `
+          <label class="checkbox-item">
+            <input type="checkbox" name="SportTypeIDs" value="${s.SportTypeID}" ${sports.includes(s.SportTypeID) ? "checked" : ""}>
+            ${s.SportName}
+          </label>
+        `).join("")}
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Image URL</label>
+      <input type="url" name="ImageURL" value="${item?.ImageURL || ""}" placeholder="https://...">
+    </div>
+  `;
+}
+
+// ==================== SPORT FIELDS ====================
+function renderSportFields(item, isEdit) {
+  return `
+    <div class="form-group">
+      <label>Sport Type ID</label>
+      <input type="number" name="SportTypeID" value="${item?.SportTypeID || ""}" placeholder="1" ${isEdit ? "disabled" : ""}>
+    </div>
+    <div class="form-group">
+      <label>Sport Name</label>
+      <input type="text" name="SportName" value="${item?.SportName || ""}" placeholder="Yoga">
+    </div>
+    <div class="form-group">
+      <label>Intensity Level</label>
+      <select name="IntensityLevel">
+        ${["Low", "Medium", "High"].map(opt => `<option value="${opt}" ${item?.IntensityLevel === opt ? "selected" : ""}>${opt}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Image URL</label>
+      <input type="url" name="ImageURL" value="${item?.ImageURL || ""}" placeholder="https://...">
+    </div>
+  `;
+}
+
+// ==================== ROOM FIELDS ====================
+function renderRoomFields(item, isEdit) {
+  return `
+    <div class="form-group">
+      <label>Room ID</label>
+      <input type="number" name="RoomID" value="${item?.RoomID || ""}" placeholder="1" ${isEdit ? "disabled" : ""}>
+    </div>
+    <div class="form-group">
+      <label>Room Name</label>
+      <input type="text" name="RoomName" value="${item?.RoomName || ""}" placeholder="Yoga Room A">
+    </div>
+    <div class="form-group">
+      <label>Studio</label>
+      <select name="StudioCode">
+        <option value="">-- เลือก Studio --</option>
+        ${STUDIOS.map(s => `<option value="${s.StudioCode}" ${item?.StudioCode === s.StudioCode ? "selected" : ""}>${s.Name} (${s.Location})</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Sport Type</label>
+      <select name="SportTypeID">
+        <option value="">-- เลือก Sport --</option>
+        ${SPORT_TYPES.map(s => `<option value="${s.SportTypeID}" ${item?.SportTypeID === s.SportTypeID ? "selected" : ""}>${s.SportName}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Capacity</label>
+      <input type="number" name="Capacity" value="${item?.Capacity || ""}" placeholder="20">
+    </div>
+    <div class="form-group">
+      <label>Image URL</label>
+      <input type="url" name="ImageURL" value="${item?.ImageURL || ""}" placeholder="https://...">
+    </div>
+  `;
+}
+
+// ==================== COURSE FIELDS ====================
+function renderCourseFields(item, isEdit) {
+  return `
+    <div class="form-group">
+      <label>Course ID</label>
+      <input type="number" name="CourseID" value="${item?.CourseID || ""}" placeholder="1" ${isEdit ? "disabled" : ""}>
+    </div>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" name="Title" value="${item?.Title || ""}" placeholder="Basic Yoga">
+    </div>
+    <div class="form-group">
+      <label>Level</label>
+      <select name="Level">
+        ${["Beginner", "Intermediate", "Advanced"].map(opt => `<option value="${opt}" ${item?.Level === opt ? "selected" : ""}>${opt}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Duration (Hours)</label>
+      <input type="number" name="DurationHours" value="${item?.DurationHours || ""}" placeholder="10">
+    </div>
+    <div class="form-group">
+      <label>Standard Fee (฿)</label>
+      <input type="number" name="StandardFee" value="${item?.StandardFee || ""}" placeholder="1500">
+    </div>
+    <div class="form-group">
+      <label>Studio</label>
+      <select name="StudioCode" id="course-studio">
+        <option value="">-- เลือก Studio --</option>
+        ${STUDIOS.map(s => `<option value="${s.StudioCode}" ${item?.StudioCode === s.StudioCode ? "selected" : ""}>${s.Name}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Room</label>
+      <select name="RoomID" id="course-room">
+        <option value="">-- เลือก Room --</option>
+        ${ROOMS.map(r => `<option value="${r.RoomID}" ${item?.RoomID === r.RoomID ? "selected" : ""}>${r.RoomName} (${getStudioName(r.StudioCode)})</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Trainer</label>
+      <select name="TrainerID">
+        <option value="">-- เลือก Trainer --</option>
+        ${TRAINERS.map(t => `<option value="${t.TrainerID}" ${item?.TrainerID === t.TrainerID ? "selected" : ""}>${t.Name} (${getSportName(t.SportTypeID)})</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Prerequisite Course (ถ้ามี)</label>
+      <select name="PrerequisiteCourseID">
+        <option value="">-- ไม่มี --</option>
+        ${COURSES.filter(c => !item || c.CourseID !== item.CourseID).map(c => `<option value="${c.CourseID}" ${item?.PrerequisiteCourseID === c.CourseID ? "selected" : ""}>${c.Title} (${c.Level})</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Image URL</label>
+      <input type="url" name="ImageURL" value="${item?.ImageURL || ""}" placeholder="https://...">
+    </div>
+  `;
+}
+
+// ==================== TRAINER FIELDS ====================
+function renderTrainerFields(item, isEdit) {
+  return `
+    <div class="form-group">
+      <label>Trainer ID</label>
+      <input type="number" name="TrainerID" value="${item?.TrainerID || ""}" placeholder="1" ${isEdit ? "disabled" : ""}>
+    </div>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" name="Name" value="${item?.Name || ""}" placeholder="Coach Mali">
+    </div>
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="text" name="Phone" value="${item?.Phone || ""}" placeholder="081-111-1111">
+    </div>
+    <div class="form-group">
+      <label>Sport Type</label>
+      <select name="SportTypeID">
+        <option value="">-- เลือก Sport --</option>
+        ${SPORT_TYPES.map(s => `<option value="${s.SportTypeID}" ${item?.SportTypeID === s.SportTypeID ? "selected" : ""}>${s.SportName}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Studio</label>
+      <select name="StudioCode">
+        <option value="">-- เลือก Studio --</option>
+        ${STUDIOS.map(s => `<option value="${s.StudioCode}" ${item?.StudioCode === s.StudioCode ? "selected" : ""}>${s.Name}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Qualification</label>
+      <input type="text" name="Qualification" value="${item?.Qualification || ""}" placeholder="Certified Yoga Instructor">
+    </div>
+    <div class="form-group">
+      <label>Image URL</label>
+      <input type="url" name="ImageURL" value="${item?.ImageURL || ""}" placeholder="https://...">
+    </div>
+  `;
+}
+
+// ==================== REWARD FIELDS ====================
+function renderRewardFields(item, isEdit) {
+  return `
+    <div class="form-group">
+      <label>Reward ID</label>
+      <input type="number" name="RewardID" value="${item?.RewardID || ""}" placeholder="1" ${isEdit ? "disabled" : ""}>
+    </div>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" name="Name" value="${item?.Name || ""}" placeholder="Spa Voucher 500 THB">
+    </div>
+    <div class="form-group">
+      <label>Point Cost</label>
+      <input type="number" name="PointCost" value="${item?.PointCost || ""}" placeholder="500">
+    </div>
+    <div class="form-group">
+      <label>Value (฿)</label>
+      <input type="number" name="Value" value="${item?.Value || ""}" placeholder="500">
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select name="Category">
+        ${["Beauty", "Sports", "Discount"].map(opt => `<option value="${opt}" ${item?.Category === opt ? "selected" : ""}>${opt}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Image URL</label>
+      <input type="url" name="ImageURL" value="${item?.ImageURL || ""}" placeholder="https://...">
+    </div>
+  `;
+}
+
 // ==================== SAVE ITEM ====================
 function saveItem() {
   const form = document.getElementById("admin-form");
   const formData = new FormData(form);
   const newData = {};
 
+  // Handle Multi-select (Sports)
+  if (currentTab === "studios") {
+    const sportIDs = formData.getAll("SportTypeIDs").map(Number);
+    newData.SportTypeIDs = sportIDs;
+  }
+
   formData.forEach((value, key) => {
-    newData[key] = value;
+    if (key !== "SportTypeIDs") {
+      newData[key] = value;
+    }
   });
 
-  // Convert numbers
-  ["Capacity", "DurationHours", "StandardFee", "PointCost", "Value", "SportTypeID", "RoomID", "CourseID", "TrainerID", "RewardID"].forEach(k => {
-    if (newData[k]) newData[k] = Number(newData[k]);
+  // Convert Numbers
+  ["Capacity", "DurationHours", "StandardFee", "PointCost", "Value", "SportTypeID", "RoomID", "CourseID", "TrainerID", "RewardID", "PrerequisiteCourseID"].forEach(k => {
+    if (newData[k] && newData[k] !== "") newData[k] = Number(newData[k]);
+    if (newData[k] === "") newData[k] = null;
   });
+
+  // Handle Studio ↔ SportType (Bridge Table)
+  if (currentTab === "studios" && newData.SportTypeIDs) {
+    const studioCode = newData.StudioCode || editingId?.StudioCode;
+
+    // ลบเดิม
+    for (let i = STUDIO_SPORT_TYPE.length - 1; i >= 0; i--) {
+      if (STUDIO_SPORT_TYPE[i].StudioCode === studioCode) {
+        STUDIO_SPORT_TYPE.splice(i, 1);
+      }
+    }
+
+    // เพิ่มใหม่
+    newData.SportTypeIDs.forEach(sportID => {
+      STUDIO_SPORT_TYPE.push({ StudioCode: studioCode, SportTypeID: sportID });
+    });
+
+    delete newData.SportTypeIDs;
+  }
 
   if (editingId) {
     // EDIT
@@ -385,7 +599,6 @@ function deleteItem(item) {
     alert("✅ ลบข้อมูลสำเร็จ (Prototype)");
   }
 
-  // TODO: call API DELETE
   renderAdminContent();
 }
 

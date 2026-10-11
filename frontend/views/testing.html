@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SheSparks Testing</title>
+  <link rel="stylesheet" href="/css/global.css">
+  <style>
+    body { padding: 40px; }
+    h1 { color: var(--pink-deep); margin-bottom: 20px; }
+    h2 { color: var(--pink-deep); margin-top: 30px; margin-bottom: 16px; font-size: 1.2rem; }
+    .test-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 16px; background: white;
+      border-radius: 10px; margin-bottom: 8px;
+      border: 1px solid var(--border);
+    }
+    .test-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--pink-main); }
+    .test-item label { flex: 1; cursor: pointer; }
+    .test-item .status { font-size: 0.8rem; padding: 4px 10px; border-radius: 50px; }
+    .status.pass { background: #e8f5e9; color: #4caf50; }
+    .status.fail { background: #ffebee; color: #f44336; }
+    .btn-group { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+    .btn-group a { padding: 10px 20px; background: var(--pink-main); color: white; text-decoration: none; border-radius: 50px; font-size: 0.9rem; }
+    .btn-group a:hover { background: var(--pink-deep); }
+  </style>
+</head>
+<body>
+
+  <h1>🧪 SheSparks Testing Checklist</h1>
+  <p style="color: var(--text-mid);">ใช้ไฟล์นี้เพื่อ track การทดสอบทั้งหมด</p>
+
+  <div class="btn-group">
+    <a href="/views/index.html">🏠 Home</a>
+    <a href="/views/login.html">🔐 Login</a>
+    <a href="/views/admin.html">👑 Admin</a>
+    <a href="/views/trainer-dashboard.html">🏋️ Trainer</a>
+    <a href="/views/manager-dashboard.html">🏢 Manager</a>
+  </div>
+
+  <h2>A1: Login ทั้ง 4 Role</h2>
+  <div class="test-item"><input type="checkbox" id="t1"><label for="t1">Guest: เห็น Login button</label></div>
+  <div class="test-item"><input type="checkbox" id="t2"><label for="t2">Member M001/1234 → index.html</label></div>
+  <div class="test-item"><input type="checkbox" id="t3"><label for="t3">Admin A001/admin → admin.html</label></div>
+  <div class="test-item"><input type="checkbox" id="t4"><label for="t4">Trainer T001/trainer → trainer-dashboard.html</label></div>
+  <div class="test-item"><input type="checkbox" id="t5"><label for="t5">Manager S001/manager → manager-dashboard.html</label></div>
+  <div class="test-item"><input type="checkbox" id="t6"><label for="t6">Logout → index.html + Login button</label></div>
+
+  <h2>A2: Member Flow (Booking)</h2>
+  <div class="test-item"><input type="checkbox" id="t7"><label for="t7">Get Started → booking.html</label></div>
+  <div class="test-item"><input type="checkbox" id="t8"><label for="t8">เลือก Studio → sport.html</label></div>
+  <div class="test-item"><input type="checkbox" id="t9"><label for="t9">เลือก Sport → room.html</label></div>
+  <div class="test-item"><input type="checkbox" id="t10"><label for="t10">เลือก Room + Date + Time → summary.html</label></div>
+  <div class="test-item"><input type="checkbox" id="t11"><label for="t11">Summary แสดงข้อมูลครบ</label></div>
+  <div class="test-item"><input type="checkbox" id="t12"><label for="t12">เลือก Trainer → กลับ Summary</label></div>
+  <div class="test-item"><input type="checkbox" id="t13"><label for="t13">Confirm Booking → สำเร็จ</label></div>
+  <div class="test-item"><input type="checkbox" id="t14"><label for="t14">Step Indicator: กดข้ามไม่ได้</label></div>
+  <div class="test-item"><input type="checkbox" id="t15"><label for="t15">Validation: Date, Time, Capacity</label></div>
+
+  <h2>A3: Admin Dashboard</h2>
+  <div class="test-item"><input type="checkbox" id="t16"><label for="t16">Summary Cards แสดง 4 ตัว</label></div>
+  <div class="test-item"><input type="checkbox" id="t17"><label for="t17">Report 3: Popular Courses</label></div>
+  <div class="test-item"><input type="checkbox" id="t18"><label for="t18">Report 1: Available Rooms → Search</label></div>
+  <div class="test-item"><input type="checkbox" id="t19"><label for="t19">Report 2: Member Points</label></div>
+  <div class="test-item"><input type="checkbox" id="t20"><label for="t20">Manage Content: 7 Tabs</label></div>
+  <div class="test-item"><input type="checkbox" id="t21"><label for="t21">Tab Studios: Add / Edit / Delete</label></div>
+  <div class="test-item"><input type="checkbox" id="t22"><label for="t22">Tab Rooms: Dropdown Studio</label></div>
+  <div class="test-item"><input type="checkbox" id="t23"><label for="t23">Tab Courses: Dropdown Studio, Room, Trainer, Prerequisite</label></div>
+  <div class="test-item"><input type="checkbox" id="t24"><label for="t24">Tab Recommend: Checkbox + Save</label></div>
+
+  <h2>A4: Trainer Dashboard</h2>
+  <div class="test-item"><input type="checkbox" id="t25"><label for="t25">Profile Card</label></div>
+  <div class="test-item"><input type="checkbox" id="t26"><label for="t26">Summary Cards 4 ตัว</label></div>
+  <div class="test-item"><input type="checkbox" id="t27"><label for="t27">Upcoming Sessions</label></div>
+  <div class="test-item"><input type="checkbox" id="t28"><label for="t28">My Courses</label></div>
+  <div class="test-item"><input type="checkbox" id="t29"><label for="t29">My Students</label></div>
+  <div class="test-item"><input type="checkbox" id="t30"><label for="t30">My Dependents</label></div>
+
+  <h2>A5: Manager Dashboard</h2>
+  <div class="test-item"><input type="checkbox" id="t31"><label for="t31">Profile Card</label></div>
+  <div class="test-item"><input type="checkbox" id="t32"><label for="t32">Summary Cards 4 ตัว</label></div>
+  <div class="test-item"><input type="checkbox" id="t33"><label for="t33">Rooms in Studio</label></div>
+  <div class="test-item"><input type="checkbox" id="t34"><label for="t34">Trainers in Studio</label></div>
+  <div class="test-item"><input type="checkbox" id="t35"><label for="t35">Today's Bookings</label></div>
+  <div class="test-item"><input type="checkbox" id="t36"><label for="t36">Equipment Inventory</label></div>
+
+  <h2>A6: UI/UX</h2>
+  <div class="test-item"><input type="checkbox" id="t37"><label for="t37">Navbar Logo ขนาดพอเหมาะ</label></div>
+  <div class="test-item"><input type="checkbox" id="t38"><label for="t38">Home Icon Active State</label></div>
+  <div class="test-item"><input type="checkbox" id="t39"><label for="t39">Profile Popover มุมขวาบน</label></div>
+  <div class="test-item"><input type="checkbox" id="t40"><label for="t40">Responsive (ย่อหน้าจอ)</label></div>
+  <div class="test-item"><input type="checkbox" id="t41"><label for="t41">Theme สี + ฟอนต์</label></div>
+
+</body>
+</html>
