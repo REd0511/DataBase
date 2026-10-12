@@ -46,62 +46,189 @@ window.addEventListener("DOMContentLoaded", () => {
   loadDashboard();
 });
 
-// ==================== LOAD DASHBOARD ====================
-function loadDashboard() {
-  document.getElementById("totalMembers").textContent = MOCK_ADMIN.totalMembers;
-  document.getElementById("totalBookings").textContent = MOCK_ADMIN.totalBookings;
-  document.getElementById("totalRevenue").textContent = "฿" + MOCK_ADMIN.totalRevenue.toLocaleString();
-  document.getElementById("totalPointsRedeemed").textContent = MOCK_ADMIN.totalPointsRedeemed.toLocaleString();
-
-  // Report 3
-  const courseTable = document.querySelector("#popularCoursesTable tbody");
-  if (courseTable) {
-    courseTable.innerHTML = MOCK_ADMIN.popularCourses.map(c => `
-      <tr>
-        <td>${c.Title}</td>
-        <td>${c.Enrollments}</td>
-        <td class="earned">฿${c.Revenue.toLocaleString()}</td>
-      </tr>
-    `).join("");
-  }
-
-  // Report 2
-  const pointsTable = document.querySelector("#memberPointsTable tbody");
-  if (pointsTable) {
-    pointsTable.innerHTML = MOCK_ADMIN.memberPoints.map(m => `
-      <tr>
-        <td>${m.Name}</td>
-        <td class="earned">+${m.Earned}</td>
-        <td class="redeemed">-${m.Redeemed}</td>
-        <td class="balance">${m.Balance}</td>
-      </tr>
-    `).join("");
-  }
-
-  renderAdminContent();
-}
-
-// ==================== REPORT 1 ====================
-function loadAvailableRooms() {
-  const date = document.getElementById("adminDate").value;
-  const start = document.getElementById("adminStart").value;
-  const end = document.getElementById("adminEnd").value;
-
-  if (!date || !start || !end) {
-    alert("Please select date and time");
+// ==================== LOAD DASHBOARD FROM REAL API ====================
+// Dashboard/report sections use the backend API. CRUD tabs below still use
+// the existing data.js structures and should be migrated separately.
+async function loadDashboard() {
+  const api = window.SheSparksAPI;
+  if (!api) {
+    showDashboardError('API client was not loaded. Add /js/api.js before /js/admin.js.');
+    renderAdminContent();
     return;
   }
 
-  const container = document.getElementById("availableRoomsList");
+  setText('totalMembers', '…');
+  setText('totalBookings', '…');
+  setText('totalRevenue', '…');
+  setText('totalPointsRedeemed', '…');
+  setTableMessage('#popularCoursesTable tbody', 'Loading course report…');
+  setTableMessage('#memberPointsTable tbody', 'Loading member points…');
+
+  const [membersResult, bookingsResult, revenueResult, coursesResult] = await Promise.allSettled([
+    api.members(), api.bookings(), api.reports.revenue(), api.reports.courses()
+  ]);
+
+  const members = valueOrEmpty(membersResult);
+  const bookings = valueOrEmpty(bookingsResult);
+  const revenueRows = valueOrEmpty(revenueResult);
+  const courses = valueOrEmpty(coursesResult);
+
+  if (membersResult.status === 'fulfilled') setText('totalMembers', members.length.toLocaleString());
+  else setText('totalMembers', '—');
+
+  if (bookingsResult.status === 'fulfilled') setText('totalBookings', bookings.length.toLocaleString());
+  else setText('totalBookings', '—');
+
+  if (revenueResult.status === 'fulfilled') {
+    const totalRevenue = revenueRows.reduce((sum, row) => sum + numberValue(row.TotalRevenue ?? row.totalRevenue ?? row.Amount), 0);
+    setText('totalRevenue', '฿' + totalRevenue.toLocaleString());
+  } else setText('totalRevenue', '—');
+
+  if (coursesResult.status === 'fulfilled') renderPopularCourses(courses);
+  else setTableMessage('#popularCoursesTable tbody', 'Unable to load courses: ' + errorMessage(coursesResult.reason));
+
+  // Fetch each member's points summary from the existing backend endpoint.
+  if (membersResult.status === 'fulfilled') {
+    const pointResults = await Promise.allSettled(members.map(member => {
+      const id = member.MemberID ?? member.memberId ?? member.id;
+      return id == null ? Promise.reject(new Error('Member ID is missing')) : api.memberPoints(id).then(points => ({ member, points }));
+    }));
+    const validPoints = pointResults.filter(result => result.status === 'fulfilled').map(result => result.value);
+    const redeemedTotal = validPoints.reduce((sum, item) => sum + numberValue(item.points.TotalRedeemed ?? item.points.totalRedeemed), 0);
+    setText('totalPointsRedeemed', redeemedTotal.toLocaleString());
+    renderMemberPoints(validPoints);
+    if (pointResults.some(result => result.status === 'rejected')) {
+      showDashboardError('Some member point records could not be loaded. Check the browser Console and backend terminal.');
+    }
+  } else {
+    setText('totalPointsRedeemed', '—');
+    setTableMessage('#memberPointsTable tbody', 'Unable to load members: ' + errorMessage(membersResult.reason));
+  }
+
+  if ([membersResult, bookingsResult, revenueResult, coursesResult].some(result => result.status === 'rejected')) {
+    showDashboardError('Some dashboard data could not be loaded from the API. See the messages in the report tables and check the backend terminal.');
+  }
+
+  // Keep existing Manage Content tabs intact.
+  renderAdminContent();
+}
+
+function valueOrEmpty(result) {
+  if (result.status !== 'fulfilled') return [];
+  const value = result.value;
+  if (Array.isArray(value)) return value;
+  if (value && Array.isArray(value.data)) return value.data;
+  return [];
+}
+
+function numberValue(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function setText(id, value) {
+  const element = document.getElementById(id);
+  if (element) element.textContent = value;
+}
+
+function setTableMessage(selector, message) {
+  const tbody = document.querySelector(selector);
+  if (tbody) tbody.innerHTML = `<tr><td colspan="10">${escapeHtml(message)}</td></tr>`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[char]);
+}
+
+function errorMessage(error) {
+  return error && error.message ? error.message : 'Unknown API error';
+}
+
+function showDashboardError(message) {
+  let notice = document.getElementById('dashboard-api-notice');
+  if (!notice) {
+    notice = document.createElement('p');
+    notice.id = 'dashboard-api-notice';
+    notice.setAttribute('role', 'status');
+    notice.style.cssText = 'margin:12px auto;padding:10px 14px;max-width:1000px;border:1px solid #e7a1b7;border-radius:8px;color:#8b3152;background:#fff4f7;';
+    const main = document.querySelector('main');
+    if (main) main.insertBefore(notice, main.firstChild.nextSibling);
+  }
+  notice.textContent = message;
+}
+
+function renderPopularCourses(courses) {
+  const tbody = document.querySelector('#popularCoursesTable tbody');
+  if (!tbody) return;
+  if (!courses.length) {
+    tbody.innerHTML = '<tr><td colspan="3">No course records found in the database.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = courses.map(course => {
+    const title = course.Title ?? course.title ?? 'Untitled course';
+    const enrollments = numberValue(course.TotalEnrollments ?? course.Enrollments ?? course.totalEnrollments);
+    const revenue = numberValue(course.Revenue ?? course.TotalRevenue ?? course.revenue);
+    return `<tr><td>${escapeHtml(title)}</td><td>${enrollments.toLocaleString()}</td><td class="earned">฿${revenue.toLocaleString()}</td></tr>`;
+  }).join('');
+}
+
+function renderMemberPoints(rows) {
+  const tbody = document.querySelector('#memberPointsTable tbody');
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="4">No member point records found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(({ member, points }) => {
+    const name = member.Name ?? member.name ?? `Member ${member.MemberID ?? ''}`;
+    const earned = numberValue(points.TotalEarned ?? points.totalEarned);
+    const redeemed = numberValue(points.TotalRedeemed ?? points.totalRedeemed);
+    const balance = numberValue(points.Balance ?? points.balance ?? (earned - redeemed));
+    return `<tr><td>${escapeHtml(name)}</td><td class="earned">+${earned.toLocaleString()}</td><td class="redeemed">-${redeemed.toLocaleString()}</td><td class="balance">${balance.toLocaleString()}</td></tr>`;
+  }).join('');
+}
+
+// ==================== REPORT 1: AVAILABLE ROOMS ====================
+async function loadAvailableRooms() {
+  const date = document.getElementById('adminDate')?.value;
+  const start = document.getElementById('adminStart')?.value;
+  const end = document.getElementById('adminEnd')?.value;
+  const container = document.getElementById('availableRoomsList');
   if (!container) return;
 
-  container.innerHTML = MOCK_ADMIN.availableRooms.map(r => `
-    <div class="room-card">
-      <h3>${r.RoomName}</h3>
-      <p>Capacity: ${r.Capacity} people</p>
-      <p>Sport: ${r.SportType}</p>
-    </div>
-  `).join("");
+  if (!date || !start || !end) {
+    alert('Please select date and start/end time.');
+    return;
+  }
+  if (start >= end) {
+    alert('End time must be later than start time.');
+    return;
+  }
+  if (!window.SheSparksAPI) {
+    container.textContent = 'API client is unavailable. Please check /js/api.js.';
+    return;
+  }
+
+  container.textContent = 'Loading available rooms from database…';
+  try {
+    const rooms = await window.SheSparksAPI.availableRooms(date, start, end);
+    if (!Array.isArray(rooms) || rooms.length === 0) {
+      container.textContent = 'No available rooms found for this date and time.';
+      return;
+    }
+    container.innerHTML = rooms.map(room => `
+      <div class="room-card">
+        <h3>${escapeHtml(room.RoomName ?? room.Name ?? `Room ${room.RoomID ?? ''}`)}</h3>
+        <p>Capacity: ${escapeHtml(room.Capacity ?? '—')} people</p>
+        <p>Studio: ${escapeHtml(room.StudioLocation ?? room.Location ?? '—')}</p>
+        <p>Sport: ${escapeHtml(room.SportName ?? room.SportType ?? '—')}</p>
+      </div>
+    `).join('');
+  } catch (error) {
+    container.textContent = 'Could not load rooms from API: ' + errorMessage(error);
+  }
 }
 
 // ============================================
