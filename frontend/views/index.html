@@ -1,71 +1,79 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SheSparks Wellness - Home</title>
-    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/global.css" />
     <link rel="stylesheet" href="/css/navbar.css" />
-    <link rel="stylesheet" href="/css/home.css">
-</head>
+    <link rel="stylesheet" href="/css/home.css" />
+  </head>
 
-<body>
-    <!-- Navbar (will be filled by global.js) -->
+  <body class="home-page">
+    <!-- Navbar -->
     <header class="navbar" id="navbar"></header>
 
     <main>
-        <!-- Hero Section with Background Image -->
-        <section class="hero">
-            <div class="hero-content">
-                <h2>Women-Only Sports & Wellness</h2>
-                <p>จองห้องซ้อม, ยืมอุปกรณ์, หาเทรนเนอร์หญิง, สมัครคอร์ส และสะสมแต้มแลกรางวัล</p>
-                <a href="/views/booking.html" class="btn-primary" id="getStartedBtn">Get Started</a>
-            </div>
-        </section>
+      <!-- ============================================ -->
+      <!-- HERO SECTION (Full Screen) -->
+      <!-- ============================================ -->
+      <section class="hero-full">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="hero-subtitle">WOMEN-ONLY SPORTS & WELLNESS</p>
+          <h1 class="hero-title">
+            Where Strength<br />
+            Meets <span class="hero-accent">Serenity</span>
+          </h1>
+          <p class="hero-description">
+            A welcoming space for yoga, movement, and the quiet practice of
+            returning home to yourself.
+          </p>
+          <div class="hero-buttons">
+            <a href="#" class="btn-primary" id="getStartedBtn">Get Started</a>
+            <a href="#about" class="btn-hero-secondary">Learn More</a>
+          </div>
+        </div>
+      </section>
 
-        <!-- Recommendations Section -->
-        <section class="recommendations">
-            <h2 class="section-title">Recommended for You</h2>
+      <!-- ============================================ -->
+      <!-- ABOUT SECTION -->
+      <!-- ============================================ -->
+      <section class="about-section" id="about">
+        <div class="about-content">
+          <p class="about-subtitle">OUR PHILOSOPHY</p>
+          <h2 class="about-title">Built for Women,<br />By Women</h2>
+          <p class="about-text">
+            SheSparks Wellness is more than a sports center — it's a sanctuary
+            where women come together to build strength, find balance, and
+            celebrate their journey. Our female-only environment ensures you can
+            focus on your practice with confidence and comfort.
+          </p>
+        </div>
+      </section>
 
-            <!-- Recommended Studios Carousel -->
-            <div class="carousel-section">
-                <h3>Studios</h3>
-                <div class="carousel" id="studio-carousel"></div>
-            </div>
-
-            <!-- Recommended Sports Carousel -->
-            <div class="carousel-section">
-                <h3>Sports</h3>
-                <div class="carousel" id="sport-carousel"></div>
-            </div>
-
-            <!-- Recommended Courses Carousel -->
-            <div class="carousel-section">
-                <h3>Courses</h3>
-                <div class="carousel" id="course-carousel"></div>
-            </div>
-
-            <!-- Recommended Rewards Carousel -->
-            <div class="carousel-section">
-                <h3>Rewards</h3>
-                <div class="carousel" id="reward-carousel"></div>
-            </div>
-        </section>
+      <!-- ============================================ -->
+      <!-- CTA SECTION -->
+      <!-- ============================================ -->
+      <section class="cta-section">
+        <div class="cta-content">
+          <h2 class="cta-title">Ready to Begin Your Journey?</h2>
+          <p class="cta-text">
+            Join our community of strong, empowered women today.
+          </p>
+          <a href="#" class="btn-primary" id="ctaBtn"
+            >Book Your First Session</a
+          >
+        </div>
+      </section>
     </main>
 
     <footer>
-        <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
+      <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
     </footer>
-
-    <!-- Profile Modal -->
-    <div class="modal-overlay" id="profile-modal">
-        <!-- Content will be injected by global.js -->
-    </div>
 
     <script src="/js/data.js"></script>
     <script src="/js/global.js"></script>
     <script src="/js/home.js"></script>
-</body>
-
+  </body>
 </html>

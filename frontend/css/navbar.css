@@ -1,19 +1,66 @@
 /* ============================================
    Navbar & Profile Popover
    ============================================ */
+
+/* ========== Navbar Base (Default = White) ========== */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--white);
-  padding: 12px 40px;
-  box-shadow: var(--shadow-sm);
-  position: sticky;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  padding: 16px 40px;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
+  transition: all 0.4s ease;
   border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
+.navbar.scrolled {
+  box-shadow: var(--shadow-md);
+  padding: 12px 40px;
+}
+
+/* ========== Navbar Transparent (Home Page Only) ========== */
+.navbar.transparent-start {
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom: 1px solid transparent;
+  box-shadow: none;
+  padding: 20px 40px;
+}
+
+.navbar.transparent-start nav a {
+  color: var(--white);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.navbar.transparent-start nav a:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--white);
+}
+
+.navbar.transparent-start nav a.active {
+  background: var(--pink-main);
+  color: var(--white);
+  text-shadow: none;
+}
+
+.navbar.transparent-start .profile-btn {
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.navbar.transparent-start .btn-login {
+  background: var(--white);
+  color: var(--pink-deep) !important;
+  text-shadow: none !important;
+}
+
+/* ========== Logo ========== */
 .navbar .logo {
   display: flex;
   align-items: center;
@@ -23,8 +70,14 @@
 
 .navbar .logo img {
   height: 70px;
+  transition: all 0.3s ease;
 }
 
+.navbar.scrolled .logo img {
+  height: 42px;
+}
+
+/* ========== Nav Links ========== */
 .navbar nav {
   display: flex;
   align-items: center;
@@ -36,9 +89,9 @@
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
-  transition: all 0.25s ease;
+  padding: 8px 16px;
+  border-radius: 50px;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,10 +108,9 @@
   color: var(--white);
 }
 
+/* ========== Home Icon ========== */
 .navbar nav a.home-icon {
-  padding: 8px 10px;
-  font-size: 1rem;
-  line-height: 1;
+  padding: 8px 12px;
 }
 
 .navbar nav a.home-icon svg {
@@ -68,7 +120,23 @@
   stroke-width: 2;
 }
 
-/* Profile Popover Components */
+/* ========== Login Button ========== */
+.navbar .btn-login {
+  background: var(--pink-main);
+  color: var(--white) !important;
+  padding: 10px 24px !important;
+  border-radius: 50px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.navbar .btn-login:hover {
+  background: var(--pink-deep);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(214, 115, 154, 0.3);
+}
+
+/* ========== Profile Button ========== */
 .profile-wrapper {
   position: relative;
   display: inline-block;
@@ -94,10 +162,11 @@
 }
 
 .profile-btn:hover {
-  transform: scale(1.05);
-  box-shadow: var(--shadow-md);
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(214, 115, 154, 0.4);
 }
 
+/* ========== Profile Popover ========== */
 .profile-popover {
   position: absolute;
   top: calc(100% + 12px);
@@ -182,6 +251,19 @@
   text-overflow: ellipsis;
 }
 
+.profile-popover .user-info .role-badge {
+  display: inline-block;
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 50px;
+  font-weight: 500;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .profile-popover .popover-points {
   background: var(--pink-bg);
   border: 1px dashed var(--pink-main);
@@ -259,20 +341,6 @@
   color: var(--white);
 }
 
-/* ========== Role Badge (ใน Popover) ========== */
-.profile-popover .user-info .role-badge {
-  display: inline-block;
-  background: var(--pink-soft);
-  color: var(--pink-deep);
-  font-size: 0.7rem;
-  padding: 2px 8px;
-  border-radius: 50px;
-  font-weight: 500;
-  margin-top: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
 /* ============================================
    Responsive: Navbar
    ============================================ */
@@ -280,6 +348,7 @@
   .navbar {
     padding: 14px 20px;
   }
+
   .navbar nav a {
     padding: 6px 10px;
     font-size: 0.88rem;
@@ -292,15 +361,13 @@
     gap: 12px;
     padding: 16px;
   }
+
   .navbar nav {
     flex-wrap: wrap;
     justify-content: center;
   }
 }
 
-/* ============================================
-   Responsive: Popover
-   ============================================ */
 @media (max-width: 480px) {
   .profile-popover {
     width: 260px;
