@@ -120,11 +120,6 @@ function renderAdminContent() {
   const content = document.getElementById("admin-content");
   if (!content) return;
 
-  if (currentTab === "recommend") {
-    renderRecommendSettings(content);
-    return;
-  }
-
   if (currentTab === "loyalty") { 
     renderLoyaltySettings(content);
     return;

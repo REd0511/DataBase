@@ -225,5 +225,33 @@ function logout() {
 
 // ==================== INIT ====================
 document.addEventListener("DOMContentLoaded", () => {
-    renderNavbar();
+  renderNavbar();
+  setupNavbarScroll();
 });
+
+// ==================== NAVBAR SCROLL ====================
+function setupNavbarScroll() {
+  const navbar = document.getElementById("navbar");
+  if (!navbar) return;
+
+  // Check Home
+  const isHomePage = document.body.classList.contains("home-page");
+
+  if (isHomePage) {
+    // Home — Start Transparent, Scroll → White
+    navbar.classList.add("transparent-start");
+
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        navbar.classList.remove("transparent-start");
+        navbar.classList.add("scrolled");
+      } else {
+        navbar.classList.add("transparent-start");
+        navbar.classList.remove("scrolled");
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+  }
+}
