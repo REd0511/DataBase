@@ -125,6 +125,11 @@ function renderAdminContent() {
     return;
   }
 
+  if (currentTab === "loyalty") { 
+    renderLoyaltySettings(content);
+    return;
+  }
+
   const dataMap = {
     studios: {
       data: STUDIOS,
@@ -167,6 +172,11 @@ function renderAdminContent() {
       name: (x) => x.Name,
       extra: (x) => `${getSportName(x.SportTypeID)} • ${getStudioName(x.StudioCode)} • ${x.Condition}`,
     },
+    // loyalty: {
+    //   data: LOYALTY_PROGRAM,
+    //   name: (x) => x.Name,
+    //   extra: (x) => `${x.PointsRequired} points • ${x.Benefit}`,
+    // },
   };
 
   const config = dataMap[currentTab];
@@ -243,6 +253,103 @@ function saveRecommendSettings() {
   };
   localStorage.setItem("recommendSettings", JSON.stringify(settings));
   alert("✅ บันทึกการตั้งค่าแล้ว");
+}
+
+// ==================== LOYALTY SETTINGS ====================
+function renderLoyaltySettings(content) {
+  const rules = JSON.parse(localStorage.getItem("loyaltyRules")) || {
+    pointsPerHour: 30,
+    pointsPerTrainer: 50,
+    pointsPerEquipment: 20,
+    pointsPerCapacity: 2,
+  };
+
+  content.innerHTML = `
+    <h3 style="color: var(--pink-deep); margin-bottom: 8px;">Loyalty Points Settings</h3>
+    <p style="color: var(--text-mid); font-size: 0.9rem; margin-bottom: 24px;">
+      กำหนดคะแนนที่สมาชิกจะได้รับจากการจองแต่ละประเภท
+    </p>
+
+    <div class="loyalty-settings">
+      <div class="loyalty-item">
+        <label>Points per Hour (Room)</label>
+        <div class="loyalty-input-wrap">
+          <input type="number" id="points-per-hour" value="${rules.pointsPerHour}" min="0" />
+          <span class="loyalty-unit">pts / ชั่วโมง</span>
+        </div>
+      </div>
+
+      <div class="loyalty-item">
+        <label>Points per Trainer</label>
+        <div class="loyalty-input-wrap">
+          <input type="number" id="points-per-trainer" value="${rules.pointsPerTrainer}" min="0" />
+          <span class="loyalty-unit">pts / คน</span>
+        </div>
+      </div>
+
+      <div class="loyalty-item">
+        <label>Points per Equipment</label>
+        <div class="loyalty-input-wrap">
+          <input type="number" id="points-per-equipment" value="${rules.pointsPerEquipment}" min="0" />
+          <span class="loyalty-unit">pts / ชิ้น</span>
+        </div>
+      </div>
+
+      <div class="loyalty-item">
+        <label>Points per Capacity</label>
+        <div class="loyalty-input-wrap">
+          <input type="number" id="points-per-capacity" value="${rules.pointsPerCapacity}" min="0" />
+          <span class="loyalty-unit">pts / คน</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="background: var(--pink-bg); padding: 16px; border-radius: var(--radius-sm); margin: 20px 0;">
+      <p style="font-size: 0.85rem; color: var(--text-mid); margin-bottom: 8px;">
+        <strong>ตัวอย่างการคำนวณ:</strong>
+      </p>
+      <p style="font-size: 0.85rem; color: var(--text-dark);">
+        จอง 2 ชม. + Trainer + Equipment 2 ชิ้น + Capacity 5 คน
+        = <strong id="loyalty-example" style="color: var(--pink-deep);">- pts</strong>
+      </p>
+    </div>
+
+    <button class="btn-primary" onclick="saveLoyaltySettings()">Save Settings</button>
+  `;
+
+  // อัปเดตตัวอย่างเมื่อเปลี่ยนค่า
+  const inputs = ["points-per-hour", "points-per-trainer", "points-per-equipment", "points-per-capacity"];
+  inputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("input", updateLoyaltyExample);
+  });
+
+  updateLoyaltyExample();
+}
+
+function updateLoyaltyExample() {
+  const pointsPerHour = parseInt(document.getElementById("points-per-hour")?.value) || 0;
+  const pointsPerTrainer = parseInt(document.getElementById("points-per-trainer")?.value) || 0;
+  const pointsPerEquipment = parseInt(document.getElementById("points-per-equipment")?.value) || 0;
+  const pointsPerCapacity = parseInt(document.getElementById("points-per-capacity")?.value) || 0;
+
+  // ตัวอย่าง: 2 ชม. + Trainer + 2 Equipment + 5 คน
+  const example = (2 * pointsPerHour) + pointsPerTrainer + (2 * pointsPerEquipment) + (5 * pointsPerCapacity);
+
+  const el = document.getElementById("loyalty-example");
+  if (el) el.textContent = `${example} pts`;
+}
+
+function saveLoyaltySettings() {
+  const rules = {
+    pointsPerHour: parseInt(document.getElementById("points-per-hour").value) || 0,
+    pointsPerTrainer: parseInt(document.getElementById("points-per-trainer").value) || 0,
+    pointsPerEquipment: parseInt(document.getElementById("points-per-equipment").value) || 0,
+    pointsPerCapacity: parseInt(document.getElementById("points-per-capacity").value) || 0,
+  };
+
+  localStorage.setItem("loyaltyRules", JSON.stringify(rules));
+  alert("✅ บันทึกการตั้งค่า Loyalty Points แล้ว");
 }
 
 // ============================================
