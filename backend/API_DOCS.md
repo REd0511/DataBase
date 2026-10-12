@@ -50,3 +50,9 @@ http://localhost:3000
 
 ## Authentication (Simple)
 - POST /api/auth/login — เข้าสู่ระบบด้วยเบอร์โทร
+
+## Frontend Integration
+- Backend also serves the frontend from `../frontend`, so open `http://localhost:3000/views/index.html`.
+- Frontend requests use same-origin paths such as `/api/courses`; do not open HTML files directly with `file://`.
+- Copy `.env.example` to `.env` and enter your local MySQL password. Never commit `.env`.
+- The Courses page and Reports 1–3 call Backend endpoints. A successful API response still depends on MySQL being connected and the required tables containing data.

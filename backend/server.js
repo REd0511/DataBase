@@ -5,6 +5,8 @@ require('./config/db'); // เชื่อมต่อ DB ทันที
 
 const app = express();
 app.use(cors());
+// Serve the frontend from the same origin so pages can call /api/... directly.
+app.use(express.static(require('path').join(__dirname, '../frontend')));
 app.use(express.json());
 
 // Import Routes
