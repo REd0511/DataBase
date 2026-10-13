@@ -453,6 +453,16 @@ function renderAdminContent() {
       extra: (x) =>
         `${getSportName(x.SportTypeID)} • ${getStudioName(x.StudioCode)} • ${x.Condition}`,
     },
+    members: {
+      data: USERS.filter((u) => u.role === "member"),
+      name: (x) => x.name,
+      extra: (x) => {
+        const level = x.memberLevel || "Silver";
+        const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+        const count = bookings.filter((b) => b.MemberID === x.id).length;
+        return `Level: ${level} • Bookings: ${count}`;
+      },
+    },
   };
 
   const config = dataMap[currentTab];
@@ -672,6 +682,9 @@ function renderModalFields(item) {
     case "equipments":
       html = renderEquipmentFields(item, isEdit);
       break;
+    case "members":
+      html = renderMemberFields(item, isEdit);
+      break;
   }
 
   fields.innerHTML = html;
@@ -684,6 +697,31 @@ function renderModalFields(item) {
 }
 
 // ==================== FIELD RENDERERS ====================
+function renderMemberFields(item, isEdit) {
+  return `
+    <div class="form-group">
+      <label>Member ID</label>
+      <input type="text" name="id" value="${item?.id || ""}" disabled>
+      <input type="hidden" name="id" value="${item?.id || ""}">
+    </div>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" name="name" value="${item?.name || ""}">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" name="email" value="${item?.email || ""}">
+    </div>
+    <div class="form-group">
+      <label>Member Level (Demo Mode)</label>
+      <select name="memberLevel">
+        ${["Silver", "Gold", "Platinum"].map((opt) => `<option value="${opt}" ${item?.memberLevel === opt ? "selected" : ""}>${opt}</option>`).join("")}
+      </select>
+      <small style="color: var(--text-mid); font-size: 0.8rem;">Admin can override Member Level for demo</small>
+    </div>
+  `;
+}
+
 function renderStudioFields(item, isEdit) {
   const sports = item
     ? getStudioSports(item.StudioCode).map((s) => s.SportTypeID)
@@ -1015,11 +1053,32 @@ function saveItem() {
 
   if (editingId) {
     // EDIT
-    const dataArray = getCurrentDataArray();
-    const index = dataArray.findIndex((x) => isSameItem(x, editingId));
-    if (index >= 0) {
-      dataArray[index] = { ...editingId, ...newData };
-      alert("✅ Item updated (Prototype)");
+    if (currentTab === "members") {
+      // Update member in USERS array
+      const user = USERS.find(
+        (u) => u.id === newData.id || u.id === editingId.id,
+      );
+      if (user) {
+        user.name = newData.name || user.name;
+        user.email = newData.email || user.email;
+        user.memberLevel = newData.memberLevel || user.memberLevel;
+
+        // Save to localStorage
+        const overrides =
+          JSON.parse(localStorage.getItem("memberLevelOverrides")) || {};
+        overrides[user.id] = user.memberLevel;
+        localStorage.setItem("memberLevelOverrides", JSON.stringify(overrides));
+
+        alert("✅ Member updated (Demo Mode)");
+      }
+    } else {
+      // Other tabs
+      const dataArray = getCurrentDataArray();
+      const index = dataArray.findIndex((x) => isSameItem(x, editingId));
+      if (index >= 0) {
+        dataArray[index] = { ...editingId, ...newData };
+        alert("✅ Item updated (Prototype)");
+      }
     }
   } else {
     // ADD
@@ -1058,6 +1117,7 @@ function getCurrentDataArray() {
     trainers: TRAINERS,
     rewards: REWARDS,
     equipments: EQUIPMENTS,
+    members: USERS,
   };
   return map[currentTab];
 }

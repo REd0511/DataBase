@@ -2,6 +2,70 @@
    Points Page
    ============================================ */
 
+/* Member Level Badge */
+.member-level-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.member-level-badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 32px;
+  background: var(--white);
+  border: 2px solid #c0c0c0;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.member-level-badge[data-level="Silver"] {
+  border-color: #c0c0c0;
+}
+
+.member-level-badge[data-level="Silver"] strong {
+  color: #7e7c78;
+}
+
+.member-level-badge[data-level="Gold"] {
+  border-color: #d4af7a;
+}
+
+.member-level-badge[data-level="Gold"] strong {
+  color: #b8860b;
+}
+
+.member-level-badge[data-level="Platinum"] {
+  border-color: #929dc4;
+}
+.member-level-badge[data-level="Platinum"] strong {
+  color: #6474ac;
+}
+
+.member-level-badge .level-label {
+  font-size: 0.75rem;
+  color: var(--text-mid);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.member-level-badge strong {
+  font-family: "Playfair Display", serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  transition: color 0.3s ease;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.member-level-badge .level-info {
+  font-size: 0.8rem;
+  color: var(--text-mid);
+}
+
 .points-card {
   background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
   color: var(--white);

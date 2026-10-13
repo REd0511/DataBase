@@ -288,6 +288,13 @@ const LOYALTY_POINTS = {
   pointsPerBaht: 1, // 1 point per 1 THB spent
 };
 
+// ==================== LOYALTY POINTS RULES ====================
+const LOYALTY_RULES = {
+  pointsPerHour: 30, // คะแนนต่อชั่วโมง (Room)
+  pointsPerTrainer: 50, // คะแนนต่อ Trainer
+  pointsPerEquipment: 20, // คะแนนต่อ Equipment
+  pointsPerCapacity: 2, // คะแนนต่อคน
+};
 // ==================== USERS ====================
 const USERS = [
   // MEMBER
@@ -297,6 +304,7 @@ const USERS = [
     role: "member",
     name: "Member Demo",
     email: "member@shesparks.com",
+    memberLevel: "Silver",
   },
   // ADMIN
   {
@@ -458,14 +466,6 @@ const EQUIPMENTS = [
   },
 ];
 
-// ==================== LOYALTY POINTS RULES ====================
-const LOYALTY_RULES = {
-  pointsPerHour: 30, // คะแนนต่อชั่วโมง (Room)
-  pointsPerTrainer: 50, // คะแนนต่อ Trainer
-  pointsPerEquipment: 20, // คะแนนต่อ Equipment
-  pointsPerCapacity: 2, // คะแนนต่อคน
-};
-
 // ==================== HELPER FUNCTIONS (Equipment) ====================
 function getEquipmentsByStudio(studioCode) {
   return EQUIPMENTS.filter((e) => e.StudioCode === studioCode);
@@ -529,4 +529,60 @@ function getPrerequisiteCourses(courseID) {
   return COURSE_PREREQUISITE.filter((cp) => cp.CourseID === courseID)
     .map((cp) => COURSES.find((c) => c.CourseID === cp.PrerequisiteCourseID))
     .filter(Boolean);
+}
+
+// ==================== MEMBER LEVEL ====================
+const MEMBER_LEVELS = {
+  Silver: {
+    label: "Silver",
+    pointsMultiplier: 1,
+    discount: 0,
+    color: "#c0c0c0",
+  },
+  Gold: {
+    label: "Gold",
+    pointsMultiplier: 1.5,
+    discount: 5,
+    color: "#d4af7a",
+  },
+  Platinum: {
+    label: "Platinum",
+    pointsMultiplier: 2,
+    discount: 10,
+    color: "#e5e4e2",
+  },
+};
+
+// ✅ คำนวณ Member Level จากจำนวนการจอง
+function calculateMemberLevel(memberId) {
+  const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+  const memberBookings = bookings.filter((b) => b.MemberID === memberId);
+  const count = memberBookings.length;
+
+  if (count >= 10) return "Platinum";
+  if (count >= 5) return "Gold";
+  return "Silver";
+}
+
+function getMemberLevel(memberId) {
+  // check overrides
+  const overrides =
+    JSON.parse(localStorage.getItem("memberLevelOverrides")) || {};
+  if (overrides[memberId]) {
+    return overrides[memberId];
+  }
+
+  // Check from User (Manual — Admin can set)
+  const user = USERS.find((u) => u.id === memberId);
+  if (user && user.memberLevel) {
+    return user.memberLevel;
+  }
+
+  // Fallback to calculation
+  return calculateMemberLevel(memberId);
+}
+
+// Pull Member Level Info
+function getMemberLevelInfo(level) {
+  return MEMBER_LEVELS[level] || MEMBER_LEVELS.Silver;
 }

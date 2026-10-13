@@ -11,7 +11,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const points = calculateMemberPoints(user);
   renderPoints(points);
+  renderMemberLevel(user);
 });
+
+// ==================== RENDER MEMBER LEVEL ====================
+function renderMemberLevel(user) {
+  if (!user || user.role !== "member") return;
+
+  const level = getMemberLevel(user.id);
+  const info = getMemberLevelInfo(level);
+
+  const badge = document.getElementById("memberLevelBadge");
+  if (badge) {
+    badge.textContent = level;
+    badge.style.background = info.color;
+  }
+
+  const badgeWrap = document.querySelector(".member-level-badge");
+  if (badgeWrap) {
+    badgeWrap.setAttribute("data-level", level);
+  }
+
+  const infoEl = document.getElementById("memberLevelInfo");
+  if (infoEl) {
+    infoEl.textContent = `Points ×${info.pointsMultiplier} • Discount ${info.discount}%`;
+  }
+}
 
 // ==================== CALCULATE POINTS ====================
 function calculateMemberPoints(user) {
