@@ -1,9 +1,15 @@
 /* ============================================
    summary.js - Summary + Trainer + Equipment + Loyalty Points
+   FEATURES:
+   - Summary ครั้งแรก → ถาม Trainer
+   - ถ้า No Trainer → ถาม Equipment
+   - ถ้า Yes Trainer → ไปเลือก Trainer → กลับมา → ถาม Equipment
+   - Equipment → Confirm
    ============================================ */
 
 let selectedEquipments = [];
 
+// ==================== INIT ====================
 document.addEventListener("DOMContentLoaded", () => {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
 
@@ -19,16 +25,39 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   renderSummary(flow);
-
-  // ตรวจสอบว่าเลือก Trainer แล้วหรือยัง
-  if (flow.trainer) {
-    showConfirmSection();
-  } else if (flow.wantTrainer && !flow.trainer) {
-    showConfirmSection();
-  } else {
-    showTrainerOption();
-  }
+  decideNextStep(flow); // ✅ ใช้ฟังก์ชันใหม่
 });
+
+// ============================================
+// ✅ ใหม่: ตัดสินใจว่าขั้นต่อไปคืออะไร
+// ============================================
+function decideNextStep(flow) {
+  // กรณีที่ 1: มี Trainer แล้ว (กลับมาจากหน้า Trainer)
+  if (flow.trainer) {
+    // ✅ ตรวจสอบว่าตอบ Equipment แล้วหรือยัง
+    if (flow.wantEquipment === true) {
+      // Yes Equipment → แสดง Equipment List
+      renderEquipmentList(flow);
+      showEquipmentListSection();
+    } else if (flow.wantEquipment === false) {
+      // No Equipment → แสดง Confirm
+      showConfirmSection();
+    } else {
+      // ยังไม่ตอบ → ถาม Equipment
+      showEquipmentOption();
+    }
+    return;
+  }
+
+  // กรณีที่ 2: กำลังเลือก Trainer (ยังไม่กลับมา) → แสดง Confirm
+  if (flow.wantTrainer === true && !flow.trainer) {
+    showConfirmSection();
+    return;
+  }
+
+  // กรณีที่ 3: เริ่มต้น → ถาม Trainer
+  showTrainerOption();
+}
 
 // ==================== RENDER SUMMARY ====================
 function renderSummary(flow) {
@@ -63,12 +92,15 @@ function addTrainer(wantTrainer) {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
 
   if (wantTrainer) {
+    // Yes Trainer → ไปหน้า trainer.html
     flow.wantTrainer = true;
     localStorage.setItem("bookingFlow", JSON.stringify(flow));
     window.location.href = "/views/trainer.html";
   } else {
+    // ✅ No Trainer → Reset + ถาม Equipment ต่อ
     flow.trainer = null;
     flow.wantTrainer = false;
+    flow.wantEquipment = null; // ✅ Reset ค่า Equipment
     localStorage.setItem("bookingFlow", JSON.stringify(flow));
     showEquipmentOption();
   }
@@ -96,17 +128,26 @@ function showEquipmentOption() {
   hideElement("#confirm-section");
 }
 
+// ✅ ใหม่: แสดง Equipment List
+function showEquipmentListSection() {
+  hideElement(".trainer-option");
+  hideElement(".equipment-option");
+  showElement(".equipment-list-section");
+  hideElement("#confirm-section");
+}
+
 // ==================== EQUIPMENT ====================
 function showEquipmentList(wantEquipment) {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
 
   if (wantEquipment) {
+    // Yes Equipment → แสดงรายการ Equipment
     flow.wantEquipment = true;
     localStorage.setItem("bookingFlow", JSON.stringify(flow));
     renderEquipmentList(flow);
-    showElement("#equipment-list-section");
-    hideElement(".equipment-option");
+    showEquipmentListSection();
   } else {
+    // No Equipment → Confirm ได้เลย
     flow.wantEquipment = false;
     flow.equipments = [];
     localStorage.setItem("bookingFlow", JSON.stringify(flow));
@@ -130,18 +171,24 @@ function renderEquipmentList(flow) {
     return;
   }
 
+  // ✅ Restore selectedEquipments จาก flow (ถ้ามี)
+  selectedEquipments = flow.equipments || [];
+
   container.innerHTML = equipments
-    .map(
-      (e) => `
-    <div class="equipment-card" onclick="toggleEquipment(${e.EquipmentID})" data-id="${e.EquipmentID}">
-      ${e.ImageURL ? `<img src="${e.ImageURL}" alt="${e.Name}" onerror="this.style.display='none'">` : ""}
-      <h4>${e.Name}</h4>
-      <p>Condition: ${e.Condition}</p>
-      <p>Late Fee: ฿${e.LateFee}</p>
-      <p style="color: var(--pink-deep); font-weight: 600;">+20 pts</p>
-    </div>
-  `,
-    )
+    .map((e) => {
+      const isSelected = selectedEquipments.some(
+        (sel) => sel.EquipmentID === e.EquipmentID,
+      );
+      return `
+        <div class="equipment-card ${isSelected ? "selected" : ""}" onclick="toggleEquipment(${e.EquipmentID})" data-id="${e.EquipmentID}">
+          ${e.ImageURL ? `<img src="${e.ImageURL}" alt="${e.Name}" onerror="this.style.display='none'">` : ""}
+          <h4>${e.Name}</h4>
+          <p>Condition: ${e.Condition}</p>
+          <p>Late Fee: ฿${e.LateFee}</p>
+          <p style="color: var(--pink-deep); font-weight: 600;">+20 pts</p>
+        </div>
+      `;
+    })
     .join("");
 }
 
@@ -170,6 +217,7 @@ function toggleEquipment(equipmentID) {
 function confirmEquipment() {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
   flow.equipments = selectedEquipments;
+  flow.wantEquipment = true; // ✅ Mark ว่าตอบแล้ว
   localStorage.setItem("bookingFlow", JSON.stringify(flow));
 
   renderSummary(flow);
@@ -192,10 +240,8 @@ function confirmBooking() {
     return;
   }
 
-  // คำนวณแต้ม
   const points = calculateLoyaltyPoints(flow);
 
-  // ✅ บันทึกการจองลงระบบจริง (ตอนนี้เท่านั้น!)
   const booking = {
     BookingID: Date.now(),
     RoomID: flow.room.RoomID,
@@ -247,7 +293,6 @@ function confirmBooking() {
 
 // ==================== CALCULATE LOYALTY POINTS ====================
 function calculateLoyaltyPoints(flow) {
-  // ดึง Rules จาก localStorage (Admin กำหนด)
   const rules = JSON.parse(localStorage.getItem("loyaltyRules")) || {
     pointsPerHour: 30,
     pointsPerTrainer: 50,
@@ -257,23 +302,19 @@ function calculateLoyaltyPoints(flow) {
 
   let points = 0;
 
-  // คะแนนจาก Room (ตามจำนวนชั่วโมง)
   const start = parseInt(flow.startTime.split(":")[0]);
   const end = parseInt(flow.endTime.split(":")[0]);
   const hours = end - start;
   points += hours * rules.pointsPerHour;
 
-  // คะแนนจาก Trainer
   if (flow.trainer) {
     points += rules.pointsPerTrainer;
   }
 
-  // คะแนนจาก Equipment (ต่อชิ้น)
   if (flow.equipments && flow.equipments.length > 0) {
     points += flow.equipments.length * rules.pointsPerEquipment;
   }
 
-  // คะแนนจาก Capacity
   points += (flow.capacity || 1) * rules.pointsPerCapacity;
 
   return points;

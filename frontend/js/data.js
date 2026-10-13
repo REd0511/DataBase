@@ -250,12 +250,12 @@ const REWARDS = [
   },
   {
     RewardID: 4,
-    Name: "10% Discount",
+    Name: "10% Discount for SheSparks Thai massage",
     PointCost: 100,
     Value: 100,
     Category: "Discount",
     ImageURL:
-      "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400",
+      "https://images.gowabi.com/pictures/images/000/194/101/big_slider_pic/58.png?1752746788",
   },
 ];
 

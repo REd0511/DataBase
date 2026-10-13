@@ -12,7 +12,7 @@
   margin-right: auto;
 }
 
-/* Filters */
+/* ========== Filters ========== */
 .filters {
   display: flex;
   justify-content: center;
@@ -35,7 +35,7 @@
   margin-top: 0;
 }
 
-/* Reward Grid */
+/* ========== Reward Grid ========== */
 .reward-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -45,7 +45,7 @@
   margin: 0 auto;
 }
 
-/* Reward Card */
+/* ========== Reward Card ========== */
 .reward-card {
   background: var(--white);
   border-radius: var(--radius-md);
@@ -83,6 +83,7 @@
   border-color: var(--gold);
 }
 
+/* Category Badge */
 .reward-card .category {
   display: inline-block;
   align-self: center;
@@ -112,23 +113,16 @@
   color: #ff9800;
 }
 
-.reward-card .reward-icon {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 12px;
-  border-radius: 50%;
-  background: var(--pink-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Reward Image */
+.reward-card .reward-image {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
 }
 
-.reward-card .reward-icon svg {
-  width: 26px;
-  height: 26px;
-  stroke: var(--pink-deep);
-}
-
+/* Reward Title */
 .reward-card h3 {
   color: var(--pink-deep);
   font-size: 1.15rem;
@@ -136,6 +130,7 @@
   font-family: "Playfair Display", serif;
 }
 
+/* Points */
 .reward-card .points {
   font-size: 1.4rem;
   color: var(--gold);
@@ -151,11 +146,15 @@
   font-family: "Poppins", sans-serif;
 }
 
+/* ============================================ */
+/* Redeem Button (Base) */
+/* ============================================ */
 .reward-card .btn-primary {
   width: 100%;
   margin-top: auto;
 }
 
+/* Disabled (Not enough points) */
 .reward-card .btn-primary:disabled {
   background: var(--border);
   color: var(--text-mid);
@@ -164,14 +163,111 @@
   box-shadow: none;
 }
 
+/* ============================================ */
+/* Redeemed State (override disabled) */
+/* ============================================ */
+.reward-card .btn-primary.redeemed:disabled {
+  background: linear-gradient(135deg, #7ebc89, #5aa06a) !important;
+  color: var(--white) !important;
+  cursor: default !important;
+  opacity: 1 !important;
+}
+
+.reward-card .btn-primary.redeemed:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* ============================================ */
+/* Points Badge (Top) */
+/* ============================================ */
+.points-badge-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.points-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
+  border-radius: 50px;
+  color: var(--white);
+  box-shadow: var(--shadow-md);
+}
+
+.points-badge span {
+  font-size: 0.85rem;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.points-badge strong {
+  font-size: 1.5rem;
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+}
+
+/* ============================================ */
+/* Redeemed Card State */
+/* ============================================ */
+.reward-card.is-redeemed {
+  opacity: 0.75;
+  background: var(--pink-bg);
+}
+
+.reward-card.is-redeemed::before {
+  background: linear-gradient(90deg, #7ebc89, #5aa06a);
+  transform: scaleX(1);
+}
+
+.reward-card.is-redeemed .reward-image {
+  filter: grayscale(50%);
+}
+
+/* ============================================ */
+/* Redeem Confirm Modal */
+/* ============================================ */
+.redeem-summary {
+  text-align: left;
+  background: var(--pink-bg);
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 24px;
+  font-size: 0.9rem;
+}
+
+.redeem-summary-image {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+
+.redeem-summary p {
+  margin-bottom: 6px;
+  color: var(--text-dark);
+}
+
+.redeem-summary hr {
+  border: none;
+  border-top: 1px dashed var(--pink-main);
+  margin: 12px 0;
+}
+
+/* ============================================ */
+/* Responsive */
+/* ============================================ */
 @media (max-width: 768px) {
   .reward-list {
     grid-template-columns: 1fr;
     padding: 20px;
   }
-}
 
-@media (max-width: 768px) {
   .filters {
     margin: 16px;
     padding: 16px;

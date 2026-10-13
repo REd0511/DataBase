@@ -1,68 +1,69 @@
 /* ============================================
    points.js - Points Page
    FEATURES:
-   - Load points from localStorage.bookings (real data)
+   - Load points + redemptions from localStorage
+   - Show combined transaction history
    - Fallback to 0 if no data
-   - Show transaction history with running balance
    ============================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
   const user = JSON.parse(localStorage.getItem("user"));
 
-  // Load points from localStorage.bookings
   const points = calculateMemberPoints(user);
-
   renderPoints(points);
 });
 
-// ==================== CALCULATE POINTS FROM BOOKINGS ====================
+// ==================== CALCULATE POINTS ====================
 function calculateMemberPoints(user) {
   if (!user || user.role !== "member") {
-    // FALLBACK: 0 if not a member
-    return {
-      total: 0,
-      history: [],
-      isMock: true,
-    };
+    return { total: 0, history: [], isMock: true };
   }
 
   const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+  const redemptions = JSON.parse(localStorage.getItem("redemptions")) || [];
 
-  // Filter bookings of this member only
+  // กรองของ Member
   const memberBookings = bookings.filter((b) => b.MemberID === user.id);
+  const memberRedemptions = redemptions.filter((r) => r.MemberID === user.id);
 
-  if (memberBookings.length === 0) {
-    // FALLBACK: 0 if no bookings
-    return {
-      total: 0,
-      history: [],
-      isMock: true,
-    };
+  if (memberBookings.length === 0 && memberRedemptions.length === 0) {
+    return { total: 0, history: [], isMock: true };
   }
 
-  // Calculate points
-  let total = 0;
   const history = [];
+  let earned = 0;
+  let redeemed = 0;
 
+  // ✅ เพิ่ม Earned จาก Bookings
   memberBookings.forEach((booking) => {
-    const earned = booking.Points || 0;
-
-    if (earned > 0) {
+    const points = booking.Points || 0;
+    if (points > 0) {
       history.push({
         Date: booking.Date,
-        Earned: earned,
+        Earned: points,
         Redeemed: 0,
         Description: `Booking: ${booking.RoomName || "-"}`,
       });
-      total += earned;
+      earned += points;
     }
   });
 
-  // Sort by date (newest first)
+  // ✅ เพิ่ม Redeemed จาก Redemptions
+  memberRedemptions.forEach((redemption) => {
+    history.push({
+      Date: redemption.RedemptionDate,
+      Earned: 0,
+      Redeemed: redemption.PointsUsed || 0,
+      Description: `Redeemed: ${redemption.RewardName || "-"}`,
+    });
+    redeemed += redemption.PointsUsed || 0;
+  });
+
+  // เรียงตามวันที่ (ใหม่ → เก่า)
   history.sort((a, b) => new Date(b.Date) - new Date(a.Date));
 
   return {
-    total,
+    total: earned - redeemed,
     history,
     isMock: false,
   };
@@ -70,20 +71,20 @@ function calculateMemberPoints(user) {
 
 // ==================== RENDER POINTS ====================
 function renderPoints(points) {
-  // ==================== TOTAL POINTS ====================
+  // Total Points
   const totalEl = document.getElementById("totalPoints");
   if (totalEl) {
     totalEl.textContent = points.total.toLocaleString();
   }
 
-  // ==================== HISTORY TABLE ====================
+  // History Table
   const tbody = document.querySelector("#pointsTable tbody");
   if (!tbody) return;
 
   if (!points.history || points.history.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-mid);">
+        <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-mid);">
           <strong style="display: block; font-size: 1rem; margin-bottom: 8px; color: var(--pink-deep);">
             No Transaction History Yet
           </strong>
@@ -99,13 +100,14 @@ function renderPoints(points) {
     .map((h) => {
       balance += (h.Earned || 0) - (h.Redeemed || 0);
       return `
-      <tr>
-        <td>${h.Date}</td>
-        <td class="earned">${h.Earned > 0 ? "+" + h.Earned : "—"}</td>
-        <td class="redeemed">${h.Redeemed > 0 ? "-" + h.Redeemed : "—"}</td>
-        <td class="balance">${balance.toLocaleString()}</td>
-      </tr>
-    `;
+        <tr>
+          <td>${h.Date}</td>
+          <td>${h.Description || "—"}</td>
+          <td class="earned">${h.Earned > 0 ? "+" + h.Earned : "—"}</td>
+          <td class="redeemed">${h.Redeemed > 0 ? "-" + h.Redeemed : "—"}</td>
+          <td class="balance">${balance.toLocaleString()}</td>
+        </tr>
+      `;
     })
     .join("");
 

@@ -53,9 +53,9 @@
   line-height: 1;
 }
 
-/* ========== Reports ========== */
+/* ========== Report Container ========== */
 .report {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 20px auto 40px;
   padding: 30px;
   background: var(--white);
@@ -99,26 +99,30 @@
   border-radius: var(--radius-sm);
   overflow: hidden;
   border: 1px solid var(--border);
+  table-layout: auto; /* ✅ ปรับความกว้างอัตโนมัติ */
 }
 
 .booking-table thead th {
   background: var(--pink-soft);
   color: var(--pink-deep);
-  padding: 14px 12px;
+  padding: 14px 14px;
   text-align: left;
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   border-bottom: 1px solid var(--border);
 }
 
 .booking-table tbody td {
-  padding: 14px 12px;
-  font-size: 0.88rem;
+  padding: 14px 14px;
+  font-size: 0.85rem;
   color: var(--text-dark);
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
+  word-wrap: break-word; /* ✅ ตัดบรรทัดถ้ายาว */
+  white-space: normal; /* ✅ ให้ wrap ได้ */
+  max-width: 200px; /* ✅ จำกัดความกว้างช่อง */
 }
 
 .booking-table tbody tr:last-child td {
@@ -129,15 +133,48 @@
   background: var(--pink-bg);
 }
 
-/* Status Badge */
+/* ========== Column Widths ========== */
+.booking-table thead th:nth-child(1) {
+  width: 10%;
+} /* Date */
+.booking-table thead th:nth-child(2) {
+  width: 10%;
+} /* Time */
+.booking-table thead th:nth-child(3) {
+  width: 12%;
+} /* Studio */
+.booking-table thead th:nth-child(4) {
+  width: 9%;
+} /* Sport */
+.booking-table thead th:nth-child(5) {
+  width: 11%;
+} /* Room */
+.booking-table thead th:nth-child(6) {
+  width: 8%;
+} /* Capacity */
+.booking-table thead th:nth-child(7) {
+  width: 10%;
+} /* Trainer */
+.booking-table thead th:nth-child(8) {
+  width: 15%;
+} /* Equipment */
+.booking-table thead th:nth-child(9) {
+  width: 7%;
+} /* Points */
+.booking-table thead th:nth-child(10) {
+  width: 8%;
+} /* Status */
+
+/* ========== Status Badge ========== */
 .status-badge {
   display: inline-block;
   padding: 4px 12px;
   border-radius: 50px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap; /* ✅ ไม่ตัดบรรทัด */
 }
 
 .status-badge.confirmed {
@@ -155,7 +192,7 @@
   color: #f44336;
 }
 
-/* Empty State */
+/* ========== Empty State ========== */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
@@ -182,13 +219,14 @@
 
 /* ========== Responsive ========== */
 @media (max-width: 992px) {
-  .booking-table {
-    font-size: 0.8rem;
-  }
-
   .booking-table thead th,
   .booking-table tbody td {
     padding: 10px 8px;
+    font-size: 0.78rem;
+  }
+
+  .booking-table tbody td {
+    max-width: 120px; /* ✅ ลดความกว้างช่อง */
   }
 }
 
@@ -208,12 +246,21 @@
     align-items: stretch;
   }
 
+  /* ✅ Mobile: ให้เลื่อนแนวนอนได้เพราะพื้นที่จำกัด */
   .report {
     overflow-x: auto;
   }
 
   .booking-table {
-    min-width: 800px;
+    min-width: 900px; /* ✅ กว้างขั้นต่ำ 900px */
+  }
+
+  .booking-table thead th,
+  .booking-table tbody td {
+    padding: 10px 8px;
+    font-size: 0.75rem;
+    white-space: nowrap; /* ✅ ไม่ตัดบรรทัดใน Mobile */
+    max-width: none;
   }
 }
 

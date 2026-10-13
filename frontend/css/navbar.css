@@ -44,16 +44,6 @@
   color: var(--white);
 }
 
-.profile-popover .popover-links a {
-  color: var(--text-dark) !important;
-  text-shadow: none !important;
-}
-
-.profile-popover .popover-links a:hover {
-  background: var(--pink-soft) !important;
-  color: var(--pink-deep) !important;
-}
-
 .navbar.transparent-start nav a.active {
   background: var(--pink-main);
   color: var(--white);
@@ -274,6 +264,7 @@
   letter-spacing: 0.5px;
 }
 
+/* ========== Popover Points (Clickable) ========== */
 .profile-popover .popover-points {
   background: var(--pink-bg);
   border: 1px dashed var(--pink-main);
@@ -283,6 +274,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.profile-popover .popover-points.clickable {
+  cursor: pointer;
+}
+
+.profile-popover .popover-points.clickable:hover {
+  background: var(--pink-soft);
+  border-color: var(--pink-deep);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .profile-popover .popover-points span {
@@ -297,6 +301,7 @@
   color: var(--pink-deep);
 }
 
+/* ========== Popover Links ========== */
 .profile-popover .popover-links {
   display: flex;
   flex-direction: column;
@@ -328,6 +333,7 @@
   flex-shrink: 0;
 }
 
+/* ========== Logout Button ========== */
 .profile-popover .btn-logout {
   width: 100%;
   padding: 10px;
