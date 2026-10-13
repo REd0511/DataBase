@@ -72,3 +72,35 @@ exports.getMemberLevelReport = (req, res) => {
         res.json(results);
     });
 };
+
+
+ // Report: Course revenue grouped by enrollment month
+exports.getMonthlyCourseRevenueReport = (req, res) => {
+    const sql = `
+        SELECT
+            DATE_FORMAT(e.EnrollmentDate, '%Y-%m') AS Month,
+            c.CourseID,
+            c.Title AS CourseName,
+            COUNT(*) AS TotalEnrollments,
+            COALESCE(SUM(c.StandardFee), 0) AS TotalRevenue
+        FROM COURSE c
+        JOIN ENROLLMENT e ON e.CourseID = c.CourseID
+        WHERE e.PaymentStatus = 'Paid'
+        GROUP BY
+            DATE_FORMAT(e.EnrollmentDate, '%Y-%m'),
+            c.CourseID,
+            c.Title
+        ORDER BY Month DESC, TotalRevenue DESC
+    `;
+
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Monthly course revenue report error:', err);
+            return res.status(500).json({
+                error: 'Failed to load monthly course revenue report'
+            });
+        }
+
+        res.json(results);
+    });
+};

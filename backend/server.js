@@ -33,6 +33,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/reports', reportRoutes);
 
+
 // หน้าแรก
 app.get('/', (req, res) => {
     res.send('<h1>SheSparks Wellness API 🎉</h1><p>Server is running!</p>');
