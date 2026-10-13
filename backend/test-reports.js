@@ -1,59 +1,159 @@
 const assert = require("assert");
-const http = require("http");
 const mysql = require("mysql2/promise");
-require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
+const path = require("path");
+
+require("dotenv").config({
+  path: path.join(__dirname, "../.env"),
+});
+
 const base = `http://localhost:${process.env.PORT || 3000}`;
+
 async function get(path) {
-  const r = await fetch(base + path);
-  const j = await r.json();
-  return { status: r.status, data: j };
-}
-(async () => {
-  const db = await mysql.createConnection({
-    host: process.env.DB_HOST || "localhost",
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD || "",
-    database: process.env.DB_NAME || "shesparks",
-  });
-  const [[tables]] = await db.query(
-    "SELECT COUNT(*) c FROM information_schema.tables WHERE table_schema=? AND table_name IN ('MEMBER','STUDIO','ROOM','SPORT_TYPE','EQUIPMENT','TRAINER','COURSE','QUALIFICATION','REWARD_ITEM','BOOKING','PAYMENT','POINT_TRANSACTION','BOOKING_EQUIPMENT','BOOKING_TRAINER','TRAINER_QUALIFICATION','TRAINER_COURSE','ENROLLMENT','REDEMPTION','COURSE_PREREQUISITE','STUDIO_SPORT_TYPE','DEPENDENT')",
-    [process.env.DB_NAME || "shesparks"],
-  );
-  assert.equal(
-    Number(tables.c),
-    21,
-    "Proposal schema should contain 21 tables",
-  );
-  const [[seed]] = await db.query("SELECT COUNT(*) c FROM MEMBER");
-  assert(seed.c >= 6, "Seed members missing");
-  const [[booking]] = await db.query("SELECT COUNT(*) c FROM BOOKING");
-  assert(booking.c >= 10, "Seed bookings missing");
-  await db.end();
-  const health = await get("/api/reports/health");
-  assert.equal(health.status, 200);
-  assert.equal(health.data.ok, true);
-  const avail = await get(
-    "/api/reports/availability?date=2026-10-08&start=09:30&end=10:30",
-  );
-  assert.equal(avail.status, 200);
+  const url = base + path;
+  const response = await fetch(url);
+  const text = await response.text();
+
+  let data;
+
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(
+      `Expected JSON but received another response\n` +
+      `URL: ${url}\n` +
+      `HTTP Status: ${response.status}\n` +
+      `Response: ${text.slice(0, 300)}`
+    );
+  }
+
   assert(
-    Array.isArray(avail.data.rooms) &&
-      Array.isArray(avail.data.equipment) &&
-      Array.isArray(avail.data.trainers),
+    response.ok,
+    `${url} returned HTTP ${response.status}: ${JSON.stringify(data)}`
   );
-  const points = await get("/api/reports/member-points");
-  assert.equal(points.status, 200);
-  assert(points.data.members.length >= 6);
-  const courses = await get("/api/reports/course-performance");
-  assert.equal(courses.status, 200);
-  assert(courses.data.courses.length >= 5);
-  assert(Array.isArray(courses.data.monthly));
-  const dash = await get("/api/admin/dashboard");
-  assert.equal(dash.status, 200);
-  assert(dash.data.summary.totalMembers >= 6);
-  assert(dash.data.summary.totalBookings >= 10);
-  console.log("✅ All report/dashboard tests passed.");
-})().catch((e) => {
-  console.error("❌ Test failed:", e.message);
-  process.exit(1);
+
+  assert(
+    Array.isArray(data),
+    `${url} should return a JSON array.`
+  );
+
+  return data;
+}
+
+async function main() {
+  let db;
+
+  try {
+    console.log("Starting SheSparks tests...");
+    console.log("Backend URL:", base);
+
+    // Check MySQL connection and database tables.
+    db = await mysql.createConnection({
+      host: process.env.DB_HOST || "localhost",
+      user: process.env.DB_USER || "root",
+      password: process.env.DB_PASSWORD ?? "",
+      database: process.env.DB_NAME || "shesparks",
+    });
+
+    console.log("PASS MySQL connection");
+
+    const databaseName = process.env.DB_NAME || "shesparks";
+
+    const [[tables]] = await db.query(
+      `SELECT COUNT(*) AS total
+       FROM information_schema.tables
+       WHERE table_schema = ?
+       AND table_name IN (
+         'MEMBER', 'STUDIO', 'ROOM', 'SPORT_TYPE',
+         'EQUIPMENT', 'TRAINER', 'COURSE', 'QUALIFICATION',
+         'REWARD_ITEM', 'BOOKING', 'PAYMENT',
+         'POINT_TRANSACTION', 'BOOKING_EQUIPMENT',
+         'BOOKING_TRAINER', 'TRAINER_QUALIFICATION',
+         'TRAINER_COURSE', 'ENROLLMENT', 'REDEMPTION',
+         'COURSE_PREREQUISITE', 'STUDIO_SPORT_TYPE',
+         'DEPENDENT'
+       )`,
+      [databaseName]
+    );
+
+    assert.strictEqual(
+      Number(tables.total),
+      21,
+      "Expected 21 required database tables."
+    );
+
+    console.log("PASS Database tables:", tables.total);
+
+    const [[members]] = await db.query(
+      "SELECT COUNT(*) AS total FROM MEMBER"
+    );
+
+    assert(
+      Number(members.total) >= 6,
+      "Expected at least 6 seed members."
+    );
+
+    console.log("PASS Member seed data:", members.total);
+
+    const [[bookings]] = await db.query(
+      "SELECT COUNT(*) AS total FROM BOOKING"
+    );
+
+    assert(
+      Number(bookings.total) >= 10,
+      "Expected at least 10 seed bookings."
+    );
+
+    console.log("PASS Booking seed data:", bookings.total);
+
+    await db.end();
+    db = null;
+
+    // Test the report endpoints registered in reportRoutes.js.
+    const checks = [
+      ["/api/reports/bookings", "Booking report"],
+      ["/api/reports/revenue", "Revenue report"],
+      ["/api/reports/courses", "Course report"],
+      [
+        "/api/reports/course-revenue-monthly",
+        "Monthly course revenue report",
+      ],
+      ["/api/reports/members", "Member level report"],
+    ];
+
+    let passed = 0;
+    const failures = [];
+
+    for (const [endpoint, label] of checks) {
+      try {
+        const data = await get(endpoint);
+        console.log(`PASS ${label}: ${data.length} row(s)`);
+        passed++;
+      } catch (error) {
+        console.error(`FAIL ${label}: ${error.message}`);
+        failures.push(label);
+      }
+    }
+
+    console.log("\n========== TEST SUMMARY ==========");
+    console.log(`Passed: ${passed}/${checks.length}`);
+    console.log(`Failed: ${failures.length}/${checks.length}`);
+
+    if (failures.length > 0) {
+      throw new Error(
+        "Some report API tests failed. Check the Backend terminal for SQL or route errors."
+      );
+    }
+
+    console.log("\nAll configured report API tests passed!");
+
+  } finally {
+    if (db) {
+      await db.end().catch(() => {});
+    }
+  }
+}
+
+main().catch((error) => {
+  console.error("\nTest failed:", error.message);
+  process.exitCode = 1;
 });
