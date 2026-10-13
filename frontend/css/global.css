@@ -68,14 +68,13 @@ h4 {
 /* ============================================
    Page Padding (สำหรับหน้าที่ไม่ใช่ Home)
    ============================================ */
-body:not(.home-page) {
-  padding-top: 130px;
-  /* ป้องกัน Navbar ทับเนื้อหา */
+body:not(.home-page):not(.login-page) {
+  padding-top: 110px;
 }
 
-body.home-page {
+body.home-page,
+body.login-page {
   padding-top: 0;
-  /* Home ใช้ Hero เต็มจอ */
 }
 
 /* ========== Buttons ========== */
@@ -147,7 +146,6 @@ footer {
   display: none !important;
 }
 
-
 /* ============================================
    Responsive: Global Elements (Buttons)
    ============================================ */
@@ -164,7 +162,6 @@ footer {
 }
 
 @media (max-width: 480px) {
-
   body:not(.home-page) {
     padding-top: 200px;
   }

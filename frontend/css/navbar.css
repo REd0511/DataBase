@@ -34,14 +34,24 @@
   padding: 20px 40px;
 }
 
-.navbar.transparent-start nav a {
+.navbar.transparent-start nav a:not(.profile-popover a) {
   color: var(--white);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-.navbar.transparent-start nav a:hover {
+.navbar.transparent-start nav a:hover:not(.profile-popover a) {
   background: rgba(255, 255, 255, 0.15);
   color: var(--white);
+}
+
+.profile-popover .popover-links a {
+  color: var(--text-dark) !important;
+  text-shadow: none !important;
+}
+
+.profile-popover .popover-links a:hover {
+  background: var(--pink-soft) !important;
+  color: var(--pink-deep) !important;
 }
 
 .navbar.transparent-start nav a.active {

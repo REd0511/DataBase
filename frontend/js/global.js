@@ -4,17 +4,23 @@
 
 // ==================== NAVBAR ====================
 function renderNavbar() {
-    const navbar = document.getElementById("navbar");
-    if (!navbar) return;
+  const navbar = document.getElementById("navbar");
+  if (!navbar) return;
 
-    const user = JSON.parse(localStorage.getItem("user"));
-    const role = user ? user.role : "guest";
+  const isLoginPage = window.location.pathname.includes("login.html");
+  if (isLoginPage) {
+    navbar.style.display = "none"; // ซ่อน Navbar
+    return;
+  }
 
-    // ==================== สร้างเมนูตาม Role ====================
-    let navLinks = "";
+  const user = JSON.parse(localStorage.getItem("user"));
+  const role = user ? user.role : "guest";
 
-    // Home (ทุก Role เห็น)
-    navLinks += `
+  // ==================== สร้างเมนูตาม Role ====================
+  let navLinks = "";
+
+  // Home (ทุก Role เห็น)
+  navLinks += `
     <a href="/views/index.html" class="home-icon ${isActive("index.html")}">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -23,34 +29,34 @@ function renderNavbar() {
     </a>
   `;
 
-    // ==================== เมนูตาม Role ====================
-    if (role === "guest" || role === "member") {
-        // Member + Guest: เห็นเมนูทั้งหมด
-        navLinks += `
+  // ==================== เมนูตาม Role ====================
+  if (role === "guest" || role === "member") {
+    // Member + Guest: เห็นเมนูทั้งหมด
+    navLinks += `
       <a href="/views/booking.html" class="${isActive("booking.html")}">Booking</a>
       <a href="/views/course.html" class="${isActive("course.html")}">Course</a>
       <a href="/views/points.html" class="${isActive("points.html")}">Points</a>
       <a href="/views/rewards.html" class="${isActive("rewards.html")}">Rewards</a>
     `;
-    } else if (role === "admin") {
-        navLinks += `
+  } else if (role === "admin") {
+    navLinks += `
       <a href="/views/admin.html" class="${isActive("admin.html")}">Dashboard</a>
     `;
-    } else if (role === "trainer") {
-        navLinks += `
+  } else if (role === "trainer") {
+    navLinks += `
       <a href="/views/trainer-dashboard.html" class="${isActive("trainer-dashboard.html")}">Dashboard</a>
     `;
-    } else if (role === "manager") {
-        navLinks += `
+  } else if (role === "manager") {
+    navLinks += `
       <a href="/views/manager-dashboard.html" class="${isActive("manager-dashboard.html")}">Dashboard</a>
     `;
-    }
+  }
 
-    // ==================== Profile / Login ====================
-    let profileSection = "";
+  // ==================== Profile / Login ====================
+  let profileSection = "";
 
-    if (user) {
-        profileSection = `
+  if (user) {
+    profileSection = `
       <div class="profile-wrapper">
         <div class="profile-btn" onclick="toggleProfilePopover(event)">
           ${user.name.charAt(0)}
@@ -58,12 +64,12 @@ function renderNavbar() {
         <div class="profile-popover" id="profile-popover"></div>
       </div>
     `;
-    } else {
-        profileSection = `<a href="/views/login.html" class="btn-login">Login</a>`;
-    }
+  } else {
+    profileSection = `<a href="/views/login.html" class="btn-login">Login</a>`;
+  }
 
-    // ==================== Render Navbar ====================
-    navbar.innerHTML = `
+  // ==================== Render Navbar ====================
+  navbar.innerHTML = `
     <a href="/views/index.html" class="logo">
       <img src="/assets/logo.png" alt="SheSparks">
     </a>
@@ -75,40 +81,40 @@ function renderNavbar() {
 }
 
 function isActive(page) {
-    return window.location.pathname.endsWith(page) ? "active" : "";
+  return window.location.pathname.endsWith(page) ? "active" : "";
 }
 
 // ==================== PROFILE POPOVER ====================
 function toggleProfilePopover(event) {
-    event.stopPropagation();
+  event.stopPropagation();
 
-    const popover = document.getElementById("profile-popover");
-    if (!popover) return;
+  const popover = document.getElementById("profile-popover");
+  if (!popover) return;
 
-    const isOpen = popover.classList.contains("active");
+  const isOpen = popover.classList.contains("active");
 
-    document
-        .querySelectorAll(".profile-popover")
-        .forEach((p) => p.classList.remove("active"));
+  document
+    .querySelectorAll(".profile-popover")
+    .forEach((p) => p.classList.remove("active"));
 
-    if (!isOpen) {
-        renderProfilePopover();
-        popover.classList.add("active");
-    }
+  if (!isOpen) {
+    renderProfilePopover();
+    popover.classList.add("active");
+  }
 }
 
 function renderProfilePopover() {
-    const popover = document.getElementById("profile-popover");
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !popover) return;
+  const popover = document.getElementById("profile-popover");
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || !popover) return;
 
-    const role = user.role;
+  const role = user.role;
 
-    // ==================== Popover Links ตาม Role ====================
-    let popoverContent = "";
+  // ==================== Popover Links ตาม Role ====================
+  let popoverContent = "";
 
-    if (role === "admin") {
-        popoverContent = `
+  if (role === "admin") {
+    popoverContent = `
           <div class="popover-links">
             <a href="/views/admin.html">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
@@ -116,8 +122,8 @@ function renderProfilePopover() {
             </a>
           </div>
         `;
-    } else if (role === "trainer") {
-        popoverContent = `
+  } else if (role === "trainer") {
+    popoverContent = `
           <div class="popover-links">
             <a href="/views/trainer-dashboard.html">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
@@ -125,8 +131,8 @@ function renderProfilePopover() {
             </a>
           </div>
         `;
-    } else if (role === "manager") {
-        popoverContent = `
+  } else if (role === "manager") {
+    popoverContent = `
           <div class="popover-links">
             <a href="/views/manager-dashboard.html">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
@@ -134,12 +140,12 @@ function renderProfilePopover() {
             </a>
           </div>
         `;
-    } else {
-        // ==================== Member ====================
-        popoverContent = `
+  } else {
+    // ==================== Member ====================
+    popoverContent = `
           <div class="popover-points">
             <span>Total Points</span>
-            <span class="points-value">${POINTS.total}</span>
+            <span class="points-value">${getUserTotalPoints(user)}</span>
           </div>
           <div class="popover-links">
             <a href="/views/points.html">
@@ -170,10 +176,10 @@ function renderProfilePopover() {
             </a>
           </div>
         `;
-    }
+  }
 
-    // ==================== Render Popover ====================
-    popover.innerHTML = `
+  // ==================== Render Popover ====================
+  popover.innerHTML = `
       <div class="popover-header">
         <div class="avatar-small">${user.name.charAt(0)}</div>
         <div class="user-info">
@@ -195,32 +201,32 @@ function renderProfilePopover() {
 }
 
 function getRoleLabel(role) {
-    const labels = {
-        member: "Member",
-        admin: "Admin",
-        trainer: "Trainer",
-        manager: "Studio Manager",
-    };
-    return labels[role] || "User";
+  const labels = {
+    member: "Member",
+    admin: "Admin",
+    trainer: "Trainer",
+    manager: "Studio Manager",
+  };
+  return labels[role] || "User";
 }
 
 // ==================== CLOSE ON CLICK OUTSIDE ====================
 document.addEventListener("click", (e) => {
-    const wrapper = document.querySelector(".profile-wrapper");
-    if (!wrapper) return;
+  const wrapper = document.querySelector(".profile-wrapper");
+  if (!wrapper) return;
 
-    if (!wrapper.contains(e.target)) {
-        document
-            .querySelectorAll(".profile-popover")
-            .forEach((p) => p.classList.remove("active"));
-    }
+  if (!wrapper.contains(e.target)) {
+    document
+      .querySelectorAll(".profile-popover")
+      .forEach((p) => p.classList.remove("active"));
+  }
 });
 
 // ==================== LOGOUT ====================
 function logout() {
-    localStorage.removeItem("user");
-    localStorage.removeItem("bookingFlow");
-    window.location.href = "/views/index.html";
+  localStorage.removeItem("user");
+  localStorage.removeItem("bookingFlow");
+  window.location.href = "/views/index.html";
 }
 
 // ==================== INIT ====================
@@ -233,6 +239,10 @@ document.addEventListener("DOMContentLoaded", () => {
 function setupNavbarScroll() {
   const navbar = document.getElementById("navbar");
   if (!navbar) return;
+
+  // Skip if on login page
+  const isLoginPage = window.location.pathname.includes("login.html");
+  if (isLoginPage) return;
 
   // Check Home
   const isHomePage = document.body.classList.contains("home-page");
@@ -254,4 +264,22 @@ function setupNavbarScroll() {
     window.addEventListener("scroll", handleScroll);
     handleScroll();
   }
+}
+
+// ==================== GET USER TOTAL POINTS ====================
+function getUserTotalPoints(user) {
+  if (!user) return 0;
+
+  // Admin / Trainer / Manager → no points
+  if (user.role !== "member") return 0;
+
+  const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+
+  // Filter bookings of this member only
+  const memberBookings = bookings.filter((b) => b.MemberID === user.id);
+
+  // Sum all earned points
+  const total = memberBookings.reduce((sum, b) => sum + (b.Points || 0), 0);
+
+  return total.toLocaleString();
 }

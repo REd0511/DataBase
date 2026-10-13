@@ -545,7 +545,7 @@
   margin: 0;
 }
 
-.checkbox-item input[type="checkbox"]:checked+* {
+.checkbox-item input[type="checkbox"]:checked + * {
   color: var(--pink-deep);
   font-weight: 600;
 }
@@ -653,6 +653,54 @@
   white-space: nowrap;
 }
 
+.loyalty-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.loyalty-summary-card {
+  background: var(--pink-bg);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  border: 1px solid var(--border);
+  text-align: center;
+  transition: all 0.25s ease;
+}
+
+.loyalty-summary-card:hover {
+  border-color: var(--pink-main);
+  transform: translateY(-2px);
+}
+
+.loyalty-summary-label {
+  font-size: 0.78rem;
+  color: var(--text-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.loyalty-summary-value {
+  font-size: 1.6rem;
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.loyalty-summary-value.earned {
+  color: var(--success);
+}
+
+.loyalty-summary-value.redeemed {
+  color: var(--danger);
+}
+
+.loyalty-summary-value.balance {
+  color: var(--pink-deep);
+}
 
 /* ============================================ */
 /* Responsive (NEW) */
@@ -712,5 +760,13 @@
 
   .loyalty-input-wrap input {
     flex: 1;
+  }
+
+  .loyalty-summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .loyalty-summary-value {
+    font-size: 1.4rem;
   }
 }

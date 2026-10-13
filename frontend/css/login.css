@@ -2,6 +2,10 @@
    Login Page
    ============================================ */
 
+body {
+  padding-top: 0 !important;
+}
+
 .login-wrapper {
   min-height: 100vh;
   display: flex;
