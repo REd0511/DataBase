@@ -46,9 +46,11 @@ function renderSummary(flow) {
     <p><strong>Time:</strong> ${flow.startTime} - ${flow.endTime}</p>
     <p><strong>Capacity:</strong> ${flow.capacity} people</p>
     ${flow.trainer ? `<p><strong>Trainer:</strong> ${flow.trainer.Name}</p>` : ""}
-    ${flow.equipments && flow.equipments.length > 0
-      ? `<p><strong>Equipment:</strong> ${flow.equipments.map(e => e.Name).join(", ")}</p>`
-      : ""}
+    ${
+      flow.equipments && flow.equipments.length > 0
+        ? `<p><strong>Equipment:</strong> ${flow.equipments.map((e) => e.Name).join(", ")}</p>`
+        : ""
+    }
     <hr style="margin: 16px 0; border: none; border-top: 1px dashed var(--pink-main);">
     <p style="color: var(--pink-deep); font-weight: 700;">
       🎉 Loyalty Points: ${points} pts
@@ -117,9 +119,10 @@ function renderEquipmentList(flow) {
   if (!container) return;
 
   // ดึง Equipment ของ Studio + Sport นั้น
-  const equipments = EQUIPMENTS.filter(e =>
-    e.StudioCode === flow.studio.StudioCode &&
-    e.SportTypeID === flow.sport.SportTypeID
+  const equipments = EQUIPMENTS.filter(
+    (e) =>
+      e.StudioCode === flow.studio.StudioCode &&
+      e.SportTypeID === flow.sport.SportTypeID,
   );
 
   if (equipments.length === 0) {
@@ -127,7 +130,9 @@ function renderEquipmentList(flow) {
     return;
   }
 
-  container.innerHTML = equipments.map(e => `
+  container.innerHTML = equipments
+    .map(
+      (e) => `
     <div class="equipment-card" onclick="toggleEquipment(${e.EquipmentID})" data-id="${e.EquipmentID}">
       ${e.ImageURL ? `<img src="${e.ImageURL}" alt="${e.Name}" onerror="this.style.display='none'">` : ""}
       <h4>${e.Name}</h4>
@@ -135,17 +140,23 @@ function renderEquipmentList(flow) {
       <p>Late Fee: ฿${e.LateFee}</p>
       <p style="color: var(--pink-deep); font-weight: 600;">+20 pts</p>
     </div>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function toggleEquipment(equipmentID) {
-  const card = document.querySelector(`.equipment-card[data-id="${equipmentID}"]`);
+  const card = document.querySelector(
+    `.equipment-card[data-id="${equipmentID}"]`,
+  );
   if (!card) return;
 
-  const equipment = EQUIPMENTS.find(e => e.EquipmentID === equipmentID);
+  const equipment = EQUIPMENTS.find((e) => e.EquipmentID === equipmentID);
   if (!equipment) return;
 
-  const index = selectedEquipments.findIndex(e => e.EquipmentID === equipmentID);
+  const index = selectedEquipments.findIndex(
+    (e) => e.EquipmentID === equipmentID,
+  );
 
   if (index >= 0) {
     selectedEquipments.splice(index, 1);
@@ -186,10 +197,12 @@ function confirmBooking() {
 
   // ✅ บันทึกการจองลงระบบจริง (ตอนนี้เท่านั้น!)
   const booking = {
-    BookingID: Date.now(),               // สร้าง ID ชั่วคราว
+    BookingID: Date.now(),
     RoomID: flow.room.RoomID,
     RoomName: flow.room.RoomName,
+    StudioCode: flow.studio.StudioCode,
     StudioName: flow.studio.Name,
+    SportTypeID: flow.sport.SportTypeID,
     SportName: flow.sport.SportName,
     Date: flow.date,
     StartTime: flow.startTime,
@@ -220,7 +233,7 @@ function confirmBooking() {
       <strong>Time:</strong> ${flow.startTime} - ${flow.endTime}<br>
       <strong>Capacity:</strong> ${flow.capacity} people<br>
       ${flow.trainer ? `<strong>Trainer:</strong> ${flow.trainer.Name}<br>` : ""}
-      ${flow.equipments && flow.equipments.length > 0 ? `<strong>Equipment:</strong> ${flow.equipments.map(e => e.Name).join(", ")}<br>` : ""}
+      ${flow.equipments && flow.equipments.length > 0 ? `<strong>Equipment:</strong> ${flow.equipments.map((e) => e.Name).join(", ")}<br>` : ""}
       <hr style="margin: 12px 0; border: none; border-top: 1px dashed var(--pink-main);">
       <strong style="color: var(--pink-deep);">🎉 ได้รับ ${points} แต้ม!</strong>
     `,

@@ -16,176 +16,231 @@
 <body>
   <header class="navbar" id="navbar"></header>
 
-  <main>
-    <h2 class="section-title">Admin Dashboard</h2>
-    <p class="section-subtitle">ภาพรวมระบบและรายงานประจำเดือน</p>
-
-    <!-- Summary Cards -->
-    <section class="summary-cards">
-      <div class="card">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+  <!-- ============================================ -->
+  <!-- Admin Layout with Fixed Sidebar -->
+  <!-- ============================================ -->
+  <div class="admin-layout">
+    <!-- Sidebar (Fixed) -->
+    <aside class="admin-sidebar">
+      <h3 class="sidebar-title">Admin Menu</h3>
+      <nav class="sidebar-nav">
+        <a href="#overview" class="sidebar-link active" onclick="scrollToSection('overview', event)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
           </svg>
-        </div>
-        <h3>Total Members</h3>
-        <p id="totalMembers">0</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
+          Overview
+        </a>
+        <a href="#report-3" class="sidebar-link" onclick="scrollToSection('report-3', event)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20V10"></path>
+            <path d="M18 20V4"></path>
+            <path d="M6 20v-4"></path>
+          </svg>
+          Report 3: Popular Courses
+        </a>
+        <a href="#report-1" class="sidebar-link" onclick="scrollToSection('report-1', event)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="16" y1="2" x2="16" y2="6"></line>
             <line x1="8" y1="2" x2="8" y2="6"></line>
             <line x1="3" y1="10" x2="21" y2="10"></line>
           </svg>
-        </div>
-        <h3>Total Bookings</h3>
-        <p id="totalBookings">0</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <line x1="12" y1="1" x2="12" y2="23"></line>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-          </svg>
-        </div>
-        <h3>Total Revenue</h3>
-        <p id="totalRevenue">฿0</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
+          Report 1: Available Rooms
+        </a>
+        <a href="#report-2" class="sidebar-link" onclick="scrollToSection('report-2', event)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polygon
               points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
             </polygon>
           </svg>
+          Report 2: Loyalty Points
+        </a>
+        <a href="#manage-content" class="sidebar-link" onclick="scrollToSection('manage-content', event)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+          Manage Content
+        </a>
+      </nav>
+
+      <!-- Quick Links -->
+      <h3 class="sidebar-title" style="margin-top: 24px;">Quick Links</h3>
+      <nav class="sidebar-nav">
+        <a href="/views/trainer-dashboard.html" class="sidebar-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
+          </svg>
+          Trainer View
+        </a>
+        <a href="/views/manager-dashboard.html" class="sidebar-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 21h18"></path>
+            <path d="M5 21V7l8-4v18"></path>
+            <path d="M19 21V11l-6-4"></path>
+          </svg>
+          Manager View
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <!-- ============================================ -->
+      <!-- Section: Overview -->
+      <!-- ============================================ -->
+      <section id="overview" class="admin-section">
+        <h2 class="section-title">Admin Dashboard</h2>
+        <p class="section-subtitle">System overview and monthly reports</p>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+          <div class="card">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <h3>Total Members</h3>
+            <p id="totalMembers">0</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </div>
+            <h3>Total Bookings</h3>
+            <p id="totalBookings">0</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
+            <h3>Total Revenue</h3>
+            <p id="totalRevenue">฿0</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+            </div>
+            <h3>Points Redeemed</h3>
+            <p id="totalPointsRedeemed">0</p>
+          </div>
         </div>
-        <h3>Points Redeemed</h3>
-        <p id="totalPointsRedeemed">0</p>
-      </div>
-    </section>
+      </section>
 
-    <!-- Report 3: Popular Courses -->
-    <section class="report">
-      <h2>Report 3: Popular Courses</h2>
-      <table id="popularCoursesTable">
-        <thead>
-          <tr>
-            <th>Course</th>
-            <th>Enrollments</th>
-            <th>Revenue</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
+      <!-- ============================================ -->
+      <!-- Section: Report 3 -->
+      <!-- ============================================ -->
+      <section id="report-3" class="admin-section report">
+        <h2>Report 3: Popular Courses</h2>
+        <table id="popularCoursesTable">
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Enrollments</th>
+              <th>Revenue</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
 
-    <!-- Report 1: Available Rooms -->
-    <section class="report">
-      <h2>Report 1: Available Rooms</h2>
-      <div class="filters">
-        <label>Date <input type="date" id="adminDate" /></label>
-        <label>Start <input type="time" id="adminStart" /></label>
-        <label>End <input type="time" id="adminEnd" /></label>
-        <button class="btn-primary" onclick="loadAvailableRooms()">
-          Search
-        </button>
-      </div>
-      <div id="availableRoomsList" class="room-list"></div>
-    </section>
-
-    <!-- Report 2: Member Loyalty Points Summary -->
-    <section class="report">
-      <h2>Report 2: Member Loyalty Points Summary</h2>
-
-      <!-- Summary Cards -->
-      <div class="loyalty-summary-cards">
-        <div class="loyalty-summary-card">
-          <p class="loyalty-summary-label">Total Points Earned</p>
-          <p class="loyalty-summary-value earned" id="totalLoyaltyEarned">0</p>
+      <!-- ============================================ -->
+      <!-- Section: Report 1 -->
+      <!-- ============================================ -->
+      <section id="report-1" class="admin-section report">
+        <h2>Report 1: Available Rooms</h2>
+        <div class="filters">
+          <label>Date <input type="date" id="adminDate" /></label>
+          <label>Start <input type="time" id="adminStart" /></label>
+          <label>End <input type="time" id="adminEnd" /></label>
+          <button class="btn-primary" onclick="loadAvailableRooms()">Search</button>
         </div>
-        <div class="loyalty-summary-card">
-          <p class="loyalty-summary-label">Total Points Redeemed</p>
-          <p class="loyalty-summary-value redeemed" id="totalLoyaltyRedeemed">0</p>
+        <div id="availableRoomsList" class="room-list"></div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- Section: Report 2 -->
+      <!-- ============================================ -->
+      <section id="report-2" class="admin-section report">
+        <h2>Report 2: Loyalty Points Summary</h2>
+
+        <div class="loyalty-summary-cards">
+          <div class="loyalty-summary-card">
+            <p class="loyalty-summary-label">Total Points Earned</p>
+            <p class="loyalty-summary-value earned" id="totalLoyaltyEarned">0</p>
+          </div>
+          <div class="loyalty-summary-card">
+            <p class="loyalty-summary-label">Total Points Redeemed</p>
+            <p class="loyalty-summary-value redeemed" id="totalLoyaltyRedeemed">0</p>
+          </div>
+          <div class="loyalty-summary-card">
+            <p class="loyalty-summary-label">Total Balance</p>
+            <p class="loyalty-summary-value balance" id="totalLoyaltyBalance">0</p>
+          </div>
         </div>
-        <div class="loyalty-summary-card">
-          <p class="loyalty-summary-label">Total Balance</p>
-          <p class="loyalty-summary-value balance" id="totalLoyaltyBalance">0</p>
+
+        <table id="loyaltySummaryTable">
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Bookings</th>
+              <th>Total Earned</th>
+              <th>Total Redeemed</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- Section: Manage Content -->
+      <!-- ============================================ -->
+      <section id="manage-content" class="admin-section report">
+        <h2>Manage Content</h2>
+        <p style="color: var(--text-mid); font-size: 0.9rem; margin-bottom: 20px">
+          Add / Edit / Delete all system data
+        </p>
+
+        <div class="admin-tabs">
+          <button class="tab-btn active" data-tab="studios" onclick="showTab('studios', event)">Studios</button>
+          <button class="tab-btn" data-tab="sports" onclick="showTab('sports', event)">Sports</button>
+          <button class="tab-btn" data-tab="rooms" onclick="showTab('rooms', event)">Rooms</button>
+          <button class="tab-btn" data-tab="courses" onclick="showTab('courses', event)">Courses</button>
+          <button class="tab-btn" data-tab="trainers" onclick="showTab('trainers', event)">Trainers</button>
+          <button class="tab-btn" data-tab="equipments" onclick="showTab('equipments', event)">Equipment</button>
+          <button class="tab-btn" data-tab="rewards" onclick="showTab('rewards', event)">Rewards</button>
+          <button class="tab-btn" data-tab="loyalty" onclick="showTab('loyalty', event)">Loyalty</button>
         </div>
-      </div>
 
-      <!-- Table -->
-      <table id="loyaltySummaryTable">
-        <thead>
-          <tr>
-            <th>Member</th>
-            <th>Bookings</th>
-            <th>Total Earned</th>
-            <th>Total Redeemed</th>
-            <th>Balance</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-
-    <!-- ============================================ -->
-    <!-- Manage Content (NEW) -->
-    <!-- ============================================ -->
-    <section class="report">
-      <h2>Manage Content</h2>
-      <p style="color: var(--text-mid); font-size: 0.9rem; margin-bottom: 20px">
-        เพิ่ม / แก้ไข / ลบ ข้อมูลทั้งหมดในระบบ
-      </p>
-
-      <!-- Tabs -->
-      <div class="admin-tabs">
-        <button class="tab-btn active" data-tab="studios" onclick="showTab('studios', event)">
-          Studios
-        </button>
-        <button class="tab-btn" data-tab="sports" onclick="showTab('sports', event)">
-          Sports
-        </button>
-        <button class="tab-btn" data-tab="rooms" onclick="showTab('rooms', event)">
-          Rooms
-        </button>
-        <button class="tab-btn" data-tab="courses" onclick="showTab('courses', event)">
-          Courses
-        </button>
-        <button class="tab-btn" data-tab="trainers" onclick="showTab('trainers', event)">
-          Trainers
-        </button>
-        <button class="tab-btn" data-tab="equipments" onclick="showTab('equipments', event)">
-          Equipment
-        </button>
-        <button class="tab-btn" data-tab="rewards" onclick="showTab('rewards', event)">
-          Rewards
-        </button>
-        <button class="tab-btn" data-tab="loyalty" onclick="showTab('loyalty', event)">
-          Loyalty
-        </button>
-      </div>
-
-      <!-- Content -->
-      <div id="admin-content"></div>
-    </section>
-  </main>
+        <div id="admin-content"></div>
+      </section>
+    </main>
+  </div>
 
   <footer>
     <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
   </footer>
 
-  <!-- ============================================ -->
-  <!-- Modal Form (NEW) -->
-  <!-- ============================================ -->
   <div class="modal-overlay" id="admin-modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -195,9 +250,7 @@
       <form id="admin-form" class="modal-form">
         <div id="modal-fields"></div>
         <div class="modal-actions">
-          <button type="button" class="btn-secondary" onclick="closeModal()">
-            Cancel
-          </button>
+          <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
           <button type="submit" class="btn-primary">Save</button>
         </div>
       </form>

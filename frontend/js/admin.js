@@ -1,46 +1,16 @@
 /* ============================================
-   admin.js - Admin Dashboard + CRUD (Phase D)
+   admin.js - Admin Dashboard + CRUD
    FEATURES:
-   - CRUD ทั้ง 7 Tabs (Studios, Sports, Rooms, Courses, Trainers, Rewards, Recommend)
-   - Modal Form พร้อม Dropdown
-   - Studio เลือกได้หลาย Sports (Multi-select)
-   - Course เลือก Studio → Room → Trainer → Prerequisite
+   - Reports 1, 2, 3 (from API + localStorage fallback)
+   - CRUD: Studios, Sports, Rooms, Courses, Trainers, Equipment, Rewards
+   - Loyalty Settings
    ============================================ */
-
-// ==================== MOCK DATA ====================
-const MOCK_ADMIN = {
-  totalMembers: 45,
-  totalBookings: 128,
-  totalRevenue: 85000,
-  totalPointsRedeemed: 3200,
-  popularCourses: [
-    { Title: "Basic Yoga", Enrollments: 25, Revenue: 37500 },
-    { Title: "Women Boxing", Enrollments: 18, Revenue: 36000 },
-    { Title: "Pilates Intro", Enrollments: 15, Revenue: 18000 },
-    { Title: "Advanced Yoga", Enrollments: 10, Revenue: 25000 },
-  ],
-  memberPoints: [
-    { Name: "Member A", Earned: 1500, Redeemed: 500, Balance: 1000 },
-    { Name: "Member B", Earned: 800, Redeemed: 200, Balance: 600 },
-    { Name: "Member C", Earned: 2000, Redeemed: 1200, Balance: 800 },
-    { Name: "Member D", Earned: 1200, Redeemed: 400, Balance: 800 },
-  ],
-  availableRooms: [
-    { RoomID: 1, RoomName: "Yoga Room A", Capacity: 20, SportType: "Yoga" },
-    {
-      RoomID: 4,
-      RoomName: "Badminton Court D",
-      Capacity: 4,
-      SportType: "Badminton",
-    },
-  ],
-};
 
 // ==================== STATE ====================
 let currentTab = "studios";
 let editingId = null;
 
-// ==================== CHECK ADMIN LOGIN ====================
+// ==================== INIT ====================
 window.addEventListener("DOMContentLoaded", () => {
   const user = JSON.parse(localStorage.getItem("user"));
   if (!user || user.role !== "admin") {
@@ -51,11 +21,10 @@ window.addEventListener("DOMContentLoaded", () => {
   loadDashboard();
 });
 
-// ==================== LOAD DASHBOARD FROM REAL API ====================
-// Dashboard/report sections use the backend API. CRUD tabs below still use
-// the existing data.js structures and should be migrated separately.
+// ==================== LOAD DASHBOARD ====================
 async function loadDashboard() {
   const api = window.SheSparksAPI;
+
   if (!api) {
     showDashboardError(
       "API client was not loaded. Add /js/api.js before /js/admin.js.",
@@ -64,6 +33,7 @@ async function loadDashboard() {
     return;
   }
 
+  // Loading states
   setText("totalMembers", "…");
   setText("totalBookings", "…");
   setText("totalRevenue", "…");
@@ -71,6 +41,7 @@ async function loadDashboard() {
   setTableMessage("#popularCoursesTable tbody", "Loading course report…");
   setTableMessage("#loyaltySummaryTable tbody", "Loading loyalty points…");
 
+  // ==================== FETCH FROM API ====================
   const [membersResult, bookingsResult, revenueResult, coursesResult] =
     await Promise.allSettled([
       api.members(),
@@ -84,6 +55,7 @@ async function loadDashboard() {
   const revenueRows = valueOrEmpty(revenueResult);
   const courses = valueOrEmpty(coursesResult);
 
+  // Summary Cards
   if (membersResult.status === "fulfilled")
     setText("totalMembers", members.length.toLocaleString());
   else setText("totalMembers", "—");
@@ -101,17 +73,18 @@ async function loadDashboard() {
     setText("totalRevenue", "฿" + totalRevenue.toLocaleString());
   } else setText("totalRevenue", "—");
 
-  if (coursesResult.status === "fulfilled") renderPopularCourses(courses);
-  else
+  // ==================== REPORT 3: Popular Courses ====================
+  if (coursesResult.status === "fulfilled") {
+    renderPopularCourses(courses);
+  } else {
     setTableMessage(
       "#popularCoursesTable tbody",
       "Unable to load courses: " + errorMessage(coursesResult.reason),
     );
+  }
 
-  // ============================================
-  // Report 2: Loyalty Points Summary
-  // ============================================
-  if (membersResult.status === "fulfilled") {
+  // ==================== REPORT 2: Loyalty Points Summary ====================
+  if (membersResult.status === "fulfilled" && members.length > 0) {
     const pointResults = await Promise.allSettled(
       members.map((member) => {
         const id = member.MemberID ?? member.memberId ?? member.id;
@@ -120,9 +93,11 @@ async function loadDashboard() {
           : api.memberPoints(id).then((points) => ({ member, points }));
       }),
     );
+
     const validPoints = pointResults
       .filter((result) => result.status === "fulfilled")
       .map((result) => result.value);
+
     const redeemedTotal = validPoints.reduce(
       (sum, item) =>
         sum +
@@ -130,36 +105,19 @@ async function loadDashboard() {
       0,
     );
     setText("totalPointsRedeemed", redeemedTotal.toLocaleString());
+
     renderLoyaltySummary(validPoints, bookings);
-    if (pointResults.some((result) => result.status === "rejected")) {
-      showDashboardError(
-        "Some member point records could not be loaded. Check the browser Console and backend terminal.",
-      );
-    }
   } else {
-    // ✅ FALLBACK: ถ้า API ไม่พร้อม → ใช้ Mock Data
-    // TODO: ลบ Fallback นี้เมื่อ Backend พร้อม
-    setText(
-      "totalPointsRedeemed",
-      MOCK_ADMIN.totalPointsRedeemed.toLocaleString(),
-    );
-    renderLoyaltySummaryFromMock();
+    // ถ้า API ไม่มีข้อมูล → ใช้ localStorage.bookings
+    setText("totalPointsRedeemed", "—");
+    renderLoyaltySummary([], []);
   }
 
-  if (
-    [membersResult, bookingsResult, revenueResult, coursesResult].some(
-      (result) => result.status === "rejected",
-    )
-  ) {
-    showDashboardError(
-      "Some dashboard data could not be loaded from the API. See the messages in the report tables and check the backend terminal.",
-    );
-  }
-
-  // Keep existing Manage Content tabs intact.
+  // ==================== MANAGE CONTENT ====================
   renderAdminContent();
 }
 
+// ==================== HELPERS ====================
 function valueOrEmpty(result) {
   if (result.status !== "fulfilled") return [];
   const value = result.value;
@@ -181,7 +139,7 @@ function setText(id, value) {
 function setTableMessage(selector, message) {
   const tbody = document.querySelector(selector);
   if (tbody)
-    tbody.innerHTML = `<tr><td colspan="10">${escapeHtml(message)}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:20px;color:var(--text-mid);">${escapeHtml(message)}</td></tr>`;
 }
 
 function escapeHtml(value) {
@@ -216,24 +174,16 @@ function showDashboardError(message) {
   notice.textContent = message;
 }
 
+// ============================================
+// REPORT 3: POPULAR COURSES
+// ============================================
 function renderPopularCourses(courses) {
   const tbody = document.querySelector("#popularCoursesTable tbody");
   if (!tbody) return;
 
-  // ✅ FALLBACK: ถ้าไม่มีข้อมูล → ใช้ Mock
-  // TODO: ลบ Fallback นี้เมื่อ Backend พร้อม
   if (!courses.length) {
-    tbody.innerHTML = MOCK_ADMIN.popularCourses
-      .map(
-        (c) => `
-      <tr>
-        <td>${escapeHtml(c.Title)}</td>
-        <td>${c.Enrollments}</td>
-        <td class="earned">฿${c.Revenue.toLocaleString()}</td>
-      </tr>
-    `,
-      )
-      .join("");
+    tbody.innerHTML =
+      '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-mid);">No course records found.</td></tr>';
     return;
   }
 
@@ -254,16 +204,15 @@ function renderPopularCourses(courses) {
 }
 
 // ============================================
-// Report 2: Loyalty Points Summary
+// REPORT 2: LOYALTY POINTS SUMMARY
 // ============================================
 function renderLoyaltySummary(validPoints, bookings) {
   const tbody = document.querySelector("#loyaltySummaryTable tbody");
   if (!tbody) return;
 
-  // ✅ FALLBACK: ถ้าไม่มีข้อมูล → ใช้ Mock
-  // TODO: ลบ Fallback นี้เมื่อ Backend พร้อม
+  // ถ้าไม่มีข้อมูลจาก API → ใช้ localStorage.bookings
   if (!validPoints || !validPoints.length) {
-    renderLoyaltySummaryFromMock();
+    renderLoyaltyFromLocalStorage();
     return;
   }
 
@@ -276,7 +225,7 @@ function renderLoyaltySummary(validPoints, bookings) {
     bookingsByMember[memberId].push(b);
   });
 
-  // สร้างข้อมูล Report
+  // Build Report Data
   const reportData = validPoints.map(({ member, points }) => {
     const memberId = member.MemberID ?? member.memberId ?? member.id;
     const name = member.Name ?? member.name ?? `Member ${memberId ?? ""}`;
@@ -316,13 +265,13 @@ function renderLoyaltySummary(validPoints, bookings) {
 }
 
 // ============================================
-// FALLBACK: Load from localStorage (remove when Backend is ready)
+// FALLBACK: Loyalty Summary from localStorage
+// (ใช้เมื่อ API ไม่มีข้อมูล)
 // ============================================
-function renderLoyaltySummaryFromMock() {
+function renderLoyaltyFromLocalStorage() {
   const tbody = document.querySelector("#loyaltySummaryTable tbody");
   if (!tbody) return;
 
-  // Load from localStorage.bookings
   const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
 
   if (bookings.length === 0) {
@@ -331,7 +280,7 @@ function renderLoyaltySummaryFromMock() {
     setText("totalLoyaltyBalance", "0");
     tbody.innerHTML = `
       <tr>
-        <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-mid);">
+        <td colspan="5" style="text-align:center;padding:40px;color:var(--text-mid);">
           No loyalty points data yet — waiting for bookings.
         </td>
       </tr>
@@ -380,7 +329,9 @@ function renderLoyaltySummaryFromMock() {
     .join("");
 }
 
-// ==================== REPORT 1: AVAILABLE ROOMS ====================
+// ============================================
+// REPORT 1: AVAILABLE ROOMS
+// ============================================
 async function loadAvailableRooms() {
   const date = document.getElementById("adminDate")?.value;
   const start = document.getElementById("adminStart")?.value;
@@ -396,20 +347,21 @@ async function loadAvailableRooms() {
     alert("End time must be later than start time.");
     return;
   }
-  // ✅ FALLBACK: ถ้าไม่มี API → ใช้ Mock
-  // TODO: ลบ Fallback นี้เมื่อ Backend พร้อม
+
   if (!window.SheSparksAPI) {
-    renderAvailableRoomsFromMock(container);
+    container.textContent =
+      "API client is unavailable. Please check /js/api.js.";
     return;
   }
 
   container.textContent = "Loading available rooms from database…";
+
   try {
     const rooms = await window.SheSparksAPI.availableRooms(date, start, end);
 
-    // ✅ FALLBACK: ถ้า API ไม่คืนค่า → ใช้ Mock
     if (!Array.isArray(rooms) || rooms.length === 0) {
-      renderAvailableRoomsFromMock(container);
+      container.innerHTML =
+        '<p style="text-align:center;padding:20px;color:var(--text-mid);">No available rooms found.</p>';
       return;
     }
 
@@ -426,32 +378,13 @@ async function loadAvailableRooms() {
       )
       .join("");
   } catch (error) {
-    // ✅ FALLBACK: ถ้า API Error → ใช้ Mock
-    renderAvailableRoomsFromMock(container);
+    container.innerHTML = `<p style="text-align:center;padding:20px;color:var(--text-mid);">Could not load rooms: ${escapeHtml(errorMessage(error))}</p>`;
   }
-}
-
-// ============================================
-// ✅ FALLBACK: Mock Data (ลบเมื่อ Backend พร้อม)
-// ============================================
-function renderAvailableRoomsFromMock(container) {
-  container.innerHTML = MOCK_ADMIN.availableRooms
-    .map(
-      (r) => `
-    <div class="room-card">
-      <h3>${escapeHtml(r.RoomName)}</h3>
-      <p>Capacity: ${r.Capacity} people</p>
-      <p>Sport: ${escapeHtml(r.SportType)}</p>
-    </div>
-  `,
-    )
-    .join("");
 }
 
 // ============================================
 // ADMIN TABS
 // ============================================
-
 function showTab(tab, event) {
   currentTab = tab;
   document
@@ -520,11 +453,6 @@ function renderAdminContent() {
       extra: (x) =>
         `${getSportName(x.SportTypeID)} • ${getStudioName(x.StudioCode)} • ${x.Condition}`,
     },
-    // loyalty: {
-    //   data: LOYALTY_PROGRAM,
-    //   name: (x) => x.Name,
-    //   extra: (x) => `${x.PointsRequired} points • ${x.Benefit}`,
-    // },
   };
 
   const config = dataMap[currentTab];
@@ -579,41 +507,6 @@ function renderAdminContent() {
 `;
 }
 
-// ==================== RECOMMEND SETTINGS ====================
-function renderRecommendSettings(content) {
-  const settings = JSON.parse(localStorage.getItem("recommendSettings")) || {
-    studios: true,
-    sports: true,
-    courses: true,
-    rewards: true,
-  };
-
-  content.innerHTML = `
-    <h3 style="color: var(--pink-deep); margin-bottom: 8px;">Recommendation Settings</h3>
-    <p style="color: var(--text-mid); font-size: 0.9rem; margin-bottom: 16px;">
-      เลือกสิ่งที่ต้องการให้แสดงในหน้า Home
-    </p>
-    <div class="recommend-setting">
-      <label><input type="checkbox" id="rec-studios" ${settings.studios ? "checked" : ""}> Show Recommended Studios</label>
-      <label><input type="checkbox" id="rec-sports" ${settings.sports ? "checked" : ""}> Show Recommended Sports</label>
-      <label><input type="checkbox" id="rec-courses" ${settings.courses ? "checked" : ""}> Show Recommended Courses</label>
-      <label><input type="checkbox" id="rec-rewards" ${settings.rewards ? "checked" : ""}> Show Recommended Rewards</label>
-    </div>
-    <button class="btn-primary" onclick="saveRecommendSettings()">Save Settings</button>
-  `;
-}
-
-function saveRecommendSettings() {
-  const settings = {
-    studios: document.getElementById("rec-studios").checked,
-    sports: document.getElementById("rec-sports").checked,
-    courses: document.getElementById("rec-courses").checked,
-    rewards: document.getElementById("rec-rewards").checked,
-  };
-  localStorage.setItem("recommendSettings", JSON.stringify(settings));
-  alert("✅ บันทึกการตั้งค่าแล้ว");
-}
-
 // ==================== LOYALTY SETTINGS ====================
 function renderLoyaltySettings(content) {
   const rules = JSON.parse(localStorage.getItem("loyaltyRules")) || {
@@ -626,7 +519,7 @@ function renderLoyaltySettings(content) {
   content.innerHTML = `
     <h3 style="color: var(--pink-deep); margin-bottom: 8px;">Loyalty Points Settings</h3>
     <p style="color: var(--text-mid); font-size: 0.9rem; margin-bottom: 24px;">
-      กำหนดคะแนนที่สมาชิกจะได้รับจากการจองแต่ละประเภท
+      Set the points members earn from each type of booking.
     </p>
 
     <div class="loyalty-settings">
@@ -634,7 +527,7 @@ function renderLoyaltySettings(content) {
         <label>Points per Hour (Room)</label>
         <div class="loyalty-input-wrap">
           <input type="number" id="points-per-hour" value="${rules.pointsPerHour}" min="0" />
-          <span class="loyalty-unit">pts / ชั่วโมง</span>
+          <span class="loyalty-unit">pts / hour</span>
         </div>
       </div>
 
@@ -642,7 +535,7 @@ function renderLoyaltySettings(content) {
         <label>Points per Trainer</label>
         <div class="loyalty-input-wrap">
           <input type="number" id="points-per-trainer" value="${rules.pointsPerTrainer}" min="0" />
-          <span class="loyalty-unit">pts / คน</span>
+          <span class="loyalty-unit">pts / trainer</span>
         </div>
       </div>
 
@@ -650,7 +543,7 @@ function renderLoyaltySettings(content) {
         <label>Points per Equipment</label>
         <div class="loyalty-input-wrap">
           <input type="number" id="points-per-equipment" value="${rules.pointsPerEquipment}" min="0" />
-          <span class="loyalty-unit">pts / ชิ้น</span>
+          <span class="loyalty-unit">pts / item</span>
         </div>
       </div>
 
@@ -658,17 +551,17 @@ function renderLoyaltySettings(content) {
         <label>Points per Capacity</label>
         <div class="loyalty-input-wrap">
           <input type="number" id="points-per-capacity" value="${rules.pointsPerCapacity}" min="0" />
-          <span class="loyalty-unit">pts / คน</span>
+          <span class="loyalty-unit">pts / person</span>
         </div>
       </div>
     </div>
 
     <div style="background: var(--pink-bg); padding: 16px; border-radius: var(--radius-sm); margin: 20px 0;">
       <p style="font-size: 0.85rem; color: var(--text-mid); margin-bottom: 8px;">
-        <strong>ตัวอย่างการคำนวณ:</strong>
+        <strong>Example calculation:</strong>
       </p>
       <p style="font-size: 0.85rem; color: var(--text-dark);">
-        จอง 2 ชม. + Trainer + Equipment 2 ชิ้น + Capacity 5 คน
+        Book 2 hrs + Trainer + 2 Equipment + 5 people
         = <strong id="loyalty-example" style="color: var(--pink-deep);">- pts</strong>
       </p>
     </div>
@@ -676,7 +569,7 @@ function renderLoyaltySettings(content) {
     <button class="btn-primary" onclick="saveLoyaltySettings()">Save Settings</button>
   `;
 
-  // อัปเดตตัวอย่างเมื่อเปลี่ยนค่า
+  // Update example on input change
   const inputs = [
     "points-per-hour",
     "points-per-trainer",
@@ -701,7 +594,6 @@ function updateLoyaltyExample() {
   const pointsPerCapacity =
     parseInt(document.getElementById("points-per-capacity")?.value) || 0;
 
-  // ตัวอย่าง: 2 ชม. + Trainer + 2 Equipment + 5 คน
   const example =
     2 * pointsPerHour +
     pointsPerTrainer +
@@ -725,13 +617,12 @@ function saveLoyaltySettings() {
   };
 
   localStorage.setItem("loyaltyRules", JSON.stringify(rules));
-  alert("✅ บันทึกการตั้งค่า Loyalty Points แล้ว");
+  alert("✅ Loyalty Points settings saved");
 }
 
 // ============================================
 // MODAL FORM
 // ============================================
-
 function openAddForm() {
   editingId = null;
   document.getElementById("modal-title").textContent =
@@ -753,7 +644,6 @@ function closeModal() {
   editingId = null;
 }
 
-// ==================== RENDER MODAL FIELDS ====================
 function renderModalFields(item) {
   const fields = document.getElementById("modal-fields");
   const isEdit = !!item;
@@ -786,7 +676,6 @@ function renderModalFields(item) {
 
   fields.innerHTML = html;
 
-  // Bind Submit
   const form = document.getElementById("admin-form");
   form.onsubmit = (e) => {
     e.preventDefault();
@@ -794,7 +683,7 @@ function renderModalFields(item) {
   };
 }
 
-// ==================== STUDIO FIELDS ====================
+// ==================== FIELD RENDERERS ====================
 function renderStudioFields(item, isEdit) {
   const sports = item
     ? getStudioSports(item.StudioCode).map((s) => s.SportTypeID)
@@ -806,18 +695,18 @@ function renderStudioFields(item, isEdit) {
     </div>
     <div class="form-group">
       <label>Name</label>
-      <input type="text" name="Name" value="${item?.Name || ""}" placeholder="SheSparks Silom">
+      <input type="text" name="Name" value="${item?.Name || ""}" placeholder="SheSparks Nimman">
     </div>
     <div class="form-group">
       <label>Location</label>
-      <input type="text" name="Location" value="${item?.Location || ""}" placeholder="Silom, Bangkok">
+      <input type="text" name="Location" value="${item?.Location || ""}" placeholder="Nimman, Chiang Mai">
     </div>
     <div class="form-group">
       <label>Capacity</label>
       <input type="number" name="Capacity" value="${item?.Capacity || ""}" placeholder="50">
     </div>
     <div class="form-group">
-      <label>Sports (เลือกได้หลายอย่าง)</label>
+      <label>Sports (multi-select)</label>
       <div class="checkbox-group">
         ${SPORT_TYPES.map(
           (s) => `
@@ -836,7 +725,6 @@ function renderStudioFields(item, isEdit) {
   `;
 }
 
-// ==================== SPORT FIELDS ====================
 function renderSportFields(item, isEdit) {
   return `
     <div class="form-group">
@@ -860,7 +748,6 @@ function renderSportFields(item, isEdit) {
   `;
 }
 
-// ==================== ROOM FIELDS ====================
 function renderRoomFields(item, isEdit) {
   return `
     <div class="form-group">
@@ -874,14 +761,14 @@ function renderRoomFields(item, isEdit) {
     <div class="form-group">
       <label>Studio</label>
       <select name="StudioCode">
-        <option value="">-- เลือก Studio --</option>
+        <option value="">-- Select Studio --</option>
         ${STUDIOS.map((s) => `<option value="${s.StudioCode}" ${item?.StudioCode === s.StudioCode ? "selected" : ""}>${s.Name} (${s.Location})</option>`).join("")}
       </select>
     </div>
     <div class="form-group">
       <label>Sport Type</label>
       <select name="SportTypeID">
-        <option value="">-- เลือก Sport --</option>
+        <option value="">-- Select Sport --</option>
         ${SPORT_TYPES.map((s) => `<option value="${s.SportTypeID}" ${item?.SportTypeID === s.SportTypeID ? "selected" : ""}>${s.SportName}</option>`).join("")}
       </select>
     </div>
@@ -896,7 +783,6 @@ function renderRoomFields(item, isEdit) {
   `;
 }
 
-// ==================== COURSE FIELDS ====================
 function renderCourseFields(item, isEdit) {
   return `
     <div class="form-group">
@@ -923,29 +809,29 @@ function renderCourseFields(item, isEdit) {
     </div>
     <div class="form-group">
       <label>Studio</label>
-      <select name="StudioCode" id="course-studio">
-        <option value="">-- เลือก Studio --</option>
+      <select name="StudioCode">
+        <option value="">-- Select Studio --</option>
         ${STUDIOS.map((s) => `<option value="${s.StudioCode}" ${item?.StudioCode === s.StudioCode ? "selected" : ""}>${s.Name}</option>`).join("")}
       </select>
     </div>
     <div class="form-group">
       <label>Room</label>
-      <select name="RoomID" id="course-room">
-        <option value="">-- เลือก Room --</option>
+      <select name="RoomID">
+        <option value="">-- Select Room --</option>
         ${ROOMS.map((r) => `<option value="${r.RoomID}" ${item?.RoomID === r.RoomID ? "selected" : ""}>${r.RoomName} (${getStudioName(r.StudioCode)})</option>`).join("")}
       </select>
     </div>
     <div class="form-group">
       <label>Trainer</label>
       <select name="TrainerID">
-        <option value="">-- เลือก Trainer --</option>
+        <option value="">-- Select Trainer --</option>
         ${TRAINERS.map((t) => `<option value="${t.TrainerID}" ${item?.TrainerID === t.TrainerID ? "selected" : ""}>${t.Name} (${getSportName(t.SportTypeID)})</option>`).join("")}
       </select>
     </div>
     <div class="form-group">
-      <label>Prerequisite Course (ถ้ามี)</label>
+      <label>Prerequisite Course (optional)</label>
       <select name="PrerequisiteCourseID">
-        <option value="">-- ไม่มี --</option>
+        <option value="">-- None --</option>
         ${COURSES.filter((c) => !item || c.CourseID !== item.CourseID)
           .map(
             (c) =>
@@ -961,7 +847,6 @@ function renderCourseFields(item, isEdit) {
   `;
 }
 
-// ==================== TRAINER FIELDS ====================
 function renderTrainerFields(item, isEdit) {
   return `
     <div class="form-group">
@@ -979,14 +864,14 @@ function renderTrainerFields(item, isEdit) {
     <div class="form-group">
       <label>Sport Type</label>
       <select name="SportTypeID">
-        <option value="">-- เลือก Sport --</option>
+        <option value="">-- Select Sport --</option>
         ${SPORT_TYPES.map((s) => `<option value="${s.SportTypeID}" ${item?.SportTypeID === s.SportTypeID ? "selected" : ""}>${s.SportName}</option>`).join("")}
       </select>
     </div>
     <div class="form-group">
       <label>Studio</label>
       <select name="StudioCode">
-        <option value="">-- เลือก Studio --</option>
+        <option value="">-- Select Studio --</option>
         ${STUDIOS.map((s) => `<option value="${s.StudioCode}" ${item?.StudioCode === s.StudioCode ? "selected" : ""}>${s.Name}</option>`).join("")}
       </select>
     </div>
@@ -1001,7 +886,6 @@ function renderTrainerFields(item, isEdit) {
   `;
 }
 
-// ==================== REWARD FIELDS ====================
 function renderRewardFields(item, isEdit) {
   return `
     <div class="form-group">
@@ -1033,7 +917,6 @@ function renderRewardFields(item, isEdit) {
   `;
 }
 
-// ==================== EQUIPMENT FIELDS ====================
 function renderEquipmentFields(item, isEdit) {
   return `
     <div class="form-group">
@@ -1047,14 +930,14 @@ function renderEquipmentFields(item, isEdit) {
     <div class="form-group">
       <label>Sport Type</label>
       <select name="SportTypeID">
-        <option value="">-- เลือก Sport --</option>
+        <option value="">-- Select Sport --</option>
         ${SPORT_TYPES.map((s) => `<option value="${s.SportTypeID}" ${item?.SportTypeID === s.SportTypeID ? "selected" : ""}>${s.SportName}</option>`).join("")}
       </select>
     </div>
     <div class="form-group">
       <label>Studio</label>
       <select name="StudioCode">
-        <option value="">-- เลือก Studio --</option>
+        <option value="">-- Select Studio --</option>
         ${STUDIOS.map((s) => `<option value="${s.StudioCode}" ${item?.StudioCode === s.StudioCode ? "selected" : ""}>${s.Name}</option>`).join("")}
       </select>
     </div>
@@ -1081,7 +964,7 @@ function saveItem() {
   const formData = new FormData(form);
   const newData = {};
 
-  // Handle Multi-select (Sports)
+  // Handle multi-select for Studios
   if (currentTab === "studios") {
     const sportIDs = formData.getAll("SportTypeIDs").map(Number);
     newData.SportTypeIDs = sportIDs;
@@ -1093,7 +976,7 @@ function saveItem() {
     }
   });
 
-  // Convert Numbers
+  // Convert numbers
   [
     "Capacity",
     "DurationHours",
@@ -1115,14 +998,14 @@ function saveItem() {
   if (currentTab === "studios" && newData.SportTypeIDs) {
     const studioCode = newData.StudioCode || editingId?.StudioCode;
 
-    // ลบเดิม
+    // Remove old
     for (let i = STUDIO_SPORT_TYPE.length - 1; i >= 0; i--) {
       if (STUDIO_SPORT_TYPE[i].StudioCode === studioCode) {
         STUDIO_SPORT_TYPE.splice(i, 1);
       }
     }
 
-    // เพิ่มใหม่
+    // Add new
     newData.SportTypeIDs.forEach((sportID) => {
       STUDIO_SPORT_TYPE.push({ StudioCode: studioCode, SportTypeID: sportID });
     });
@@ -1136,16 +1019,15 @@ function saveItem() {
     const index = dataArray.findIndex((x) => isSameItem(x, editingId));
     if (index >= 0) {
       dataArray[index] = { ...editingId, ...newData };
-      alert("✅ แก้ไขข้อมูลสำเร็จ (Prototype)");
+      alert("✅ Item updated (Prototype)");
     }
   } else {
     // ADD
     const dataArray = getCurrentDataArray();
     dataArray.push(newData);
-    alert("✅ เพิ่มข้อมูลสำเร็จ (Prototype)");
+    alert("✅ Item added (Prototype)");
   }
 
-  // TODO: call API POST/PUT
   closeModal();
   renderAdminContent();
 }
@@ -1160,7 +1042,7 @@ function deleteItem(item) {
   const index = dataArray.findIndex((x) => isSameItem(x, item));
   if (index >= 0) {
     dataArray.splice(index, 1);
-    alert("✅ ลบข้อมูลสำเร็จ (Prototype)");
+    alert("✅ Item deleted (Prototype)");
   }
 
   renderAdminContent();
@@ -1187,3 +1069,51 @@ function isSameItem(a, b) {
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+// ============================================
+// SIDEBAR NAVIGATION (Smooth Scroll + Active)
+// ============================================
+function scrollToSection(sectionId, event) {
+  if (event) event.preventDefault();
+
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+
+  // Smooth scroll
+  section.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+
+  // Update active state
+  document.querySelectorAll(".sidebar-link").forEach((link) => {
+    link.classList.remove("active");
+  });
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add("active");
+  }
+}
+
+// ============================================
+// ACTIVE HIGHLIGHT ON SCROLL
+// ============================================
+window.addEventListener("scroll", () => {
+  const sections = document.querySelectorAll(".admin-section");
+  const navLinks = document.querySelectorAll(".sidebar-link");
+
+  let currentSection = "";
+
+  sections.forEach((section) => {
+    const sectionTop = section.offsetTop - 120;
+    if (window.scrollY >= sectionTop) {
+      currentSection = section.getAttribute("id");
+    }
+  });
+
+  navLinks.forEach((link) => {
+    link.classList.remove("active");
+    if (link.getAttribute("href") === `#${currentSection}`) {
+      link.classList.add("active");
+    }
+  });
+});

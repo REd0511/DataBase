@@ -5,25 +5,27 @@
 const STUDIOS = [
   {
     StudioCode: "ST001",
-    Name: "SheSparks Silom",
-    Location: "Silom, Bangkok",
+    Name: "SheSparks Nimman",
+    Location: "Nimman, Chiang Mai",
     Capacity: 50,
-    ImageURL: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400",
+    ImageURL:
+      "https://sponsoredworkpermit.com/wp-content/uploads/2025/09/6385c11e3fff88628f36e7eb_SWP-blog-image.jpg",
   },
   {
     StudioCode: "ST002",
-    Name: "SheSparks Phayathai",
-    Location: "Phayathai, Bangkok",
+    Name: "SheSparks Old City",
+    Location: "Old City, Chiang Mai",
     Capacity: 40,
-    ImageURL: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=400",
+    ImageURL:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYOL7TtMv4uEkirUH0yoSsp8uVU5FuQzNl8uFymQh7KxgAk6r68PPwMgo&s=10",
   },
   {
     StudioCode: "ST003",
-    Name: "SheSparks Ramkhamhaeng",
-    Location: "Ramkhamhaeng, Bangkok",
+    Name: "SheSparks Riverside",
+    Location: "Riverside, Chiang Mai",
     Capacity: 60,
     ImageURL:
-      "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400",
+      "https://thechiangmai.com/riverside/wp-content/uploads/2023/10/Live-the-Suite-Life.jpg",
   },
 ];
 
@@ -45,7 +47,8 @@ const SPORT_TYPES = [
     SportTypeID: 3,
     SportName: "Boxing",
     IntensityLevel: "High",
-    ImageURL: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=400",
+    ImageURL:
+      "https://www.lecercle-boxing.com/wp-content/uploads/2024/10/allonge-boxe-cover.jpg",
   },
   {
     SportTypeID: 4,
@@ -63,7 +66,8 @@ const ROOMS = [
     StudioCode: "ST001",
     SportTypeID: 1,
     Capacity: 20,
-    ImageURL: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=400",
+    ImageURL:
+      "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2c/f3/71/95/yoga-studio-on-6th-floor.jpg?w=1200&h=1200&s=1",
   },
   {
     RoomID: 2,
@@ -72,7 +76,7 @@ const ROOMS = [
     SportTypeID: 2,
     Capacity: 15,
     ImageURL:
-      "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcFdpjDVDQMtEqvSlfb8WhliMusPHTfxLqybpgnLrfroHdDglf0TzB6of5&s=10",
   },
   {
     RoomID: 3,
@@ -80,7 +84,8 @@ const ROOMS = [
     StudioCode: "ST002",
     SportTypeID: 3,
     Capacity: 10,
-    ImageURL: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=400",
+    ImageURL:
+      "https://www.protecboxing.com/wp-content/uploads/2023/10/IMG_8300-scaled.webp",
   },
   {
     RoomID: 4,
@@ -89,7 +94,7 @@ const ROOMS = [
     SportTypeID: 4,
     Capacity: 4,
     ImageURL:
-      "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400",
+      "https://cdn.sportsforlife.in/shared/blog-images/13-01-26/77bd4b83-5bab-4704-85a1-9036bbb49afc_What_Are_the_13_Basic_Rules_of_Badminton___1768295243637.png",
   },
   {
     RoomID: 5,
@@ -97,7 +102,8 @@ const ROOMS = [
     StudioCode: "ST003",
     SportTypeID: 1,
     Capacity: 25,
-    ImageURL: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=400",
+    ImageURL:
+      "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2c/f3/71/95/yoga-studio-on-6th-floor.jpg?w=1200&h=1200&s=1",
   },
   {
     RoomID: 6,
@@ -105,7 +111,8 @@ const ROOMS = [
     StudioCode: "ST003",
     SportTypeID: 3,
     Capacity: 12,
-    ImageURL: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=400",
+    ImageURL:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6kDBsDu_xoAFt6o2lPvpHwPQJheFzwGr0NDOQ7wHZh4NiUdAVqlCFxGYV&s=10",
   },
   {
     RoomID: 7,
@@ -114,7 +121,7 @@ const ROOMS = [
     SportTypeID: 2,
     Capacity: 18,
     ImageURL:
-      "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcFdpjDVDQMtEqvSlfb8WhliMusPHTfxLqybpgnLrfroHdDglf0TzB6of5&s=10",
   },
 ];
 
@@ -170,7 +177,8 @@ const COURSES = [
     RoomID: 1,
     TrainerID: 1,
     PrerequisiteCourseID: null,
-    ImageURL: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=400",
+    ImageURL:
+      "https://yogadesignlab.com/cdn/shop/articles/yoga_design_lab_small_group_easy_seat_pose_5c878a0d-fff0-41dd-8e77-a6e5e0000567.webp?v=1790467490&width=1400",
   },
   {
     CourseID: 2,
@@ -182,7 +190,8 @@ const COURSES = [
     RoomID: 1,
     TrainerID: 1,
     PrerequisiteCourseID: 1,
-    ImageURL: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400",
+    ImageURL:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYEA1aWsFKwzUUa-BXmztEbD7CFSUCsk_d7a-UR2avsydNTFluTib4ZJE&s=10",
   },
   {
     CourseID: 3,
@@ -195,7 +204,7 @@ const COURSES = [
     TrainerID: 2,
     PrerequisiteCourseID: null,
     ImageURL:
-      "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400",
+      "https://www.theglobeandmail.com/resizer/v2/OPSNENUCHJCBNA42EFNMQG5GOI.jpg?auth=2f0966c784232bb248a759ddd9d65361523b7e03e2f962be477ce97e6b4f41a5&width=600&height=400&quality=80&smart=true",
   },
   {
     CourseID: 4,
@@ -207,7 +216,8 @@ const COURSES = [
     RoomID: 3,
     TrainerID: 3,
     PrerequisiteCourseID: null,
-    ImageURL: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=400",
+    ImageURL:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSztNMgR2wBQ9w6VeE95xAAXqy-CWHqJif9Tfnl8hAbNwov72SrcLLBio6d&s=10",
   },
 ];
 
@@ -275,7 +285,7 @@ const POINTS = {
 
 // ==================== LOYALTY POINTS RULE ====================
 const LOYALTY_POINTS = {
-  pointsPerBaht: 1, // 1 บาท = 1 แต้ม
+  pointsPerBaht: 1, // 1 point per 1 THB spent
 };
 
 // ==================== USERS ====================
@@ -363,6 +373,7 @@ const USERS = [
     studioCode: "ST003",
   },
 ];
+
 // ==================== EQUIPMENT ====================
 const EQUIPMENTS = [
   {
@@ -373,7 +384,7 @@ const EQUIPMENTS = [
     Condition: "Good",
     LateFee: 50,
     ImageURL:
-      "https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=400",
+      "https://mandukathailand.com/cdn/shop/files/111011Z30-Mats-PRO71-VERVE-02_c20a6342-8663-4436-8441-093cfd3d0f5d_1080x.jpg?v=1738237472",
   },
   {
     EquipmentID: 2,
@@ -383,7 +394,7 @@ const EQUIPMENTS = [
     Condition: "Good",
     LateFee: 30,
     ImageURL:
-      "https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=400",
+      "https://cdn.shopify.com/s/files/1/0700/8141/3360/files/yoga-brick-lifestyle-1.webp?v=1772885511&width=1000",
   },
   {
     EquipmentID: 3,
@@ -393,7 +404,7 @@ const EQUIPMENTS = [
     Condition: "Good",
     LateFee: 80,
     ImageURL:
-      "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400",
+      "https://contents.mediadecathlon.com/p3067465/k$ebc9793bcd6ee90c724d45b7bb344dc4/900-g-weighted-pilates-ball-brown-domyos-8975529.jpg?f=1920x0&format=auto",
   },
   {
     EquipmentID: 4,
@@ -403,7 +414,7 @@ const EQUIPMENTS = [
     Condition: "Good",
     LateFee: 100,
     ImageURL:
-      "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRIdM_7eNVmuMrCfQtUrS_5658U_O3ii07Umpn4eesQ5bFk1QL5mABWCro&s=10",
   },
   {
     EquipmentID: 5,
@@ -412,7 +423,8 @@ const EQUIPMENTS = [
     StudioCode: "ST002",
     Condition: "Good",
     LateFee: 120,
-    ImageURL: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=400",
+    ImageURL:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKjp1FY6k2x0eKZfeIA_dhWtubgZJhq3u4mSyENJVa4W0tMiARcsNY-Vk&s=10",
   },
   {
     EquipmentID: 6,
@@ -421,7 +433,8 @@ const EQUIPMENTS = [
     StudioCode: "ST002",
     Condition: "Good",
     LateFee: 60,
-    ImageURL: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=400",
+    ImageURL:
+      "https://www.ringside.com/media/catalog/product/cache/0ee050c3ffc3555709b9bb6062f4d7e9/m/h/mhw_v5.webp",
   },
   {
     EquipmentID: 7,
@@ -431,7 +444,7 @@ const EQUIPMENTS = [
     Condition: "Good",
     LateFee: 90,
     ImageURL:
-      "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400",
+      "https://cdn11.bigcommerce.com/s-nehqfptb/images/stencil/1280x1280/products/42216/82626/Raven-DONE__98056.1732044847.jpg?c=2",
   },
   {
     EquipmentID: 8,
@@ -441,7 +454,7 @@ const EQUIPMENTS = [
     Condition: "Good",
     LateFee: 20,
     ImageURL:
-      "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400",
+      "https://us.yonex.com/cdn/shop/collections/LG7_N_A_0933.jpg?v=1740017753",
   },
 ];
 
