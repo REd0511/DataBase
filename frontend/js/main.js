@@ -1,10 +1,24 @@
 /* ============================================
-   main.js - Global functions
+   main.js - Login + Auth
    FEATURES:
-   - Login ด้วย Hardcode
-   - Redirect ตาม Role (member / admin / trainer / manager)
-   - เก็บสถานะ login ใน localStorage
+   - Login ผ่าน Hardcode
+   - แปลง ID → MemberID (INT) สำหรับ API
+   - Redirect ตาม Role
    ============================================ */
+
+// ==================== MEMBER ID MAPPING ====================
+// Map user.id (String) → MemberID (INT) ที่มีใน DB
+const MEMBER_ID_MAP = {
+  M001: 1,
+  A001: 1,
+  T001: 1,
+  T002: 2,
+  T003: 3,
+  T004: 4,
+  S001: 1,
+  S002: 2,
+  S003: 3,
+};
 
 // ==================== LOGIN ====================
 const loginForm = document.getElementById("loginForm");
@@ -18,7 +32,13 @@ if (loginForm) {
     const user = USERS.find((u) => u.id === id && u.password === pwd);
 
     if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
+      // ✅ เพิ่ม MemberID (INT) สำหรับ API
+      const userWithId = {
+        ...user,
+        MemberID: MEMBER_ID_MAP[user.id] || 1,
+      };
+
+      localStorage.setItem("user", JSON.stringify(userWithId));
       alert(`Welcome, ${user.name}!`);
 
       // ==================== REDIRECT ตาม ROLE ====================

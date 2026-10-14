@@ -1,116 +1,96 @@
 /* ============================================
-   points.js - Points Page
+   points.js - Points Page (API Only)
    FEATURES:
-   - Load points + redemptions from localStorage
-   - Show combined transaction history
-   - Fallback to 0 if no data
+   - Load Points Summary from API
+   - Load Redemptions from API
+   - Load Bookings from API
+   - Render History
+   - Render Member Level
    ============================================ */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const user = JSON.parse(localStorage.getItem("user"));
 
-  const points = calculateMemberPoints(user);
-  renderPoints(points);
-  renderMemberLevel(user);
-});
-
-// ==================== RENDER MEMBER LEVEL ====================
-function renderMemberLevel(user) {
-  if (!user || user.role !== "member") return;
-
-  const level = getMemberLevel(user.id);
-  const info = getMemberLevelInfo(level);
-
-  const badge = document.getElementById("memberLevelBadge");
-  if (badge) {
-    badge.textContent = level;
-    badge.style.background = info.color;
-  }
-
-  const badgeWrap = document.querySelector(".member-level-badge");
-  if (badgeWrap) {
-    badgeWrap.setAttribute("data-level", level);
-  }
-
-  const infoEl = document.getElementById("memberLevelInfo");
-  if (infoEl) {
-    infoEl.textContent = `Points ×${info.pointsMultiplier} • Discount ${info.discount}%`;
-  }
-}
-
-// ==================== CALCULATE POINTS ====================
-function calculateMemberPoints(user) {
   if (!user || user.role !== "member") {
-    return { total: 0, history: [], isMock: true };
+    renderEmptyPoints();
+    return;
   }
 
-  const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-  const redemptions = JSON.parse(localStorage.getItem("redemptions")) || [];
+  const memberId = user.MemberID || user.id;
 
-  // กรองของ Member
-  const memberBookings = bookings.filter((b) => b.MemberID === user.id);
-  const memberRedemptions = redemptions.filter((r) => r.MemberID === user.id);
+  try {
+    // ✅ Load Points Summary from API
+    const pointsData = await SheSparksAPI.memberPoints(memberId);
 
-  if (memberBookings.length === 0 && memberRedemptions.length === 0) {
-    return { total: 0, history: [], isMock: true };
-  }
-
-  const history = [];
-  let earned = 0;
-  let redeemed = 0;
-
-  // ✅ เพิ่ม Earned จาก Bookings
-  memberBookings.forEach((booking) => {
-    const points = booking.Points || 0;
-    if (points > 0) {
-      history.push({
-        Date: booking.Date,
-        Earned: points,
-        Redeemed: 0,
-        Description: `Booking: ${booking.RoomName || "-"}`,
-      });
-      earned += points;
+    // ✅ Load Redemptions from API
+    let redemptions = [];
+    try {
+      redemptions = await SheSparksAPI.get(`/rewards/member/${memberId}`);
+      redemptions = redemptions || [];
+    } catch (e) {
+      redemptions = [];
     }
-  });
 
-  // ✅ เพิ่ม Redeemed จาก Redemptions
-  memberRedemptions.forEach((redemption) => {
-    history.push({
-      Date: redemption.RedemptionDate,
-      Earned: 0,
-      Redeemed: redemption.PointsUsed || 0,
-      Description: `Redeemed: ${redemption.RewardName || "-"}`,
+    // ✅ Load Bookings from API
+    let bookings = [];
+    try {
+      bookings = await SheSparksAPI.memberBookings(memberId);
+      bookings = bookings || [];
+    } catch (e) {
+      bookings = [];
+    }
+
+    // สร้าง History
+    const history = [];
+
+    bookings.forEach((b) => {
+      const earned = Number(b.Points || b.PointsEarned || 0);
+      if (earned > 0) {
+        history.push({
+          Date: b.BookingDate,
+          Description: `Booking: ${b.RoomName || "-"}`,
+          Earned: earned,
+          Redeemed: 0,
+        });
+      }
     });
-    redeemed += redemption.PointsUsed || 0;
-  });
 
-  // เรียงตามวันที่ (ใหม่ → เก่า)
-  history.sort((a, b) => new Date(b.Date) - new Date(a.Date));
+    redemptions.forEach((r) => {
+      history.push({
+        Date: r.RedemptionDate,
+        Description: `Redeemed: ${r.RewardName || "-"}`,
+        Earned: 0,
+        Redeemed: Number(r.PointsUsed || 0),
+      });
+    });
 
-  return {
-    total: earned - redeemed,
-    history,
-    isMock: false,
-  };
-}
+    history.sort((a, b) => new Date(b.Date) - new Date(a.Date));
+
+    renderPoints({
+      total: Number(pointsData.Balance || pointsData.balance || 0),
+      history,
+    });
+
+    renderMemberLevel(user);
+  } catch (error) {
+    console.error("Points error:", error);
+    renderEmptyPoints(error.message);
+  }
+});
 
 // ==================== RENDER POINTS ====================
 function renderPoints(points) {
-  // Total Points
   const totalEl = document.getElementById("totalPoints");
-  if (totalEl) {
-    totalEl.textContent = points.total.toLocaleString();
-  }
+  if (totalEl) totalEl.textContent = points.total.toLocaleString();
 
-  // History Table
   const tbody = document.querySelector("#pointsTable tbody");
   if (!tbody) return;
 
   if (!points.history || points.history.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-mid);">
-          <strong style="display: block; font-size: 1rem; margin-bottom: 8px; color: var(--pink-deep);">
+        <td colspan="5" style="text-align:center;padding:40px;color:var(--text-mid);">
+          <strong style="display:block;font-size:1rem;margin-bottom:8px;color:var(--pink-deep);">
             No Transaction History Yet
           </strong>
           Start booking to earn points!
@@ -121,7 +101,7 @@ function renderPoints(points) {
   }
 
   let balance = 0;
-  const rows = points.history
+  tbody.innerHTML = points.history
     .map((h) => {
       balance += (h.Earned || 0) - (h.Redeemed || 0);
       return `
@@ -135,6 +115,40 @@ function renderPoints(points) {
       `;
     })
     .join("");
+}
 
-  tbody.innerHTML = rows;
+// ==================== RENDER EMPTY ====================
+function renderEmptyPoints(errorMsg) {
+  const totalEl = document.getElementById("totalPoints");
+  if (totalEl) totalEl.textContent = "0";
+
+  const tbody = document.querySelector("#pointsTable tbody");
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align:center;padding:40px;color:var(--text-mid);">
+          ${errorMsg ? "Error: " + errorMsg : "Please login as member"}
+        </td>
+      </tr>
+    `;
+  }
+}
+
+// ==================== RENDER MEMBER LEVEL ====================
+function renderMemberLevel(user) {
+  if (!user) return;
+
+  const level = user.memberLevel || "Silver";
+  const info = getMemberLevelInfo(level);
+
+  const badge = document.getElementById("memberLevelBadge");
+  if (badge) badge.textContent = level;
+
+  const badgeWrap = document.querySelector(".member-level-badge");
+  if (badgeWrap) badgeWrap.setAttribute("data-level", level);
+
+  const infoEl = document.getElementById("memberLevelInfo");
+  if (infoEl) {
+    infoEl.textContent = `Points ×${info.pointsMultiplier} • Discount ${info.discount}%`;
+  }
 }

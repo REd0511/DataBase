@@ -4,7 +4,7 @@ require('dotenv').config();
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '12345',
+    password: process.env.DB_PASSWORD || '',   // ← แก้จาก '12' เป็น '12345'
     database: process.env.DB_NAME || 'shesparks'
 });
 

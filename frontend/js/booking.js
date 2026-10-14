@@ -124,35 +124,71 @@ function renderSummary() {
     `;
 }
 
-function confirmBooking() {
-    const user = JSON.parse(localStorage.getItem('user'));
+// ==================== CONFIRM BOOKING ====================
+async function confirmBooking() {
+    const flow = JSON.parse(localStorage.getItem("bookingFlow"));
+    const user = JSON.parse(localStorage.getItem("user"));
+
     if (!user) {
-        alert('Please login first');
-        window.location.href = '/views/login.html';
+        showModal({
+            type: "warning",
+            title: "Please Login",
+            message: "กรุณาเข้าสู่ระบบก่อนทำการจอง",
+            buttonText: "ไปที่ Login",
+            redirectTo: "/views/login.html",
+        });
         return;
     }
 
-    const date = document.getElementById('bookingDate')?.value;
-    const start = document.getElementById('startTime')?.value;
-    const end = document.getElementById('endTime')?.value;
+    // ✅ เรียก API
+    try {
+        const memberId = user.MemberID || user.id;
 
-    if (!date || !start || !end) {
-        alert('Please select date and time');
-        return;
+        // เตรียมข้อมูลส่ง API
+        const bookingData = {
+            BookingDate: flow.date,
+            StartTime: flow.startTime,
+            EndTime: flow.endTime,
+            MemberID: Number(memberId),
+            RoomID: Number(flow.room.RoomID),
+            EquipmentIDs: (flow.equipments || []).map((e) => ({
+                EquipmentID: e.EquipmentID,
+                Quantity: 1,
+            })),
+            TrainerIDs: flow.trainer
+                ? [{ TrainerID: flow.trainer.TrainerID, TrainerRole: "Main", HourlyRate: 500 }]
+                : [],
+        };
+
+        const result = await SheSparksAPI.post("/bookings", bookingData);
+
+        // ✅ สำเร็จ
+        showModal({
+            type: "success",
+            title: "จองสำเร็จ!",
+            message: `
+        <strong>Booking ID:</strong> ${result.BookingID}<br>
+        <strong>Studio:</strong> ${flow.studio.Name}<br>
+        <strong>Room:</strong> ${flow.room.RoomName}<br>
+        <strong>Date:</strong> ${flow.date}<br>
+        <strong>Time:</strong> ${flow.startTime} - ${flow.endTime}<br>
+        ${flow.trainer ? `<strong>Trainer:</strong> ${flow.trainer.Name}<br>` : ""}
+        ${flow.equipments && flow.equipments.length > 0 ? `<strong>Equipment:</strong> ${flow.equipments.map((e) => e.Name).join(", ")}<br>` : ""}
+      `,
+            buttonText: "ดูประวัติการจอง",
+            onClose: () => {
+                localStorage.removeItem("bookingFlow");
+                window.location.href = "/views/booking-history.html";
+            },
+        });
+    } catch (error) {
+        // ❌ Error
+        showModal({
+            type: "error",
+            title: "จองไม่สำเร็จ",
+            message: error.message || "เกิดข้อผิดพลาด",
+        });
     }
-
-    const bookingData = {
-        memberId: user.id,
-        studioCode: selectedStudio.StudioCode,
-        sportType: selectedSport.SportName,
-        roomId: selectedRoom.RoomID,
-        date, start, end
-    };
-
-    console.log('Booking Data:', bookingData);
-    alert(`✅ จองสำเร็จ!\nStudio: ${selectedStudio.Name}\nRoom: ${selectedRoom.RoomName}\nวันที่: ${date}\nเวลา: ${start} - ${end}`);
-
-    // TODO: call API createBooking(bookingData);
 }
 
 // ==================== HELPERS ====================

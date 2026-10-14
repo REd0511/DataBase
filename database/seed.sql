@@ -1,297 +1,109 @@
 USE shesparks;
 
 -- ============================
--- 1. Studio
+-- 1. Studio (จาก data.js)
 -- ============================
-INSERT INTO STUDIO (StudioCode, Location, Capacity, NumberOfRooms) VALUES
-(1, 'Silom, Bangkok', 45, 3),
-(2, 'Phayathai, Bangkok', 35, 2),
-(3, 'Ramkhamhaeng, Bangkok', 55, 3);
+INSERT INTO STUDIO (StudioCode, Name, Location, Capacity, NumberOfRooms, ImageURL) VALUES
+('ST001', 'SheSparks Nimman', 'Nimman, Chiang Mai', 50, 3, 'https://sponsoredworkpermit.com/wp-content/uploads/2025/09/6385c11e3fff88628f36e7eb_SWP-blog-image.jpg'),
+('ST002', 'SheSparks Old City', 'Old City, Chiang Mai', 40, 2, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYOL7TtMv4uEkirUH0yoSsp8uVU5FuQzNl8uFymQh7KxgAk6r68PPwMgo&s=10'),
+('ST003', 'SheSparks Riverside', 'Riverside, Chiang Mai', 60, 3, 'https://thechiangmai.com/riverside/wp-content/uploads/2023/10/Live-the-Suite-Life.jpg');
 
 -- ============================
 -- 2. Sport Type
 -- ============================
-INSERT INTO SPORT_TYPE (SportTypeID, SportName, IntensityLevel) VALUES
-(1, 'Yoga', 'Low'),
-(2, 'Pilates', 'Medium'),
-(3, 'Boxing', 'High'),
-(4, 'Badminton', 'Medium');
+INSERT INTO SPORT_TYPE (SportTypeID, SportName, IntensityLevel, ImageURL) VALUES
+(1, 'Yoga', 'Low', 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400'),
+(2, 'Pilates', 'Medium', 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400'),
+(3, 'Boxing', 'High', 'https://www.lecercle-boxing.com/wp-content/uploads/2024/10/allonge-boxe-cover.jpg'),
+(4, 'Badminton', 'Medium', 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400');
 
 -- ============================
 -- 3. Studio Sport Type
 -- ============================
 INSERT INTO STUDIO_SPORT_TYPE (StudioCode, SportTypeID) VALUES
-(1,1), (1,2),
-(2,3), (2,4),
-(3,1), (3,2), (3,3), (3,4);
+('ST001', 1), ('ST001', 2),
+('ST002', 3), ('ST002', 4),
+('ST003', 1), ('ST003', 3), ('ST003', 2);
 
 -- ============================
--- 4. Member
+-- 4. Member (Demo)
 -- ============================
-INSERT INTO MEMBER
-(MemberID, Name, Phone, DOB, MemberLevel, StudioCode, CreatedAt) VALUES
-(1, 'Aom', '0810000001', '1998-01-15', 'Gold', 1, '2026-09-01 09:00:00'),
-(2, 'Bee', '0810000002', '1997-04-20', 'Silver', 1, '2026-09-05 10:00:00'),
-(3, 'Chom', '0810000003', '1999-07-08', 'Platinum', 2, '2026-09-12 11:00:00'),
-(4, 'Dao', '0810000004', '2000-02-02', 'Silver', 2, '2026-09-20 12:00:00'),
-(5, 'Fah', '0810000005', '1996-11-11', 'Gold', 3, '2026-10-01 13:00:00'),
-(6, 'Gam', '0810000006', '1998-06-30', 'Silver', 3, '2026-10-03 14:00:00'),
-(7, 'Hana', '0810000007', '1997-09-18', 'Gold', 1, '2026-10-04 15:00:00'),
-(8, 'Ice', '0810000008', '1999-12-22', 'Platinum', 2, '2026-10-05 16:00:00');
+INSERT INTO MEMBER (MemberID, Name, Phone, DOB, MemberLevel, Email, Role, StudioCode, CreatedAt) VALUES
+(1, 'Member Demo', '081-234-5678', '1995-05-15', 'Silver', 'member@shesparks.com', 'member', 'ST001', '2026-09-01 09:00:00'),
+(2, 'Admin Demo', '081-234-5679', '1990-01-01', 'Platinum', 'admin@shesparks.com', 'admin', 'ST001', '2026-09-01 09:00:00');
 
 -- ============================
--- 5. Qualification
+-- 5. Reward Item (จาก data.js)
 -- ============================
-INSERT INTO QUALIFICATION (QualID, QualName, IssuedBy) VALUES
-(1, 'Yoga Instructor Level 1', 'Yoga Alliance'),
-(2, 'Pilates Instructor', 'Pilates Academy'),
-(3, 'Boxing Coach', 'Thai Boxing Federation'),
-(4, 'Badminton Coach', 'Thailand Badminton Association');
+INSERT INTO REWARD_ITEM (RewardID, Name, PointCost, Value, Category, ImageURL) VALUES
+(1, 'Spa Voucher 500 THB', 500, 500, 'Beauty', 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=400'),
+(2, 'Hair Treatment', 300, 300, 'Beauty', 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400'),
+(3, 'Yoga Mat', 800, 800, 'Sports', 'https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=400'),
+(4, '10% Discount for SheSparks Thai massage', 100, 100, 'Discount', 'https://images.gowabi.com/pictures/images/000/194/101/big_slider_pic/58.png?1752746788');
 
 -- ============================
--- 6. Reward Item
+-- 6. Room (จาก data.js)
 -- ============================
-INSERT INTO REWARD_ITEM
-(RewardID, Name, PointCost, Value, Category) VALUES
-(1, 'Spa Voucher 500 THB', 500, 500, 'Beauty'),
-(2, 'Hair Treatment', 300, 300, 'Beauty'),
-(3, 'Yoga Mat', 800, 800, 'Sports'),
-(4, '10% Discount', 100, 10, 'Discount'),
-(5, 'Sports Towel', 250, 250, 'Sports');
+INSERT INTO ROOM (RoomID, RoomName, StudioCode, SportTypeID, Capacity, ImageURL) VALUES
+(1, 'Yoga Room A', 'ST001', 1, 20, 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2c/f3/71/95/yoga-studio-on-6th-floor.jpg?w=1200&h=1200&s=1'),
+(2, 'Pilates Room B', 'ST001', 2, 15, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcFdpjDVDQMtEqvSlfb8WhliMusPHTfxLqybpgnLrfroHdDglf0TzB6of5&s=10'),
+(3, 'Boxing Ring C', 'ST002', 3, 10, 'https://www.protecboxing.com/wp-content/uploads/2023/10/IMG_8300-scaled.webp'),
+(4, 'Badminton Court D', 'ST002', 4, 4, 'https://cdn.sportsforlife.in/shared/blog-images/13-01-26/77bd4b83-5bab-4704-85a1-9036bbb49afc_What_Are_the_13_Basic_Rules_of_Badminton___1768295243637.png'),
+(5, 'Yoga Room E', 'ST003', 1, 25, 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2c/f3/71/95/yoga-studio-on-6th-floor.jpg?w=1200&h=1200&s=1'),
+(6, 'Boxing Room F', 'ST003', 3, 12, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6kDBsDu_xoAFt6o2lPvpHwPQJheFzwGr0NDOQ7wHZh4NiUdAVqlCFxGYV&s=10'),
+(7, 'Pilates Room G', 'ST003', 2, 18, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcFdpjDVDQMtEqvSlfb8WhliMusPHTfxLqybpgnLrfroHdDglf0TzB6of5&s=10');
 
 -- ============================
--- 7. Room
+-- 7. Equipment (จาก data.js)
 -- ============================
-INSERT INTO ROOM (RoomID, RoomName, Capacity, StudioCode) VALUES
-(1, 'Yoga Room A', 20, 1),
-(2, 'Pilates Room A', 15, 1),
-(3, 'Boxing Room A', 18, 2),
-(4, 'Badminton Court A', 12, 2),
-(5, 'Yoga Room B', 25, 3),
-(6, 'Fitness Room A', 30, 3),
-(7, 'Boxing Room B', 20, 3),
-(8, 'Badminton Court B', 12, 3);
+INSERT INTO EQUIPMENT (EquipmentID, Name, SportTypeID, StudioCode, `Condition`, LateFee, ImageURL) VALUES
+(1, 'Yoga Mat Pro', 1, 'ST001', 'Good', 50, 'https://mandukathailand.com/cdn/shop/files/111011Z30-Mats-PRO71-VERVE-02_c20a6342-8663-4436-8441-093cfd3d0f5d_1080x.jpg?v=1738237472'),
+(2, 'Yoga Block', 1, 'ST001', 'Good', 30, 'https://cdn.shopify.com/s/files/1/0700/8141/3360/files/yoga-brick-lifestyle-1.webp?v=1772885511&width=1000'),
+(3, 'Pilates Ball', 2, 'ST001', 'Good', 80, 'https://contents.mediadecathlon.com/p3067465/k$ebc9793bcd6ee90c724d45b7bb344dc4/900-g-weighted-pilates-ball-brown-domyos-8975529.jpg?f=1920x0&format=auto'),
+(4, 'Pilates Ring', 2, 'ST001', 'Good', 100, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRIdM_7eNVmuMrCfQtUrS_5658U_O3ii07Umpn4eesQ5bFk1QL5mABWCro&s=10'),
+(5, 'Boxing Gloves', 3, 'ST002', 'Good', 120, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKjp1FY6k2x0eKZfeIA_dhWtubgZJhq3u4mSyENJVa4W0tMiARcsNY-Vk&s=10'),
+(6, 'Boxing Wraps', 3, 'ST002', 'Good', 60, 'https://www.ringside.com/media/catalog/product/cache/0ee050c3ffc3555709b9bb6062f4d7e9/m/h/mhw_v5.webp'),
+(7, 'Badminton Racket', 4, 'ST002', 'Good', 90, 'https://cdn11.bigcommerce.com/s-nehqfptb/images/stencil/1280x1280/products/42216/82626/Raven-DONE__98056.1732044847.jpg?c=2'),
+(8, 'Shuttlecock', 4, 'ST002', 'Good', 20, 'https://us.yonex.com/cdn/shop/collections/LG7_N_A_0933.jpg?v=1740017753');
 
 -- ============================
--- 8. Equipment
+-- 8. Trainer (จาก data.js)
 -- ============================
-INSERT INTO EQUIPMENT
-(EquipmentID, Name, `Condition`, LateFee, SportTypeID) VALUES
-(1, 'Yoga Mat', 'Good', 20, 1),
-(2, 'Pilates Ring', 'Good', 25, 2),
-(3, 'Boxing Gloves', 'Good', 50, 3),
-(4, 'Punching Bag', 'Good', 100, 3),
-(5, 'Badminton Racket', 'Good', 40, 4),
-(6, 'Resistance Band', 'Good', 20, 1),
-(7, 'Pilates Ball', 'Good', 30, 2),
-(8, 'Shuttlecock Set', 'Good', 25, 4);
+INSERT INTO TRAINER (TrainerID, Name, Phone, SportTypeID, StudioCode, Qualification, ImageURL, HireDate, Position, Salary, Age) VALUES
+(1, 'Coach Mali', '081-111-1111', 1, 'ST001', 'Certified Yoga Instructor', 'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=400', '2024-01-15', 'Senior Trainer', 45000, 31),
+(2, 'Coach Ploy', '082-222-2222', 2, 'ST001', 'Pilates Master Trainer', 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=400', '2024-03-15', 'Trainer', 38000, 28),
+(3, 'Coach Fah', '083-333-3333', 3, 'ST002', 'Professional Boxing Coach', 'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=400', '2023-08-01', 'Senior Trainer', 48000, 34),
+(4, 'Coach Nam', '084-444-4444', 4, 'ST002', 'Badminton National Coach', 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=400', '2025-01-20', 'Trainer', 35000, 27);
 
 -- ============================
--- 9. Trainer
+-- 9. Course (จาก data.js)
 -- ============================
-INSERT INTO TRAINER
-(TrainerID, Name, Phone, HireDate, Position, Salary, Age, StudioCode, SportTypeID) VALUES
-(1, 'Mina', '0891000001', '2024-01-10', 'Senior Trainer', 45000, 31, 1, 1),
-(2, 'Ploy', '0891000002', '2024-03-15', 'Trainer', 38000, 28, 1, 2),
-(3, 'Nina', '0891000003', '2023-08-01', 'Senior Trainer', 48000, 34, 2, 3),
-(4, 'May', '0891000004', '2025-01-20', 'Trainer', 35000, 27, 2, 4),
-(5, 'Fah', '0891000005', '2023-06-10', 'Senior Trainer', 47000, 35, 3, 1),
-(6, 'Grace', '0891000006', '2024-09-12', 'Trainer', 36000, 29, 3, 2),
-(7, 'Jane', '0891000007', '2025-02-10', 'Trainer', 34000, 26, 3, 4);
+INSERT INTO COURSE (CourseID, Title, Level, DurationHours, StandardFee, SportTypeID, StudioCode, RoomID, TrainerID, PrerequisiteCourseID, ImageURL) VALUES
+(1, 'Basic Yoga', 'Beginner', 10, 1500, 1, 'ST001', 1, 1, NULL, 'https://yogadesignlab.com/cdn/shop/articles/yoga_design_lab_small_group_easy_seat_pose_5c878a0d-fff0-41dd-8e77-a6e5e0000567.webp?v=1790467490&width=1400'),
+(2, 'Advanced Yoga', 'Advanced', 15, 2500, 1, 'ST001', 1, 1, 1, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYEA1aWsFKwzUUa-BXmztEbD7CFSUCsk_d7a-UR2avsydNTFluTib4ZJE&s=10'),
+(3, 'Pilates Intro', 'Beginner', 8, 1200, 2, 'ST001', 2, 2, NULL, 'https://www.theglobeandmail.com/resizer/v2/OPSNENUCHJCBNA42EFNMQG5GOI.jpg?auth=2f0966c784232bb248a759ddd9d65361523b7e03e2f962be477ce97e6b4f41a5&width=600&height=400&quality=80&smart=true'),
+(4, 'Women Boxing', 'Intermediate', 12, 2000, 3, 'ST002', 3, 3, NULL, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSztNMgR2wBQ9w6VeE95xAAXqy-CWHqJif9Tfnl8hAbNwov72SrcLLBio6d&s=10');
 
 -- ============================
--- 10. Course
--- ============================
-INSERT INTO COURSE
-(CourseID, Title, Level, DurationHours, StandardFee, SportTypeID) VALUES
-(1, 'Yoga Beginner', 'Beginner', 2, 1500, 1),
-(2, 'Pilates Basic', 'Beginner', 2, 1800, 2),
-(3, 'Boxing Fundamentals', 'Intermediate', 3, 2200, 3),
-(4, 'Badminton Basic', 'Beginner', 2, 1400, 4),
-(5, 'Yoga Advanced', 'Advanced', 3, 2000, 1),
-(6, 'Pilates Advanced', 'Advanced', 3, 2300, 2);
-
--- ============================
--- 11. Trainer Qualification
--- ============================
-INSERT INTO TRAINER_QUALIFICATION
-(TrainerID, QualID, DateObtained, ExpiryDate) VALUES
-(1,1,'2024-02-01','2027-02-01'),
-(2,2,'2024-04-01','2027-04-01'),
-(3,3,'2023-09-01','2027-09-01'),
-(4,4,'2025-02-01','2027-02-01'),
-(5,1,'2023-07-01','2027-07-01'),
-(6,2,'2024-10-01','2027-10-01'),
-(7,4,'2025-03-01','2028-03-01');
-
--- ============================
--- 12. Trainer Course
--- ============================
-INSERT INTO TRAINER_COURSE
-(TrainerID, CourseID, AssignedDate, TeachingRole) VALUES
-(1,1,'2026-01-05','Main Trainer'),
-(1,5,'2026-01-05','Main Trainer'),
-(2,2,'2026-01-05','Main Trainer'),
-(2,6,'2026-01-05','Main Trainer'),
-(3,3,'2026-01-05','Main Trainer'),
-(4,4,'2026-01-05','Main Trainer'),
-(5,1,'2026-02-01','Assistant Trainer'),
-(5,5,'2026-02-01','Main Trainer'),
-(6,2,'2026-02-01','Assistant Trainer'),
-(6,6,'2026-02-01','Main Trainer'),
-(7,4,'2026-02-01','Assistant Trainer');
-
--- ============================
--- 13. Course Prerequisite
+-- 10. Course Prerequisite
 -- ============================
 INSERT INTO COURSE_PREREQUISITE (CourseID, PrerequisiteCourseID) VALUES
-(5,1),
-(6,2);
+(2, 1);
 
 -- ============================
--- 14. Dependent
+-- 11. Trainer Course
 -- ============================
-INSERT INTO DEPENDENT
-(DependentID, Name, Age, Relationship, TrainerID) VALUES
-(1,'Nina',8,'Daughter',1),
-(2,'Nana',6,'Daughter',3),
-(3,'Nong',10,'Son',5);
+INSERT INTO TRAINER_COURSE (TrainerID, CourseID, AssignedDate, TeachingRole) VALUES
+(1, 1, '2026-01-05', 'Main Trainer'),
+(1, 2, '2026-01-05', 'Main Trainer'),
+(2, 3, '2026-01-05', 'Main Trainer'),
+(3, 4, '2026-01-05', 'Main Trainer');
 
 -- ============================
--- 15. Booking
+-- 12. SITE_SETTING
 -- ============================
-INSERT INTO BOOKING
-(BookingID, BookingDate, StartTime, EndTime, MemberID, RoomID) VALUES
-(1,'2026-10-08','10:00:00','11:00:00',1,1),
-(2,'2026-10-08','11:00:00','12:00:00',2,2),
-(3,'2026-10-08','15:00:00','16:30:00',3,3),
-(4,'2026-10-08','16:00:00','17:00:00',4,4),
-(5,'2026-10-09','10:00:00','11:30:00',5,5),
-(6,'2026-10-09','18:00:00','19:00:00',6,6),
-(7,'2026-10-10','14:00:00','15:00:00',7,1),
-(8,'2026-10-10','10:00:00','11:00:00',8,2),
-(9,'2026-10-11','12:00:00','13:00:00',1,5),
-(10,'2026-10-11','17:00:00','18:00:00',2,7),
-(11,'2026-10-12','10:00:00','11:00:00',3,6),
-(12,'2026-10-12','19:00:00','20:00:00',4,8);
-
--- ============================
--- 16. Booking Trainer
--- ============================
-INSERT INTO BOOKING_TRAINER
-(BookingID, TrainerID, TrainerRole, HourlyRateAtBooking) VALUES
-(1,1,'Main Trainer',800),
-(2,2,'Main Trainer',850),
-(3,3,'Main Trainer',1000),
-(4,4,'Main Trainer',750),
-(5,5,'Main Trainer',800),
-(6,6,'Main Trainer',850),
-(7,1,'Main Trainer',800),
-(8,2,'Main Trainer',850),
-(9,5,'Main Trainer',800),
-(10,3,'Main Trainer',1000),
-(11,6,'Main Trainer',850),
-(12,7,'Main Trainer',750);
-
--- ============================
--- 17. Booking Equipment
--- ============================
-INSERT INTO BOOKING_EQUIPMENT
-(BookingID, EquipmentID, Quantity, ReturnStatus) VALUES
-(1,1,5,'Returned'),
-(2,2,4,'Returned'),
-(3,3,2,'Returned'),
-(3,4,1,'Returned'),
-(4,5,2,'Returned'),
-(5,1,5,'Returned'),
-(6,6,4,'Returned'),
-(7,1,5,'Pending'),
-(8,7,4,'Returned'),
-(9,1,5,'Pending'),
-(10,3,2,'Pending'),
-(11,6,4,'Pending'),
-(12,8,2,'Pending');
-
--- ============================
--- 18. Payment
--- ============================
-INSERT INTO PAYMENT
-(PaymentID, Amount, PaymentDate, PaymentMethod, BookingID) VALUES
-(1,1500,'2026-10-08 10:05:00','Card',1),
-(2,1800,'2026-10-08 11:40:00','PromptPay',2),
-(3,2000,'2026-10-08 15:10:00','Card',3),
-(4,1200,'2026-10-08 16:10:00','Cash',4),
-(5,1600,'2026-10-09 10:40:00','Card',5),
-(6,2200,'2026-10-09 18:40:00','PromptPay',6),
-(7,1400,'2026-10-10 14:10:00','Card',7),
-(8,1500,'2026-10-10 11:10:00','Card',8),
-(9,1500,'2026-10-11 12:10:00','PromptPay',9),
-(10,1800,'2026-10-11 17:10:00','Card',10),
-(11,1200,'2026-10-12 10:40:00','Cash',11),
-(12,2000,'2026-10-12 19:10:00','Card',12);
-
--- ============================
--- 19. Point Transactions
--- Earned points from payments.
--- Redemption points are also stored here.
--- ============================
-INSERT INTO POINT_TRANSACTION
-(TransactionID, PointsEarned, PointsRedeemed, `Date`, PaymentID) VALUES
-(1,150,0,'2026-10-08 10:05:00',1),
-(2,180,0,'2026-10-08 11:40:00',2),
-(3,200,0,'2026-10-08 15:10:00',3),
-(4,120,0,'2026-10-08 16:10:00',4),
-(5,160,0,'2026-10-09 10:40:00',5),
-(6,220,0,'2026-10-09 18:40:00',6),
-(7,140,0,'2026-10-10 14:10:00',7),
-(8,150,0,'2026-10-10 11:10:00',8),
-(9,150,0,'2026-10-11 12:10:00',9),
-(10,180,0,'2026-10-11 17:10:00',10),
-(11,120,0,'2026-10-12 10:40:00',11),
-(12,200,0,'2026-10-12 19:10:00',12),
-(13,0,500,'2026-10-09 12:00:00',1),
-(14,0,300,'2026-10-10 12:00:00',2),
-(15,0,800,'2026-10-10 13:00:00',3),
-(16,0,100,'2026-10-11 13:00:00',4);
-
--- ============================
--- 20. Enrollment
--- ============================
-INSERT INTO ENROLLMENT
-(MemberID, CourseID, EnrollmentDate, PaymentStatus) VALUES
-(1,1,'2026-09-03','Paid'),
-(1,2,'2026-09-10','Paid'),
-(2,1,'2026-09-04','Paid'),
-(2,3,'2026-09-15','Paid'),
-(3,4,'2026-09-05','Paid'),
-(3,2,'2026-09-20','Paid'),
-(4,1,'2026-10-01','Paid'),
-(5,4,'2026-10-02','Paid'),
-(6,3,'2026-10-03','Pending'),
-(7,1,'2026-10-04','Paid'),
-(8,2,'2026-10-05','Paid'),
-(5,5,'2026-10-06','Paid');
-
--- ============================
--- 21. Redemption
--- ============================
-INSERT INTO REDEMPTION
-(MemberID, RewardID, RedemptionDate, PointsUsed) VALUES
-(1,1,'2026-10-09',500),
-(2,2,'2026-10-10',300),
-(3,3,'2026-10-10',800),
-(4,4,'2026-10-11',100);
-
--- ============================
--- Check data
--- ============================
-SELECT * FROM STUDIO;
-SELECT * FROM MEMBER;
-SELECT * FROM ROOM;
-SELECT * FROM TRAINER;
-SELECT * FROM COURSE;
-SELECT * FROM BOOKING;
-SELECT * FROM PAYMENT;
-SELECT * FROM POINT_TRANSACTION;
-SELECT * FROM ENROLLMENT;
-SELECT * FROM REDEMPTION;
+INSERT INTO SITE_SETTING (SettingKey, SettingValue) VALUES
+('points_per_hour', '30'),
+('points_per_trainer', '50'),
+('points_per_equipment', '20'),
+('points_per_capacity', '2');

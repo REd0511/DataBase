@@ -15,10 +15,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const container = document.getElementById("course-list");
   container.innerHTML = "<p>Loading courses...</p>";
 
-  // Load user enrollments
+  // Load user enrollments from API
   const user = JSON.parse(localStorage.getItem("user") || "null");
   if (user && user.role === "member") {
-    userEnrollments = getUserEnrollments(user.id);
+    await loadUserEnrollments(user);
   }
 
   try {
@@ -194,6 +194,7 @@ function closeEnrollModal() {
 }
 
 // ==================== CONFIRM ENROLL ====================
+// ==================== CONFIRM ENROLL ====================
 async function confirmEnroll(courseId) {
   const user = JSON.parse(localStorage.getItem("user") || "null");
   if (!user) return;
@@ -206,7 +207,6 @@ async function confirmEnroll(courseId) {
   // ✅ ตรวจสอบ Prerequisite
   if (!checkPrerequisite(courseId)) {
     closeEnrollModal();
-
     const prereq = getPrerequisite(courseId);
     alert(
       `❌ Cannot enroll in "${course.Title}"\n\nPrerequisite: "${prereq.Title}"\nPlease complete it first.`,
@@ -216,44 +216,36 @@ async function confirmEnroll(courseId) {
 
   closeEnrollModal();
 
-  // บันทึกใน localStorage (Fallback)
-  const enrollment = {
-    EnrollmentID: Date.now(),
-    MemberID: user.id,
-    MemberName: user.name,
-    CourseID: course.CourseID,
-    CourseTitle: course.Title,
-    CourseLevel: course.Level,
-    StandardFee: course.StandardFee,
-    EnrollmentDate: new Date().toISOString().split("T")[0],
-    Status: "Confirmed",
-    CreatedAt: new Date().toISOString(),
-  };
-
-  let enrollments = JSON.parse(localStorage.getItem("enrollments")) || [];
-  enrollments.push(enrollment);
-  localStorage.setItem("enrollments", JSON.stringify(enrollments));
-
-  // ✅ ลอง API (ถ้าพร้อม)
+  // ✅ เรียก API
   try {
-    const memberId = user.MemberID || user.memberId || user.id;
-    if (window.SheSparksAPI && memberId && user.role === "member") {
-      await SheSparksAPI.enrollCourse({
-        MemberID: Number(memberId),
-        CourseID: Number(courseId),
-        EnrollmentDate: new Date().toISOString().slice(0, 10),
-        PaymentStatus: "Pending",
-      });
-    }
+    const memberId = user.MemberID || user.id;
+
+    await SheSparksAPI.post("/courses/enroll", {
+      MemberID: Number(memberId),
+      CourseID: Number(courseId),
+      EnrollmentDate: new Date().toISOString().split("T")[0],
+      PaymentStatus: "Pending",
+    });
+
+    // ✅ สำเร็จ
+    await loadUserEnrollments(user);
+    renderCourses(allCourses);
+    showSuccessModal(course);
   } catch (error) {
-    console.warn("API unavailable, saved locally:", error.message);
+    alert(`ลงทะเบียนไม่สำเร็จ: ${error.message}`);
   }
+}
 
-  // อัปเดต userEnrollments
-  userEnrollments = getUserEnrollments(user.id);
-
-  // แสดง Modal สำเร็จ
-  showSuccessModal(course);
+// ==================== LOAD USER ENROLLMENTS FROM API ====================
+async function loadUserEnrollments(user) {
+  try {
+    const memberId = user.MemberID || user.id;
+    const enrollments = await SheSparksAPI.get(`/courses/member/${memberId}`);
+    userEnrollments = enrollments || [];
+  } catch (error) {
+    console.warn("Cannot load enrollments:", error.message);
+    userEnrollments = [];
+  }
 }
 
 // ==================== SUCCESS MODAL ====================

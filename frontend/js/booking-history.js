@@ -1,15 +1,17 @@
 /* ============================================
-   booking-history.js - Booking History
+   booking-history.js - Booking History (API)
    FEATURES:
-   - แสดงประวัติการจองของ Member
+   - Load bookings from API
    - Admin/Manager เห็นทั้งหมด
    - Trainer เห็นเฉพาะของตัวเอง
+   - Member เห็นของตัวเอง
    ============================================ */
 
 let allBookings = [];
 let currentUser = null;
 
-document.addEventListener("DOMContentLoaded", () => {
+// ==================== INIT ====================
+document.addEventListener("DOMContentLoaded", async () => {
   currentUser = JSON.parse(localStorage.getItem("user"));
 
   if (!currentUser) {
@@ -23,38 +25,69 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  loadBookings();
+  // ✅ โหลดจาก API
+  await loadBookings();
   renderHistory();
 });
 
-// ==================== LOAD BOOKINGS ====================
-function loadBookings() {
-  const allBookingsRaw = JSON.parse(localStorage.getItem("bookings")) || [];
+// ==================== LOAD BOOKINGS FROM API ====================
+async function loadBookings() {
+  try {
+    let bookings = [];
 
-  if (currentUser.role === "admin" || currentUser.role === "manager") {
-    allBookings = allBookingsRaw;
-  } else if (currentUser.role === "trainer") {
-    allBookings = allBookingsRaw.filter(b =>
-      b.TrainerID === currentUser.trainerId
-    );
-  } else {
-    allBookings = allBookingsRaw.filter(b =>
-      b.MemberID === currentUser.id
-    );
+    if (currentUser.role === "admin" || currentUser.role === "manager") {
+      // Admin/Manager → ดูทั้งหมด
+      bookings = await SheSparksAPI.bookings();
+    } else if (currentUser.role === "trainer") {
+      // Trainer → ดูของตัวเอง
+      const trainerId = currentUser.trainerId || 1;
+      bookings = await SheSparksAPI.get(`/trainers/${trainerId}/bookings`);
+    } else {
+      // Member → ดูของตัวเอง
+      const memberId = currentUser.MemberID || currentUser.id;
+      bookings = await SheSparksAPI.memberBookings(memberId);
+    }
+
+    allBookings = bookings || [];
+
+    // เรียงตามวันที่ (ใหม่ → เก่า)
+    allBookings.sort((a, b) => {
+      const dateA = new Date(a.BookingDate || a.CreatedAt || 0);
+      const dateB = new Date(b.BookingDate || b.CreatedAt || 0);
+      return dateB - dateA;
+    });
+  } catch (error) {
+    console.error("Load bookings error:", error);
+    allBookings = [];
+
+    // แสดง Error
+    const tbody = document.getElementById("bookingTableBody");
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="10" style="text-align:center;padding:40px;color:var(--danger);">
+            โหลดประวัติการจองไม่สำเร็จ: ${error.message}
+          </td>
+        </tr>
+      `;
+    }
   }
-
-  allBookings.sort((a, b) => new Date(b.CreatedAt) - new Date(a.CreatedAt));
 }
 
 // ==================== RENDER HISTORY ====================
 function renderHistory(filteredBookings = null) {
   const bookings = filteredBookings || allBookings;
 
-  // SUMMARY CARDS
+  // ==================== SUMMARY CARDS ====================
   const totalBookings = bookings.length;
-  const totalPoints = bookings.reduce((sum, b) => sum + (b.Points || 0), 0);
-  const upcoming = bookings.filter(b => b.Status === "Confirmed").length;
-  const completed = bookings.filter(b => b.Status === "Completed").length;
+  const totalPoints = bookings.reduce(
+    (sum, b) => sum + Number(b.Points || 0),
+    0,
+  );
+  const upcoming = bookings.filter(
+    (b) => b.Status === "Confirmed" || !b.Status,
+  ).length;
+  const completed = bookings.filter((b) => b.Status === "Completed").length;
 
   const elTotal = document.getElementById("totalBookings");
   const elPoints = document.getElementById("totalPoints");
@@ -66,7 +99,7 @@ function renderHistory(filteredBookings = null) {
   if (elUpcoming) elUpcoming.textContent = upcoming;
   if (elCompleted) elCompleted.textContent = completed;
 
-  // TABLE
+  // ==================== TABLE ====================
   const tbody = document.getElementById("bookingTableBody");
   if (!tbody) return;
 
@@ -91,24 +124,44 @@ function renderHistory(filteredBookings = null) {
     return;
   }
 
-  tbody.innerHTML = bookings.map(b => `
-    <tr>
-      <td>${b.Date || "-"}</td>
-      <td>${b.StartTime} - ${b.EndTime}</td>
-      <td>${b.StudioName || "-"}</td>
-      <td>${b.SportName || "-"}</td>
-      <td>${b.RoomName || "-"}</td>
-      <td>${b.Capacity || "-"} people</td>
-      <td>${b.TrainerName || "—"}</td>
-      <td>${b.Equipments && b.Equipments.length > 0 ? b.Equipments.map(e => e.Name).join(", ") : "—"}</td>
-      <td style="color: var(--pink-deep); font-weight: 600;">+${b.Points || 0}</td>
-      <td>
-        <span class="status-badge ${getStatusClass(b.Status)}">
-          ${b.Status || "Confirmed"}
-        </span>
-      </td>
-    </tr>
-  `).join("");
+  tbody.innerHTML = bookings
+    .map((b) => {
+      // ✅ รองรับหลาย Field Name (API + Mock)
+      const date = b.BookingDate || b.Date || "-";
+      const startTime = b.StartTime || "-";
+      const endTime = b.EndTime || "-";
+      const studio = b.Location || b.StudioName || b.StudioLocation || "-";
+      const sport = b.SportName || "-";
+      const room = b.RoomName || "-";
+      const capacity = b.Capacity || "-";
+      const trainer = b.TrainerName || b.TrainerID || "—";
+      const equipment =
+        b.Equipments && b.Equipments.length > 0
+          ? b.Equipments.map((e) => e.Name || e).join(", ")
+          : "—";
+      const points = b.Points || 0;
+      const status = b.Status || "Confirmed";
+
+      return `
+        <tr>
+          <td>${date}</td>
+          <td>${startTime} - ${endTime}</td>
+          <td>${studio}</td>
+          <td>${sport}</td>
+          <td>${room}</td>
+          <td>${capacity} people</td>
+          <td>${trainer}</td>
+          <td>${equipment}</td>
+          <td style="color: var(--pink-deep); font-weight: 600;">+${points}</td>
+          <td>
+            <span class="status-badge ${getStatusClass(status)}">
+              ${status}
+            </span>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
 }
 
 // ==================== FILTER ====================
@@ -119,11 +172,11 @@ function filterBookings() {
   let filtered = [...allBookings];
 
   if (status) {
-    filtered = filtered.filter(b => b.Status === status);
+    filtered = filtered.filter((b) => (b.Status || "Confirmed") === status);
   }
 
   if (date) {
-    filtered = filtered.filter(b => b.Date === date);
+    filtered = filtered.filter((b) => (b.BookingDate || b.Date) === date);
   }
 
   renderHistory(filtered);
@@ -140,9 +193,9 @@ function clearFilters() {
 // ==================== HELPERS ====================
 function getStatusClass(status) {
   const map = {
-    "Confirmed": "confirmed",
-    "Completed": "completed",
-    "Cancelled": "cancelled",
+    Confirmed: "confirmed",
+    Completed: "completed",
+    Cancelled: "cancelled",
   };
   return map[status] || "confirmed";
 }

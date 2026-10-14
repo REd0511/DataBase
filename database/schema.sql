@@ -6,16 +6,19 @@ USE shesparks;
 -- ============================
 
 CREATE TABLE STUDIO (
-    StudioCode INT PRIMARY KEY AUTO_INCREMENT,
+    StudioCode VARCHAR(10) PRIMARY KEY,    
+    Name VARCHAR(100) NOT NULL,           
     Location VARCHAR(200) NOT NULL,
     Capacity INT NOT NULL,
-    NumberOfRooms INT DEFAULT 0
+    NumberOfRooms INT DEFAULT 0,
+    ImageURL VARCHAR(500)                   
 );
 
 CREATE TABLE SPORT_TYPE (
     SportTypeID INT PRIMARY KEY AUTO_INCREMENT,
     SportName VARCHAR(50) NOT NULL,
-    IntensityLevel VARCHAR(20)
+    IntensityLevel VARCHAR(20),
+    ImageURL VARCHAR(500)                
 );
 
 CREATE TABLE QUALIFICATION (
@@ -29,7 +32,8 @@ CREATE TABLE REWARD_ITEM (
     Name VARCHAR(100) NOT NULL,
     PointCost INT NOT NULL,
     Value DECIMAL(10,2) DEFAULT 0,
-    Category VARCHAR(30) NOT NULL
+    Category VARCHAR(30) NOT NULL,
+    ImageURL VARCHAR(500)                  
 );
 
 -- ============================
@@ -42,7 +46,9 @@ CREATE TABLE MEMBER (
     Phone VARCHAR(20) UNIQUE NOT NULL,
     DOB DATE,
     MemberLevel VARCHAR(20) DEFAULT 'Silver',
-    StudioCode INT NOT NULL,
+    Email VARCHAR(100),                   
+    Role VARCHAR(20) DEFAULT 'member',   
+    StudioCode VARCHAR(10) NOT NULL,     
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode)
 );
@@ -51,8 +57,11 @@ CREATE TABLE ROOM (
     RoomID INT PRIMARY KEY AUTO_INCREMENT,
     RoomName VARCHAR(100),
     Capacity INT,
-    StudioCode INT,
-    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode)
+    StudioCode VARCHAR(10),               
+    SportTypeID INT,                         
+    ImageURL VARCHAR(500),                   
+    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
+    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
 );
 
 CREATE TABLE EQUIPMENT (
@@ -61,7 +70,10 @@ CREATE TABLE EQUIPMENT (
     `Condition` VARCHAR(50),
     LateFee DECIMAL(10,2),
     SportTypeID INT,
-    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
+    StudioCode VARCHAR(10),                  
+    ImageURL VARCHAR(500),                 
+    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID),
+    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode)
 );
 
 CREATE TABLE TRAINER (
@@ -72,8 +84,10 @@ CREATE TABLE TRAINER (
     Position VARCHAR(50),
     Salary DECIMAL(10,2),
     Age INT,
-    StudioCode INT,
+    StudioCode VARCHAR(10),                  
     SportTypeID INT,
+    Qualification VARCHAR(200),              
+    ImageURL VARCHAR(500),                 
     FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
     FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
 );
@@ -85,7 +99,16 @@ CREATE TABLE COURSE (
     DurationHours INT,
     StandardFee DECIMAL(10,2),
     SportTypeID INT,
-    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
+    StudioCode VARCHAR(10),                 
+    RoomID INT,                             
+    TrainerID INT,                          
+    PrerequisiteCourseID INT,               
+    ImageURL VARCHAR(500),                  
+    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID),
+    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
+    FOREIGN KEY (RoomID) REFERENCES ROOM(RoomID),
+    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID),
+    FOREIGN KEY (PrerequisiteCourseID) REFERENCES COURSE(CourseID)
 );
 
 CREATE TABLE DEPENDENT (
@@ -105,6 +128,8 @@ CREATE TABLE BOOKING (
     EndTime TIME NOT NULL,
     MemberID INT NOT NULL,
     RoomID INT NOT NULL,
+    Capacity INT,                            
+    TrainerID INT,                           
     FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
     FOREIGN KEY (RoomID) REFERENCES ROOM(RoomID)
 );
@@ -196,9 +221,16 @@ CREATE TABLE COURSE_PREREQUISITE (
 );
 
 CREATE TABLE STUDIO_SPORT_TYPE (
-    StudioCode INT,
+    StudioCode VARCHAR(10),                 
     SportTypeID INT,
     PRIMARY KEY (StudioCode, SportTypeID),
     FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
     FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
+);
+
+CREATE TABLE SITE_SETTING (
+    SettingID INT PRIMARY KEY AUTO_INCREMENT,
+    SettingKey VARCHAR(50) UNIQUE,
+    SettingValue VARCHAR(255),
+    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

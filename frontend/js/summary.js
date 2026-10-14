@@ -1,10 +1,10 @@
 /* ============================================
    summary.js - Summary + Trainer + Equipment + Loyalty Points
    FEATURES:
-   - Summary ครั้งแรก → ถาม Trainer
-   - ถ้า No Trainer → ถาม Equipment
-   - ถ้า Yes Trainer → ไปเลือก Trainer → กลับมา → ถาม Equipment
-   - Equipment → Confirm
+   - Summary → ถาม Trainer
+   - No Trainer → ถาม Equipment
+   - Yes Trainer → ไปเลือก Trainer → กลับมา → ถาม Equipment
+   - Equipment → Confirm → API
    ============================================ */
 
 let selectedEquipments = [];
@@ -25,37 +25,28 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   renderSummary(flow);
-  decideNextStep(flow); // ✅ ใช้ฟังก์ชันใหม่
+  decideNextStep(flow);
 });
 
-// ============================================
-// ✅ ใหม่: ตัดสินใจว่าขั้นต่อไปคืออะไร
-// ============================================
+// ==================== DECIDE NEXT STEP ====================
 function decideNextStep(flow) {
-  // กรณีที่ 1: มี Trainer แล้ว (กลับมาจากหน้า Trainer)
   if (flow.trainer) {
-    // ✅ ตรวจสอบว่าตอบ Equipment แล้วหรือยัง
     if (flow.wantEquipment === true) {
-      // Yes Equipment → แสดง Equipment List
       renderEquipmentList(flow);
       showEquipmentListSection();
     } else if (flow.wantEquipment === false) {
-      // No Equipment → แสดง Confirm
       showConfirmSection();
     } else {
-      // ยังไม่ตอบ → ถาม Equipment
       showEquipmentOption();
     }
     return;
   }
 
-  // กรณีที่ 2: กำลังเลือก Trainer (ยังไม่กลับมา) → แสดง Confirm
   if (flow.wantTrainer === true && !flow.trainer) {
     showConfirmSection();
     return;
   }
 
-  // กรณีที่ 3: เริ่มต้น → ถาม Trainer
   showTrainerOption();
 }
 
@@ -92,15 +83,13 @@ function addTrainer(wantTrainer) {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
 
   if (wantTrainer) {
-    // Yes Trainer → ไปหน้า trainer.html
     flow.wantTrainer = true;
     localStorage.setItem("bookingFlow", JSON.stringify(flow));
     window.location.href = "/views/trainer.html";
   } else {
-    // ✅ No Trainer → Reset + ถาม Equipment ต่อ
     flow.trainer = null;
     flow.wantTrainer = false;
-    flow.wantEquipment = null; // ✅ Reset ค่า Equipment
+    flow.wantEquipment = null;
     localStorage.setItem("bookingFlow", JSON.stringify(flow));
     showEquipmentOption();
   }
@@ -128,7 +117,6 @@ function showEquipmentOption() {
   hideElement("#confirm-section");
 }
 
-// ✅ ใหม่: แสดง Equipment List
 function showEquipmentListSection() {
   hideElement(".trainer-option");
   hideElement(".equipment-option");
@@ -141,13 +129,11 @@ function showEquipmentList(wantEquipment) {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
 
   if (wantEquipment) {
-    // Yes Equipment → แสดงรายการ Equipment
     flow.wantEquipment = true;
     localStorage.setItem("bookingFlow", JSON.stringify(flow));
     renderEquipmentList(flow);
     showEquipmentListSection();
   } else {
-    // No Equipment → Confirm ได้เลย
     flow.wantEquipment = false;
     flow.equipments = [];
     localStorage.setItem("bookingFlow", JSON.stringify(flow));
@@ -159,7 +145,6 @@ function renderEquipmentList(flow) {
   const container = document.getElementById("equipment-grid");
   if (!container) return;
 
-  // ดึง Equipment ของ Studio + Sport นั้น
   const equipments = EQUIPMENTS.filter(
     (e) =>
       e.StudioCode === flow.studio.StudioCode &&
@@ -171,7 +156,6 @@ function renderEquipmentList(flow) {
     return;
   }
 
-  // ✅ Restore selectedEquipments จาก flow (ถ้ามี)
   selectedEquipments = flow.equipments || [];
 
   container.innerHTML = equipments
@@ -217,15 +201,15 @@ function toggleEquipment(equipmentID) {
 function confirmEquipment() {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
   flow.equipments = selectedEquipments;
-  flow.wantEquipment = true; // ✅ Mark ว่าตอบแล้ว
+  flow.wantEquipment = true;
   localStorage.setItem("bookingFlow", JSON.stringify(flow));
 
   renderSummary(flow);
   showConfirmSection();
 }
 
-// ==================== CONFIRM BOOKING ====================
-function confirmBooking() {
+// ==================== CONFIRM BOOKING (API) ====================
+async function confirmBooking() {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -240,55 +224,63 @@ function confirmBooking() {
     return;
   }
 
-  const points = calculateLoyaltyPoints(flow);
+  // ✅ เตรียมข้อมูลส่ง API
+  const memberId = user.MemberID || user.id;
 
-  const booking = {
-    BookingID: Date.now(),
-    RoomID: flow.room.RoomID,
-    RoomName: flow.room.RoomName,
-    StudioCode: flow.studio.StudioCode,
-    StudioName: flow.studio.Name,
-    SportTypeID: flow.sport.SportTypeID,
-    SportName: flow.sport.SportName,
-    Date: flow.date,
+  const bookingData = {
+    BookingDate: flow.date,
     StartTime: flow.startTime,
     EndTime: flow.endTime,
-    Capacity: flow.capacity,
-    TrainerID: flow.trainer ? flow.trainer.TrainerID : null,
-    TrainerName: flow.trainer ? flow.trainer.Name : null,
-    Equipments: flow.equipments || [],
-    MemberID: user.id,
-    MemberName: user.name,
-    Points: points,
-    Status: "Confirmed",
-    CreatedAt: new Date().toISOString(),
+    MemberID: Number(memberId),
+    RoomID: Number(flow.room.RoomID),
+    EquipmentIDs: (flow.equipments || []).map((e) => ({
+      EquipmentID: e.EquipmentID,
+      Quantity: 1,
+    })),
+    TrainerIDs: flow.trainer
+      ? [
+          {
+            TrainerID: flow.trainer.TrainerID,
+            TrainerRole: "Main Trainer",
+            HourlyRate: 500,
+          },
+        ]
+      : [],
   };
 
-  let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-  bookings.push(booking);
-  localStorage.setItem("bookings", JSON.stringify(bookings));
+  try {
+    // ✅ เรียก API
+    const result = await SheSparksAPI.post("/bookings", bookingData);
 
-  showModal({
-    type: "success",
-    title: "จองสำเร็จ!",
-    message: `
-      <strong>Studio:</strong> ${flow.studio.Name}<br>
-      <strong>Sport:</strong> ${flow.sport.SportName}<br>
-      <strong>Room:</strong> ${flow.room.RoomName}<br>
-      <strong>Date:</strong> ${flow.date}<br>
-      <strong>Time:</strong> ${flow.startTime} - ${flow.endTime}<br>
-      <strong>Capacity:</strong> ${flow.capacity} people<br>
-      ${flow.trainer ? `<strong>Trainer:</strong> ${flow.trainer.Name}<br>` : ""}
-      ${flow.equipments && flow.equipments.length > 0 ? `<strong>Equipment:</strong> ${flow.equipments.map((e) => e.Name).join(", ")}<br>` : ""}
-      <hr style="margin: 12px 0; border: none; border-top: 1px dashed var(--pink-main);">
-      <strong style="color: var(--pink-deep);">🎉 ได้รับ ${points} แต้ม!</strong>
-    `,
-    buttonText: "ดูประวัติการจอง",
-    onClose: () => {
-      localStorage.removeItem("bookingFlow");
-      window.location.href = "/views/booking-history.html";
-    },
-  });
+    // ✅ สำเร็จ
+    showModal({
+      type: "success",
+      title: "จองสำเร็จ!",
+      message: `
+        <strong>Booking ID:</strong> ${result.BookingID}<br>
+        <strong>Studio:</strong> ${flow.studio.Name}<br>
+        <strong>Sport:</strong> ${flow.sport.SportName}<br>
+        <strong>Room:</strong> ${flow.room.RoomName}<br>
+        <strong>Date:</strong> ${flow.date}<br>
+        <strong>Time:</strong> ${flow.startTime} - ${flow.endTime}<br>
+        <strong>Capacity:</strong> ${flow.capacity} people<br>
+        ${flow.trainer ? `<strong>Trainer:</strong> ${flow.trainer.Name}<br>` : ""}
+        ${flow.equipments && flow.equipments.length > 0 ? `<strong>Equipment:</strong> ${flow.equipments.map((e) => e.Name).join(", ")}<br>` : ""}
+      `,
+      buttonText: "ดูประวัติการจอง",
+      onClose: () => {
+        localStorage.removeItem("bookingFlow");
+        window.location.href = "/views/booking-history.html";
+      },
+    });
+  } catch (error) {
+    // ❌ Error
+    showModal({
+      type: "error",
+      title: "จองไม่สำเร็จ",
+      message: error.message || "เกิดข้อผิดพลาด",
+    });
+  }
 }
 
 // ==================== CALCULATE LOYALTY POINTS ====================

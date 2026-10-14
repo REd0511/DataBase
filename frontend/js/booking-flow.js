@@ -3,19 +3,21 @@
    FEATURES:
    - Step 1: เลือก Studio
    - Step 2: เลือก Sport
-   - Step 3: เลือก Room (กรอง + คลิกเปิด Modal)
-   - บันทึกใน localStorage
+   - Step 3: เลือก Room (ตรวจสอบจาก API)
    ============================================ */
 
 let flow = JSON.parse(localStorage.getItem("bookingFlow")) || {};
+let bookedSlotsCache = [];   // ✅ Cache จาก API
 
 // ==================== STEP 1: STUDIO ====================
 function renderStudios() {
   const container = document.getElementById("studio-list");
   if (!container) return;
 
-  container.innerHTML = STUDIOS.map(s => {
-    const sports = getStudioSports(s.StudioCode).map(st => st.SportName).join(" • ");
+  container.innerHTML = STUDIOS.map((s) => {
+    const sports = getStudioSports(s.StudioCode)
+      .map((st) => st.SportName)
+      .join(" • ");
 
     return `
       <div class="studio-card" onclick="selectStudio('${s.StudioCode}')">
@@ -29,8 +31,7 @@ function renderStudios() {
 }
 
 function selectStudio(code) {
-  console.log("Selected Studio:", code);
-  flow.studio = STUDIOS.find(s => s.StudioCode === code);
+  flow.studio = STUDIOS.find((s) => s.StudioCode === code);
   saveFlow();
   window.location.href = "/views/sport.html";
 }
@@ -50,18 +51,21 @@ function renderSports() {
     return;
   }
 
-  container.innerHTML = sports.map(s => `
+  container.innerHTML = sports
+    .map(
+      (s) => `
     <div class="sport-card" onclick="selectSport(${s.SportTypeID})">
       ${s.ImageURL ? `<img src="${s.ImageURL}" class="card-image" alt="${s.SportName}" onerror="this.style.display='none'">` : ""}
       <h3>${s.SportName}</h3>
       <p>Intensity: ${s.IntensityLevel}</p>
     </div>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function selectSport(sportTypeID) {
-  console.log("Selected Sport:", sportTypeID);
-  flow.sport = SPORT_TYPES.find(s => s.SportTypeID === sportTypeID);
+  flow.sport = SPORT_TYPES.find((s) => s.SportTypeID === sportTypeID);
   saveFlow();
   window.location.href = "/views/room.html";
 }
@@ -71,7 +75,6 @@ function renderRooms(filteredRooms = null) {
   const container = document.getElementById("room-list");
   if (!container) return;
 
-  // ตรวจสอบว่ามี studio + sport
   if (!flow.studio || !flow.sport) {
     container.innerHTML = "<p>Please select Studio and Sport first.</p>";
     return;
@@ -82,18 +85,22 @@ function renderRooms(filteredRooms = null) {
     label.textContent = `${flow.sport.SportName} at ${flow.studio.Name}`;
   }
 
-  // ถ้าไม่มี filteredRooms → แสดงทั้งหมดของ Studio + Sport
-  const rooms = filteredRooms || ROOMS.filter(r =>
-    r.StudioCode === flow.studio.StudioCode &&
-    r.SportTypeID === flow.sport.SportTypeID
-  );
+  const rooms =
+    filteredRooms ||
+    ROOMS.filter(
+      (r) =>
+        r.StudioCode === flow.studio.StudioCode &&
+        r.SportTypeID === flow.sport.SportTypeID,
+    );
 
   if (rooms.length === 0) {
     container.innerHTML = "<p>No rooms available for this selection.</p>";
     return;
   }
 
-  container.innerHTML = rooms.map(r => `
+  container.innerHTML = rooms
+    .map(
+      (r) => `
     <div class="room-card" onclick="openRoomModal(${r.RoomID})">
       ${r.ImageURL ? `<img src="${r.ImageURL}" class="card-image" alt="${r.RoomName}" onerror="this.style.display='none'">` : ""}
       <h3>${r.RoomName}</h3>
@@ -101,25 +108,20 @@ function renderRooms(filteredRooms = null) {
       <p>Sport: ${getSportName(r.SportTypeID)}</p>
       <button class="btn-primary">Select</button>
     </div>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 // ==================== APPLY FILTERS ====================
-function applyFilters() {
+async function applyFilters() {
   const date = document.getElementById("filterDate")?.value;
   const startTime = document.getElementById("filterStartTime")?.value;
   const endTime = document.getElementById("filterEndTime")?.value;
   const capacity = parseInt(document.getElementById("filterCapacity")?.value) || 1;
 
-  console.log("=== Filter Debug ===");
-  console.log("Date:", date);
-  console.log("Start:", startTime);
-  console.log("End:", endTime);
-  console.log("Capacity:", capacity);
-
   // ถ้าไม่เลือกวัน/เวลา → แสดงทั้งหมด
   if (!date || !startTime || !endTime) {
-    console.log("No filter → Show all");
     renderRooms();
     return;
   }
@@ -142,19 +144,56 @@ function applyFilters() {
     return;
   }
 
+  // ✅ โหลด Booked Slots จาก API
+  await loadAllBookedSlots();
+
   // กรอง
-  const filtered = ROOMS.filter(r => {
+  const filtered = ROOMS.filter((r) => {
     if (r.StudioCode !== flow.studio.StudioCode) return false;
     if (r.SportTypeID !== flow.sport.SportTypeID) return false;
     if (r.Capacity < capacity) return false;
 
     const isBooked = isRoomBooked(r.RoomID, date, startTime, endTime);
-    console.log(`Room ${r.RoomID} (${r.RoomName}) - Booked: ${isBooked}`);
     return !isBooked;
   });
 
-  console.log("Filtered Rooms:", filtered);
   renderRooms(filtered);
+}
+
+// ==================== LOAD BOOKED SLOTS ====================
+async function loadAllBookedSlots() {
+  try {
+    const rooms = ROOMS.filter(
+      (r) =>
+        r.StudioCode === flow.studio.StudioCode &&
+        r.SportTypeID === flow.sport.SportTypeID,
+    );
+
+    const allSlots = [];
+
+    for (const room of rooms) {
+      try {
+        const slots = await SheSparksAPI.get(
+          `/bookings/room/${room.RoomID}/booked-slots`,
+        );
+        if (slots && slots.length > 0) {
+          allSlots.push(
+            ...slots.map((s) => ({
+              ...s,
+              RoomID: room.RoomID,
+            })),
+          );
+        }
+      } catch (e) {
+        // Skip if error
+      }
+    }
+
+    bookedSlotsCache = allSlots;
+  } catch (error) {
+    console.warn("Cannot load booked slots:", error.message);
+    bookedSlotsCache = [];
+  }
 }
 
 function clearFilters() {
@@ -173,14 +212,15 @@ function clearFilters() {
 
 // ==================== ตรวจสอบการจอง ====================
 function isRoomBooked(roomID, date, startTime, endTime) {
-  const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-
-  return bookings.some(b =>
-    b.RoomID === roomID &&
-    b.Date === date &&
-    b.StartTime < endTime &&
-    b.EndTime > startTime
-  );
+  return bookedSlotsCache.some((b) => {
+    const bDate = (b.BookingDate || "").toString().split("T")[0];
+    return (
+      Number(b.RoomID) === Number(roomID) &&
+      bDate === date &&
+      b.StartTime < endTime &&
+      b.EndTime > startTime
+    );
+  });
 }
 
 // ==================== HELPERS ====================
