@@ -19,25 +19,25 @@ INSERT INTO STUDIO_SPORT_TYPE (StudioCode, SportTypeID) VALUES
 ('ST002', 3), ('ST002', 4),
 ('ST003', 1), ('ST003', 3), ('ST003', 2);
 
--- 4. MEMBER (ปรับลบ Role ออก เปลี่ยน Type ให้ตรง)
+-- 4. MEMBER 
 INSERT INTO MEMBER (MemberID, Name, Phone, DOB, MemberLevel, Email, StudioCode, CreatedAt) VALUES
 (1, 'Jane Doe', '081-234-5678', '1995-05-15', 'Silver', 'jane@shesparks.com', 'ST001', '2026-09-01 09:00:00'),
 (2, 'Sarah Smith', '081-234-5679', '1990-01-01', 'Platinum', 'sarah@shesparks.com', 'ST001', '2026-09-01 09:00:00');
 
--- 5. TRAINER (ลบ Salary, Age, Qualification ทิ้ง)
+-- 5. TRAINER 
 INSERT INTO TRAINER (TrainerID, Name, Phone, HireDate, Position, StudioCode, SportTypeID, ImageURL) VALUES
 (1, 'Coach Mali', '081-111-1111', '2024-01-15', 'Senior Trainer', 'ST001', 1, 'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=400'),
 (2, 'Coach Ploy', '082-222-2222', '2024-03-15', 'Trainer', 'ST001', 2, 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=400'),
 (3, 'Coach Fah', '083-333-3333', '2023-08-01', 'Senior Trainer', 'ST002', 3, 'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=400');
 
--- 6. USER_ACCOUNT (เพิ่มใหม่ตามรายงาน)
+-- 6. USER_ACCOUNT 
 INSERT INTO USER_ACCOUNT (Username, PasswordHash, Role, TrainerID) VALUES
 ('admin01', 'hashed_pwd_123', 'ADMIN', NULL),
 ('manager_nimman', 'hashed_pwd_123', 'STUDIO_MANAGER', NULL),
 ('trainer_mali', 'hashed_pwd_123', 'TRAINER', 1),
 ('member_jane', 'hashed_pwd_123', 'MEMBER', NULL);
 
--- 7. REWARD_ITEM (ปรับ Category ให้ตรงกับ ENUM)
+-- 7. REWARD_ITEM 
 INSERT INTO REWARD_ITEM (RewardID, Name, PointCost, Value, Category, ImageURL) VALUES
 (1, 'Spa Voucher 500 THB', 500, 500.00, 'Beauty', 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=400'),
 (2, 'Yoga Mat', 800, 800.00, 'Sports', 'https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=400'),
@@ -49,13 +49,13 @@ INSERT INTO ROOM (RoomID, RoomName, Capacity, StudioCode, SportTypeID, ImageURL)
 (2, 'Pilates Room B', 15, 'ST001', 2, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcFdpjDVDQMtEqvSlfb8WhliMusPHTfxLqybpgnLrfroHdDglf0TzB6of5&s=10'),
 (3, 'Boxing Ring C', 10, 'ST002', 3, 'https://www.protecboxing.com/wp-content/uploads/2023/10/IMG_8300-scaled.webp');
 
--- 9. EQUIPMENT (ปรับใช้ ConditionStatus ENUM)
+-- 9. EQUIPMENT 
 INSERT INTO EQUIPMENT (EquipmentID, Name, ConditionStatus, LateFee, SportTypeID, StudioCode, ImageURL) VALUES
 (1, 'Yoga Mat Pro', 'GOOD', 50.00, 1, 'ST001', 'https://mandukathailand.com/cdn/shop/files/111011Z30-Mats-PRO71-VERVE-02_c20a6342-8663-4436-8441-093cfd3d0f5d_1080x.jpg?v=1738237472'),
 (2, 'Pilates Ball', 'GOOD', 80.00, 2, 'ST001', 'https://contents.mediadecathlon.com/p3067465/k$ebc9793bcd6ee90c724d45b7bb344dc4/900-g-weighted-pilates-ball-brown-domyos-8975529.jpg?f=1920x0&format=auto'),
 (3, 'Boxing Gloves', 'MAINTENANCE', 120.00, 3, 'ST002', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKjp1FY6k2x0eKZfeIA_dhWtubgZJhq3u4mSyENJVa4W0tMiARcsNY-Vk&s=10');
 
--- 10. QUALIFICATION & TRAINER_QUALIFICATION (ทดแทนคอลัมน์ที่ถูกลบ)
+-- 10. QUALIFICATION & TRAINER_QUALIFICATION 
 INSERT INTO QUALIFICATION (QualID, QualName, IssuedBy) VALUES
 (1, 'Certified Yoga Instructor', 'Yoga Alliance'),
 (2, 'Pilates Master Trainer', 'Pilates Method Alliance');
@@ -73,7 +73,7 @@ INSERT INTO TRAINER_COURSE (TrainerID, CourseID, AssignedDate, TeachingRole) VAL
 (1, 1, '2026-01-05', 'Lead Trainer'),
 (2, 2, '2026-01-05', 'Lead Trainer');
 
--- 12. TRAINER_SCHEDULE (เพิ่มใหม่ตามรายงาน)
+-- 12. TRAINER_SCHEDULE 
 INSERT INTO TRAINER_SCHEDULE (TrainerID, WorkDate, StartTime, EndTime, ScheduleStatus) VALUES
 (1, '2026-10-20', '09:00:00', '12:00:00', 'AVAILABLE'),
 (2, '2026-10-20', '13:00:00', '16:00:00', 'AVAILABLE');
@@ -96,3 +96,30 @@ INSERT INTO REDEMPTION (MemberID, RewardID, PointsUsed, Status) VALUES
 INSERT INTO SITE_SETTING (SettingKey, SettingValue) VALUES
 ('points_per_10_thb', '1'),
 ('max_booking_days_advance', '30');
+
+-- ============================
+-- 16. ENROLLMENT 
+-- ============================
+INSERT INTO ENROLLMENT (MemberID, CourseID, EnrollmentDate, PaymentStatus) VALUES
+(1, 1, '2026-09-03', 'PAID'),
+(2, 1, '2026-09-04', 'PAID'),
+(1, 2, '2026-09-10', 'PAID'),
+(2, 2, '2026-09-15', 'UNPAID');
+
+-- ============================
+-- 17. BOOKING_EQUIPMENT 
+-- ============================
+INSERT INTO BOOKING_EQUIPMENT (BookingID, EquipmentID, Quantity, ReturnStatus) VALUES
+(1, 1, 2, 'ISSUED');   
+
+-- ============================
+-- 18. BOOKING_TRAINER 
+-- ============================
+INSERT INTO BOOKING_TRAINER (BookingID, TrainerID, TrainerRole, HourlyRateAtBooking) VALUES
+(1, 1, 'Main Trainer', 800.00); 
+
+-- ============================
+-- 19. COURSE_PREREQUISITE 
+-- ============================
+INSERT INTO COURSE_PREREQUISITE (CourseID, PrerequisiteCourseID) VALUES
+(2, 1);  
