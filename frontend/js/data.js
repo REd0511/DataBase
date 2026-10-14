@@ -263,13 +263,13 @@ const REWARDS = [
 
 // Studio ↔ SportType (M:N)
 const STUDIO_SPORT_TYPE = [
-  { StudioCode: "ST001", SportTypeID: 1 }, // Silom - Yoga
-  { StudioCode: "ST001", SportTypeID: 2 }, // Silom - Pilates
-  { StudioCode: "ST002", SportTypeID: 3 }, // Phayathai - Boxing
-  { StudioCode: "ST002", SportTypeID: 4 }, // Phayathai - Badminton
-  { StudioCode: "ST003", SportTypeID: 1 }, // Ramkhamhaeng - Yoga
-  { StudioCode: "ST003", SportTypeID: 3 }, // Ramkhamhaeng - Boxing
-  { StudioCode: "ST003", SportTypeID: 2 }, // Ramkhamhaeng - Pilates
+  { StudioCode: "ST001", SportTypeID: 1 }, 
+  { StudioCode: "ST001", SportTypeID: 2 }, 
+  { StudioCode: "ST002", SportTypeID: 3 }, 
+  { StudioCode: "ST002", SportTypeID: 4 }, 
+  { StudioCode: "ST003", SportTypeID: 1 }, 
+  { StudioCode: "ST003", SportTypeID: 3 }, 
+  { StudioCode: "ST003", SportTypeID: 2 }, 
 ];
 
 // Course Prerequisite (Recursive M:N)
