@@ -2,42 +2,50 @@ CREATE DATABASE IF NOT EXISTS shesparks;
 USE shesparks;
 
 -- ============================
--- MASTER TABLES
+-- 1. MASTER TABLES (ไม่พึ่งพา FK)
 -- ============================
 
 CREATE TABLE STUDIO (
-    StudioCode VARCHAR(10) PRIMARY KEY,    
-    Name VARCHAR(100) NOT NULL,           
+    StudioCode VARCHAR(10) PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
     Location VARCHAR(200) NOT NULL,
-    Capacity INT NOT NULL,
+    Capacity INT NOT NULL CHECK (Capacity > 0),
     NumberOfRooms INT DEFAULT 0,
-    ImageURL VARCHAR(500)                   
+    ImageURL VARCHAR(500)
 );
 
 CREATE TABLE SPORT_TYPE (
     SportTypeID INT PRIMARY KEY AUTO_INCREMENT,
-    SportName VARCHAR(50) NOT NULL,
+    SportName VARCHAR(50) NOT NULL UNIQUE,
     IntensityLevel VARCHAR(20),
-    ImageURL VARCHAR(500)                
+    ImageURL VARCHAR(500)
 );
 
 CREATE TABLE QUALIFICATION (
     QualID INT PRIMARY KEY AUTO_INCREMENT,
-    QualName VARCHAR(100),
+    QualName VARCHAR(100) NOT NULL,
     IssuedBy VARCHAR(100)
 );
 
 CREATE TABLE REWARD_ITEM (
     RewardID INT PRIMARY KEY AUTO_INCREMENT,
     Name VARCHAR(100) NOT NULL,
-    PointCost INT NOT NULL,
+    PointCost INT NOT NULL CHECK (PointCost > 0),
     Value DECIMAL(10,2) DEFAULT 0,
-    Category VARCHAR(30) NOT NULL,
-    ImageURL VARCHAR(500)                  
+    Category ENUM('Beauty', 'Sports', 'Discount') NOT NULL,
+    IsActive BOOLEAN DEFAULT TRUE,
+    ImageURL VARCHAR(500)
+);
+
+CREATE TABLE SITE_SETTING (
+    SettingID INT PRIMARY KEY AUTO_INCREMENT,
+    SettingKey VARCHAR(50) UNIQUE,
+    SettingValue VARCHAR(255),
+    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- ============================
--- TABLES WITH FOREIGN KEYS
+-- 2. ENTITY TABLES 
 -- ============================
 
 CREATE TABLE MEMBER (
@@ -45,79 +53,94 @@ CREATE TABLE MEMBER (
     Name VARCHAR(100) NOT NULL,
     Phone VARCHAR(20) UNIQUE NOT NULL,
     DOB DATE,
-    MemberLevel VARCHAR(20) DEFAULT 'Silver',
-    Email VARCHAR(100),                   
-    Role VARCHAR(20) DEFAULT 'member',   
-    StudioCode VARCHAR(10) NOT NULL,     
+    MemberLevel ENUM('Silver', 'Gold', 'Platinum') DEFAULT 'Silver',
+    Email VARCHAR(100),
+    StudioCode VARCHAR(10) NOT NULL,
+    IsActive BOOLEAN DEFAULT TRUE,
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode)
-);
-
-CREATE TABLE ROOM (
-    RoomID INT PRIMARY KEY AUTO_INCREMENT,
-    RoomName VARCHAR(100),
-    Capacity INT,
-    StudioCode VARCHAR(10),               
-    SportTypeID INT,                         
-    ImageURL VARCHAR(500),                   
-    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
-    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
-);
-
-CREATE TABLE EQUIPMENT (
-    EquipmentID INT PRIMARY KEY AUTO_INCREMENT,
-    Name VARCHAR(100),
-    `Condition` VARCHAR(50),
-    LateFee DECIMAL(10,2),
-    SportTypeID INT,
-    StudioCode VARCHAR(10),                  
-    ImageURL VARCHAR(500),                 
-    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID),
     FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode)
 );
 
 CREATE TABLE TRAINER (
     TrainerID INT PRIMARY KEY AUTO_INCREMENT,
     Name VARCHAR(100) NOT NULL,
-    Phone VARCHAR(20),
+    Phone VARCHAR(20) UNIQUE,
     HireDate DATE,
-    Position VARCHAR(50),
-    Salary DECIMAL(10,2),
-    Age INT,
-    StudioCode VARCHAR(10),                  
+    Position VARCHAR(60),
+    StudioCode VARCHAR(10),
     SportTypeID INT,
-    Qualification VARCHAR(200),              
-    ImageURL VARCHAR(500),                 
+    IsActive BOOLEAN DEFAULT TRUE,
+    ImageURL VARCHAR(500),
     FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
     FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
+);
+
+-- เพิ่มตามรายงาน: จัดการระบบ Login และ Role
+CREATE TABLE USER_ACCOUNT (
+    UserID INT PRIMARY KEY AUTO_INCREMENT,
+    Username VARCHAR(50) NOT NULL UNIQUE,
+    PasswordHash VARCHAR(255) NOT NULL,
+    Role ENUM('MEMBER', 'TRAINER', 'STUDIO_MANAGER', 'ADMIN') NOT NULL,
+    TrainerID INT UNIQUE, -- เชื่อมกับ Trainer Profile (ถ้ามี)
+    IsActive BOOLEAN DEFAULT TRUE,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID) ON DELETE SET NULL
+);
+
+CREATE TABLE ROOM (
+    RoomID INT PRIMARY KEY AUTO_INCREMENT,
+    RoomName VARCHAR(100) NOT NULL,
+    Capacity INT NOT NULL CHECK (Capacity > 0),
+    StudioCode VARCHAR(10) NOT NULL,
+    SportTypeID INT,
+    IsActive BOOLEAN DEFAULT TRUE,
+    ImageURL VARCHAR(500),
+    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
+    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
+);
+
+CREATE TABLE EQUIPMENT (
+    EquipmentID INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(100) NOT NULL,
+    ConditionStatus ENUM('GOOD', 'MAINTENANCE', 'DAMAGED') DEFAULT 'GOOD',
+    LateFee DECIMAL(8,2) DEFAULT 0 CHECK (LateFee >= 0),
+    SportTypeID INT,
+    StudioCode VARCHAR(10),
+    IsAvailable BOOLEAN DEFAULT TRUE,
+    ImageURL VARCHAR(500),
+    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID),
+    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode)
 );
 
 CREATE TABLE COURSE (
     CourseID INT PRIMARY KEY AUTO_INCREMENT,
     Title VARCHAR(100) NOT NULL,
-    Level VARCHAR(20),
-    DurationHours INT,
-    StandardFee DECIMAL(10,2),
-    SportTypeID INT,
-    StudioCode VARCHAR(10),                 
-    RoomID INT,                             
-    TrainerID INT,                          
-    PrerequisiteCourseID INT,               
-    ImageURL VARCHAR(500),                  
+    Level VARCHAR(30),
+    DurationHours DECIMAL(4,1) NOT NULL CHECK (DurationHours > 0),
+    StandardFee DECIMAL(10,2) NOT NULL CHECK (StandardFee >= 0),
+    SportTypeID INT NOT NULL,
+    StudioCode VARCHAR(10),
+    RoomID INT,
+    TrainerID INT,
+    ImageURL VARCHAR(500),
     FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID),
     FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
     FOREIGN KEY (RoomID) REFERENCES ROOM(RoomID),
-    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID),
-    FOREIGN KEY (PrerequisiteCourseID) REFERENCES COURSE(CourseID)
+    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID)
 );
 
-CREATE TABLE DEPENDENT (
-    DependentID INT,
-    Name VARCHAR(100) NOT NULL,
-    Age INT,
-    Relationship VARCHAR(50),
+-- ============================
+-- 3. TRANSACTION TABLES
+-- ============================
+
+-- เพิ่มตามรายงาน: ป้องกันการจองคิวเทรนเนอร์ซ้อน
+CREATE TABLE TRAINER_SCHEDULE (
+    ScheduleID INT PRIMARY KEY AUTO_INCREMENT,
     TrainerID INT NOT NULL,
-    PRIMARY KEY (DependentID, TrainerID),
+    WorkDate DATE NOT NULL,
+    StartTime TIME NOT NULL,
+    EndTime TIME NOT NULL,
+    ScheduleStatus ENUM('AVAILABLE', 'UNAVAILABLE') DEFAULT 'AVAILABLE',
     FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID)
 );
 
@@ -126,37 +149,74 @@ CREATE TABLE BOOKING (
     BookingDate DATE NOT NULL,
     StartTime TIME NOT NULL,
     EndTime TIME NOT NULL,
+    Status ENUM('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED') DEFAULT 'PENDING',
     MemberID INT NOT NULL,
     RoomID INT NOT NULL,
-    Capacity INT,                            
-    TrainerID INT,                           
     FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
     FOREIGN KEY (RoomID) REFERENCES ROOM(RoomID)
 );
 
 CREATE TABLE PAYMENT (
     PaymentID INT PRIMARY KEY AUTO_INCREMENT,
-    Amount DECIMAL(10,2) NOT NULL,
-    PaymentDate DATETIME NOT NULL,
-    PaymentMethod VARCHAR(30) NOT NULL,
+    Amount DECIMAL(10,2) NOT NULL CHECK (Amount >= 0),
+    PaymentDate DATETIME,
+    PaymentMethod VARCHAR(30),
+    PaymentStatus ENUM('UNPAID', 'PAID', 'REFUNDED') DEFAULT 'UNPAID',
     BookingID INT NOT NULL UNIQUE,
     FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID)
 );
 
+-- ปรับปรุงตามรายงาน: เปลี่ยนเป็น Ledger (สมุดบัญชี) แทนการบวกลบแต้มในคอลัมน์เดียว
 CREATE TABLE POINT_TRANSACTION (
     TransactionID INT PRIMARY KEY AUTO_INCREMENT,
-    PointsEarned INT DEFAULT 0,
-    PointsRedeemed INT DEFAULT 0,
-    `Date` DATETIME NOT NULL,
-    PaymentID INT NOT NULL,
+    MemberID INT NOT NULL,
+    PaymentID INT,
+    TransactionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PointsChange INT NOT NULL,
+    Reason VARCHAR(40) NOT NULL,
+    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
     FOREIGN KEY (PaymentID) REFERENCES PAYMENT(PaymentID)
+);
+
+-- ปรับปรุงตามรายงาน: ใช้ RedemptionID เป็น PK เดี่ยว
+CREATE TABLE REDEMPTION (
+    RedemptionID INT PRIMARY KEY AUTO_INCREMENT,
+    MemberID INT NOT NULL,
+    RewardID INT NOT NULL,
+    RedemptionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PointsUsed INT NOT NULL CHECK (PointsUsed > 0),
+    Status ENUM('REQUESTED', 'APPROVED', 'FULFILLED', 'CANCELLED') DEFAULT 'REQUESTED',
+    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
+    FOREIGN KEY (RewardID) REFERENCES REWARD_ITEM(RewardID)
+);
+
+CREATE TABLE ENROLLMENT (
+    MemberID INT,
+    CourseID INT,
+    EnrollmentDate DATE NOT NULL,
+    PaymentStatus ENUM('UNPAID', 'PAID', 'CANCELLED') DEFAULT 'UNPAID',
+    PRIMARY KEY (MemberID, CourseID),
+    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
+    FOREIGN KEY (CourseID) REFERENCES COURSE(CourseID)
+);
+
+-- ============================
+-- 4. JUNCTION TABLES (M:N)
+-- ============================
+
+CREATE TABLE COURSE_PREREQUISITE (
+    CourseID INT,
+    PrerequisiteCourseID INT,
+    PRIMARY KEY (CourseID, PrerequisiteCourseID),
+    FOREIGN KEY (CourseID) REFERENCES COURSE(CourseID),
+    FOREIGN KEY (PrerequisiteCourseID) REFERENCES COURSE(CourseID)
 );
 
 CREATE TABLE BOOKING_EQUIPMENT (
     BookingID INT,
     EquipmentID INT,
-    Quantity INT DEFAULT 1,
-    ReturnStatus VARCHAR(30) DEFAULT 'Pending',
+    Quantity INT NOT NULL CHECK (Quantity > 0),
+    ReturnStatus ENUM('NOT_ISSUED', 'ISSUED', 'RETURNED', 'LATE') DEFAULT 'NOT_ISSUED',
     PRIMARY KEY (BookingID, EquipmentID),
     FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID),
     FOREIGN KEY (EquipmentID) REFERENCES EQUIPMENT(EquipmentID)
@@ -166,7 +226,7 @@ CREATE TABLE BOOKING_TRAINER (
     BookingID INT,
     TrainerID INT,
     TrainerRole VARCHAR(50),
-    HourlyRateAtBooking DECIMAL(10,2),
+    HourlyRateAtBooking DECIMAL(8,2),
     PRIMARY KEY (BookingID, TrainerID),
     FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID),
     FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID)
@@ -192,45 +252,10 @@ CREATE TABLE TRAINER_COURSE (
     FOREIGN KEY (CourseID) REFERENCES COURSE(CourseID)
 );
 
-CREATE TABLE ENROLLMENT (
-    MemberID INT,
-    CourseID INT,
-    EnrollmentDate DATE NOT NULL,
-    PaymentStatus VARCHAR(20) DEFAULT 'Pending',
-    PRIMARY KEY (MemberID, CourseID),
-    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
-    FOREIGN KEY (CourseID) REFERENCES COURSE(CourseID)
-);
-
-CREATE TABLE REDEMPTION (
-    MemberID INT,
-    RewardID INT,
-    RedemptionDate DATE NOT NULL,
-    PointsUsed INT,
-    PRIMARY KEY (MemberID, RewardID),
-    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
-    FOREIGN KEY (RewardID) REFERENCES REWARD_ITEM(RewardID)
-);
-
-CREATE TABLE COURSE_PREREQUISITE (
-    CourseID INT,
-    PrerequisiteCourseID INT,
-    PRIMARY KEY (CourseID, PrerequisiteCourseID),
-    FOREIGN KEY (CourseID) REFERENCES COURSE(CourseID),
-    FOREIGN KEY (PrerequisiteCourseID) REFERENCES COURSE(CourseID)
-);
-
 CREATE TABLE STUDIO_SPORT_TYPE (
-    StudioCode VARCHAR(10),                 
+    StudioCode VARCHAR(10),
     SportTypeID INT,
     PRIMARY KEY (StudioCode, SportTypeID),
     FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
     FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
-);
-
-CREATE TABLE SITE_SETTING (
-    SettingID INT PRIMARY KEY AUTO_INCREMENT,
-    SettingKey VARCHAR(50) UNIQUE,
-    SettingValue VARCHAR(255),
-    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
