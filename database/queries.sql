@@ -1,346 +1,282 @@
+-- ============================================
+-- SheSparks Wellness - Database Schema
+-- ============================================
+
+CREATE DATABASE IF NOT EXISTS shesparks;
 USE shesparks;
 
--- ==========================================
--- SECTION 1: REPORT QUERIES (ใช้ใน Report 1-8)
--- ==========================================
+-- ============================
+--  MASTER TABLES
+-- ============================
 
--- ==========================================
--- Report 1: Availability Reports
--- ==========================================
+CREATE TABLE STUDIO (
+    StudioCode VARCHAR(10) PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Location VARCHAR(200) NOT NULL,
+    Capacity INT NOT NULL CHECK (Capacity > 0),
+    NumberOfRooms INT DEFAULT 0,
+    ImageURL VARCHAR(500)
+);
 
--- 1.1 Available Rooms (with rate info)
-SELECT 
-    r.RoomID, r.RoomName, r.Capacity, 
-    r.HourlyRate, r.TrainerRate,
-    s.Name AS StudioName,
-    st.SportName
-FROM ROOM r
-JOIN STUDIO s ON r.StudioCode = s.StudioCode
-LEFT JOIN SPORT_TYPE st ON st.SportTypeID = r.SportTypeID
-WHERE r.IsActive = TRUE
-  AND NOT EXISTS (
-      SELECT 1
-      FROM BOOKING b
-      WHERE b.RoomID = r.RoomID
-        AND b.BookingDate = '2026-10-20'
-        AND b.Status IN ('PENDING', 'CONFIRMED')
-        AND b.StartTime < '10:30:00' 
-        AND b.EndTime > '09:30:00'
-  );
+CREATE TABLE SPORT_TYPE (
+    SportTypeID INT PRIMARY KEY AUTO_INCREMENT,
+    SportName VARCHAR(50) NOT NULL UNIQUE,
+    IntensityLevel VARCHAR(20),
+    ImageURL VARCHAR(500)
+);
 
--- 1.2 Available Equipment 
-SELECT 
-    e.EquipmentID, 
-    e.Name, 
-    e.ConditionStatus, 
-    e.LateFee,
-    st.SportName,
-    s.Name AS StudioName
-FROM EQUIPMENT e
-LEFT JOIN SPORT_TYPE st ON e.SportTypeID = st.SportTypeID
-LEFT JOIN STUDIO s ON e.StudioCode = s.StudioCode
-WHERE e.ConditionStatus = 'GOOD'
-  AND e.IsAvailable = TRUE
-  AND NOT EXISTS (
-      SELECT 1
-      FROM BOOKING_EQUIPMENT be
-      JOIN BOOKING b ON be.BookingID = b.BookingID
-      WHERE be.EquipmentID = e.EquipmentID
-        AND b.BookingDate = '2026-10-20'
-        AND b.Status IN ('PENDING', 'CONFIRMED')
-        AND b.StartTime < '10:30:00'
-        AND b.EndTime > '09:30:00'
-  );
+CREATE TABLE QUALIFICATION (
+    QualID INT PRIMARY KEY AUTO_INCREMENT,
+    QualName VARCHAR(100) NOT NULL,
+    IssuedBy VARCHAR(100)
+);
 
--- 1.3 Available Trainers 
-SELECT 
-    t.TrainerID, 
-    t.Name, 
-    t.Phone,
-    st.SportName,
-    s.Name AS StudioName
-FROM TRAINER t
-JOIN SPORT_TYPE st ON t.SportTypeID = st.SportTypeID
-LEFT JOIN STUDIO s ON t.StudioCode = s.StudioCode
-WHERE t.IsActive = TRUE
-  AND NOT EXISTS (
-      SELECT 1
-      FROM BOOKING_TRAINER bt
-      JOIN BOOKING b ON bt.BookingID = b.BookingID
-      WHERE bt.TrainerID = t.TrainerID
-        AND b.BookingDate = '2026-10-20'
-        AND b.Status IN ('PENDING', 'CONFIRMED')
-        AND b.StartTime < '10:30:00'
-        AND b.EndTime > '09:30:00'
-  );
+CREATE TABLE REWARD_ITEM (
+    RewardID INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(100) NOT NULL,
+    PointCost INT NOT NULL CHECK (PointCost > 0),
+    Value DECIMAL(10,2) DEFAULT 0,
+    Category ENUM('Beauty', 'Sports', 'Discount') NOT NULL,
+    IsActive BOOLEAN DEFAULT TRUE,
+    ImageURL VARCHAR(500)
+);
 
--- ==========================================
--- Report 2: Booking Report
--- ==========================================
+CREATE TABLE SITE_SETTING (
+    SettingID INT PRIMARY KEY AUTO_INCREMENT,
+    SettingKey VARCHAR(50) UNIQUE,
+    SettingValue VARCHAR(255),
+    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 
-SELECT 
-    b.BookingID, 
-    b.BookingDate, 
-    b.StartTime, 
-    b.EndTime,
-    b.Status AS BookingStatus,
-    m.Name AS MemberName, 
-    m.MemberLevel,
-    r.RoomName, 
-    r.HourlyRate,
-    s.Location,
-    s.Name AS StudioName,
-    st.SportName,
-    COALESCE(p.Amount, 0) AS Amount,
-    p.PaymentStatus,
-    (SELECT SUM(pt.PointsChange) 
-     FROM POINT_TRANSACTION pt 
-     WHERE pt.PaymentID = p.PaymentID AND pt.PointsChange > 0) AS PointsEarned
-FROM BOOKING b
-JOIN MEMBER m ON b.MemberID = m.MemberID
-JOIN ROOM r ON b.RoomID = r.RoomID
-JOIN STUDIO s ON r.StudioCode = s.StudioCode
-LEFT JOIN SPORT_TYPE st ON st.SportTypeID = r.SportTypeID
-LEFT JOIN PAYMENT p ON p.BookingID = b.BookingID
-ORDER BY b.BookingDate DESC, b.StartTime DESC;
+-- ============================
+-- ENTITY TABLES
+-- ============================
 
--- ==========================================
--- Report 3: Revenue Report (แยกตาม Source)
--- ==========================================
+CREATE TABLE MEMBER (
+    MemberID INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(100) NOT NULL,
+    Phone VARCHAR(20) UNIQUE NOT NULL,
+    DOB DATE,
+    MemberLevel ENUM('Silver', 'Gold', 'Platinum') DEFAULT 'Silver',
+    Email VARCHAR(100),
+    StudioCode VARCHAR(10) NOT NULL,
+    IsActive BOOLEAN DEFAULT TRUE,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode)
+);
 
-SELECT 
-    DATE_FORMAT(p.PaymentDate, '%Y-%m') AS Month,
-    COUNT(p.PaymentID) AS TotalTransactions,
-    SUM(p.Amount) AS TotalRevenue,
-    SUM(CASE WHEN p.BookingID IS NOT NULL THEN p.Amount ELSE 0 END) AS BookingRevenue,
-    SUM(CASE WHEN p.EnrollmentID IS NOT NULL THEN p.Amount ELSE 0 END) AS CourseRevenue,
-    SUM(CASE WHEN p.RedemptionID IS NOT NULL THEN p.Amount ELSE 0 END) AS RedemptionAmount,
-    COALESCE(SUM(CASE WHEN pt.PointsChange > 0 THEN pt.PointsChange ELSE 0 END), 0) AS TotalPointsEarned,
-    COALESCE(SUM(CASE WHEN pt.PointsChange < 0 THEN ABS(pt.PointsChange) ELSE 0 END), 0) AS TotalPointsRedeemed
-FROM PAYMENT p
-LEFT JOIN POINT_TRANSACTION pt ON pt.PaymentID = p.PaymentID
-WHERE p.PaymentStatus = 'PAID'
-GROUP BY DATE_FORMAT(p.PaymentDate, '%Y-%m')
-ORDER BY Month DESC;
+CREATE TABLE TRAINER (
+    TrainerID INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(100) NOT NULL,
+    Phone VARCHAR(20) UNIQUE,
+    HireDate DATE,
+    Position VARCHAR(60),
+    StudioCode VARCHAR(10),
+    SportTypeID INT,
+    IsActive BOOLEAN DEFAULT TRUE,
+    ImageURL VARCHAR(500),
+    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
+    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
+);
 
--- ==========================================
--- Report 4: Popular Courses
--- ==========================================
+CREATE TABLE USER_ACCOUNT (
+    UserID INT PRIMARY KEY AUTO_INCREMENT,
+    Username VARCHAR(50) NOT NULL UNIQUE,
+    PasswordHash VARCHAR(255) NOT NULL,
+    Role ENUM('MEMBER', 'TRAINER', 'STUDIO_MANAGER', 'ADMIN') NOT NULL,
+    TrainerID INT UNIQUE,
+    IsActive BOOLEAN DEFAULT TRUE,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID) ON DELETE SET NULL
+);
 
-SELECT 
-    c.CourseID, 
-    c.Title, 
-    c.Level, 
-    c.StandardFee,
-    s.SportName,
-    COUNT(e.MemberID) AS TotalEnrollments,
-    COALESCE(SUM(CASE WHEN e.PaymentStatus = 'PAID' THEN c.StandardFee ELSE 0 END), 0) AS Revenue
-FROM COURSE c
-JOIN SPORT_TYPE s ON c.SportTypeID = s.SportTypeID
-LEFT JOIN ENROLLMENT e ON e.CourseID = c.CourseID
-GROUP BY c.CourseID, c.Title, c.Level, c.StandardFee, s.SportName
-ORDER BY TotalEnrollments DESC, Revenue DESC;
+CREATE TABLE ROOM (
+    RoomID INT PRIMARY KEY AUTO_INCREMENT,
+    RoomName VARCHAR(100) NOT NULL,
+    Capacity INT NOT NULL CHECK (Capacity > 0),
+    StudioCode VARCHAR(10) NOT NULL,
+    SportTypeID INT,
+    HourlyRate DECIMAL(10,2) NOT NULL DEFAULT 200.00 CHECK (HourlyRate >= 0),
+    TrainerRate DECIMAL(10,2) NOT NULL DEFAULT 500.00 CHECK (TrainerRate >= 0),
+    IsActive BOOLEAN DEFAULT TRUE,
+    ImageURL VARCHAR(500),
+    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
+    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
+);
 
--- ==========================================
--- Report 5: Monthly Course Revenue
--- ==========================================
+CREATE TABLE EQUIPMENT (
+    EquipmentID INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(100) NOT NULL,
+    ConditionStatus ENUM('GOOD', 'MAINTENANCE', 'DAMAGED') DEFAULT 'GOOD',
+    LateFee DECIMAL(8,2) DEFAULT 0 CHECK (LateFee >= 0),
+    SportTypeID INT,
+    StudioCode VARCHAR(10),
+    IsAvailable BOOLEAN DEFAULT TRUE,
+    ImageURL VARCHAR(500),
+    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID),
+    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode)
+);
 
-SELECT
-    DATE_FORMAT(e.EnrollmentDate, '%Y-%m') AS Month,
-    c.CourseID,
-    c.Title AS CourseName,
-    COUNT(*) AS TotalEnrollments,
-    COALESCE(SUM(c.StandardFee), 0) AS TotalRevenue
-FROM COURSE c
-JOIN ENROLLMENT e ON e.CourseID = c.CourseID
-WHERE e.PaymentStatus = 'PAID'
-GROUP BY
-    DATE_FORMAT(e.EnrollmentDate, '%Y-%m'),
-    c.CourseID,
-    c.Title
-ORDER BY Month DESC, TotalRevenue DESC;
+CREATE TABLE COURSE (
+    CourseID INT PRIMARY KEY AUTO_INCREMENT,
+    Title VARCHAR(100) NOT NULL,
+    Level VARCHAR(30),
+    DurationHours DECIMAL(4,1) NOT NULL CHECK (DurationHours > 0),
+    StandardFee DECIMAL(10,2) NOT NULL CHECK (StandardFee >= 0),
+    SportTypeID INT NOT NULL,
+    StudioCode VARCHAR(10),
+    RoomID INT,
+    TrainerID INT,
+    ImageURL VARCHAR(500),
+    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID),
+    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
+    FOREIGN KEY (RoomID) REFERENCES ROOM(RoomID),
+    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID)
+);
 
--- ==========================================
--- Report 6: Loyalty Points Summary
--- ==========================================
+-- ============================
+-- TRANSACTION TABLES
+-- ============================
+CREATE TABLE TRAINER_SCHEDULE (
+    ScheduleID INT PRIMARY KEY AUTO_INCREMENT,
+    TrainerID INT NOT NULL,
+    WorkDate DATE NOT NULL,
+    StartTime TIME NOT NULL,
+    EndTime TIME NOT NULL,
+    ScheduleStatus ENUM('AVAILABLE', 'UNAVAILABLE') DEFAULT 'AVAILABLE',
+    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID)
+);
 
-SELECT 
-    m.MemberID,
-    m.Name,
-    m.MemberLevel,
-    COUNT(DISTINCT b.BookingID) AS TotalBookings,
-    COALESCE(SUM(CASE WHEN pt.PointsChange > 0 THEN pt.PointsChange ELSE 0 END), 0) AS TotalEarned,
-    COALESCE(SUM(CASE WHEN pt.PointsChange < 0 THEN ABS(pt.PointsChange) ELSE 0 END), 0) AS TotalRedeemed,
-    COALESCE(SUM(pt.PointsChange), 0) AS Balance
-FROM MEMBER m
-LEFT JOIN BOOKING b ON b.MemberID = m.MemberID
-LEFT JOIN POINT_TRANSACTION pt ON pt.MemberID = m.MemberID
-WHERE m.IsActive = TRUE
-GROUP BY m.MemberID, m.Name, m.MemberLevel
-ORDER BY Balance DESC;
+-- ============================
+-- BOOKING
+-- ============================
+CREATE TABLE BOOKING (
+    BookingID INT PRIMARY KEY AUTO_INCREMENT,
+    BookingDate DATE NOT NULL,
+    StartTime TIME NOT NULL,
+    EndTime TIME NOT NULL,
+    Status ENUM('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED') DEFAULT 'PENDING',
+    MemberID INT NOT NULL,
+    RoomID INT NOT NULL,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,   -- ✅ เพิ่ม CreatedAt เก็บเวลาจองจริง
+    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
+    FOREIGN KEY (RoomID) REFERENCES ROOM(RoomID)
+);
 
--- ==========================================
--- Report 7: Popular Time Slots
--- ==========================================
+-- ============================
+-- REDEMPTION
+-- ============================
+CREATE TABLE REDEMPTION (
+    RedemptionID INT PRIMARY KEY AUTO_INCREMENT,
+    MemberID INT NOT NULL,
+    RewardID INT NOT NULL,
+    RedemptionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PointsUsed INT NOT NULL CHECK (PointsUsed > 0),
+    Status ENUM('REQUESTED', 'APPROVED', 'FULFILLED', 'CANCELLED') DEFAULT 'REQUESTED',
+    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
+    FOREIGN KEY (RewardID) REFERENCES REWARD_ITEM(RewardID)
+);
 
-SELECT 
-    HOUR(b.StartTime) AS HourSlot,
-    COUNT(*) AS TotalBookings,
-    COUNT(DISTINCT b.RoomID) AS UniqueRooms,
-    COUNT(DISTINCT b.MemberID) AS UniqueMembers
-FROM BOOKING b
-WHERE b.Status IN ('PENDING', 'CONFIRMED', 'COMPLETED')
-GROUP BY HOUR(b.StartTime)
-ORDER BY TotalBookings DESC;
+-- ============================
+-- ENROLLMENT
+-- ============================
+CREATE TABLE ENROLLMENT (
+    EnrollmentID INT PRIMARY KEY AUTO_INCREMENT,
+    MemberID INT NOT NULL,
+    CourseID INT NOT NULL,
+    EnrollmentDate DATE NOT NULL,
+    PaymentStatus ENUM('UNPAID', 'PAID', 'CANCELLED') DEFAULT 'UNPAID',
+    UNIQUE KEY unique_member_course (MemberID, CourseID),
+    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
+    FOREIGN KEY (CourseID) REFERENCES COURSE(CourseID)
+);
 
--- ==========================================
--- Report 8: Top Members (สูงสุด 10 คน)
--- ==========================================
+-- ============================
+-- PAYMENT
+-- ============================
+CREATE TABLE PAYMENT (
+    PaymentID INT PRIMARY KEY AUTO_INCREMENT,
+    Amount DECIMAL(10,2) NOT NULL CHECK (Amount >= 0),
+    PaymentDate DATETIME,
+    PaymentMethod VARCHAR(30),
+    PaymentStatus ENUM('UNPAID', 'PAID', 'REFUNDED') DEFAULT 'UNPAID',
+    BookingID INT NULL,
+    RedemptionID INT NULL,
+    EnrollmentID INT NULL,
+    FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID),
+    FOREIGN KEY (RedemptionID) REFERENCES REDEMPTION(RedemptionID),
+    FOREIGN KEY (EnrollmentID) REFERENCES ENROLLMENT(EnrollmentID)
+);
 
-SELECT 
-    m.MemberID,
-    m.Name,
-    m.MemberLevel,
-    m.Email,
-    COUNT(DISTINCT p.PaymentID) AS TotalTransactions,
-    COALESCE(SUM(p.Amount), 0) AS TotalSpending,
-    COALESCE(SUM(CASE WHEN pt.PointsChange > 0 THEN pt.PointsChange ELSE 0 END), 0) AS TotalPointsEarned,
-    COALESCE(SUM(pt.PointsChange), 0) AS Balance
-FROM MEMBER m
-LEFT JOIN PAYMENT p ON p.BookingID IN (
-    SELECT BookingID FROM BOOKING WHERE MemberID = m.MemberID
-) OR p.EnrollmentID IN (
-    SELECT EnrollmentID FROM ENROLLMENT WHERE MemberID = m.MemberID
-)
-LEFT JOIN POINT_TRANSACTION pt ON pt.MemberID = m.MemberID
-WHERE m.IsActive = TRUE
-GROUP BY m.MemberID, m.Name, m.MemberLevel, m.Email
-ORDER BY TotalSpending DESC
-LIMIT 10;
+-- ============================
+-- POINT_TRANSACTION
+-- ============================
+CREATE TABLE POINT_TRANSACTION (
+    TransactionID INT PRIMARY KEY AUTO_INCREMENT,
+    MemberID INT NOT NULL,
+    PaymentID INT NOT NULL,
+    TransactionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PointsChange INT NOT NULL,
+    Reason VARCHAR(40) NOT NULL,
+    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
+    FOREIGN KEY (PaymentID) REFERENCES PAYMENT(PaymentID)
+);
 
--- ==========================================
--- SECTION 2: DASHBOARD METRICS
--- ==========================================
+-- ============================
+-- JUNCTION TABLES (M:N)
+-- ============================
+CREATE TABLE COURSE_PREREQUISITE (
+    CourseID INT,
+    PrerequisiteCourseID INT,
+    PRIMARY KEY (CourseID, PrerequisiteCourseID),
+    FOREIGN KEY (CourseID) REFERENCES COURSE(CourseID),
+    FOREIGN KEY (PrerequisiteCourseID) REFERENCES COURSE(CourseID)
+);
 
--- Dashboard: total active members
-SELECT COUNT(*) AS TotalMembers
-FROM MEMBER
-WHERE IsActive = TRUE;
+CREATE TABLE BOOKING_EQUIPMENT (
+    BookingID INT,
+    EquipmentID INT,
+    Quantity INT NOT NULL CHECK (Quantity > 0),
+    ReturnStatus ENUM('NOT_ISSUED', 'ISSUED', 'RETURNED', 'LATE') DEFAULT 'NOT_ISSUED',
+    PRIMARY KEY (BookingID, EquipmentID),
+    FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID),
+    FOREIGN KEY (EquipmentID) REFERENCES EQUIPMENT(EquipmentID)
+);
 
--- Dashboard: total valid bookings 
-SELECT COUNT(*) AS TotalBookings
-FROM BOOKING
-WHERE Status != 'CANCELLED';
+CREATE TABLE BOOKING_TRAINER (
+    BookingID INT,
+    TrainerID INT,
+    TrainerRole VARCHAR(50),
+    HourlyRateAtBooking DECIMAL(8,2),
+    PRIMARY KEY (BookingID, TrainerID),
+    FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID),
+    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID)
+);
 
--- Dashboard: total revenue (exclude Redemption payments Amount=0)
-SELECT 
-    SUM(Amount) AS TotalRevenue,
-    SUM(CASE WHEN BookingID IS NOT NULL THEN Amount ELSE 0 END) AS BookingRevenue,
-    SUM(CASE WHEN EnrollmentID IS NOT NULL THEN Amount ELSE 0 END) AS CourseRevenue
-FROM PAYMENT
-WHERE PaymentStatus = 'PAID'
-  AND Amount > 0;
+CREATE TABLE TRAINER_QUALIFICATION (
+    TrainerID INT,
+    QualID INT,
+    DateObtained DATE,
+    ExpiryDate DATE,
+    PRIMARY KEY (TrainerID, QualID),
+    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID),
+    FOREIGN KEY (QualID) REFERENCES QUALIFICATION(QualID)
+);
 
--- Dashboard: new members by month
-SELECT 
-    DATE_FORMAT(CreatedAt, '%Y-%m') AS Month,
-    COUNT(*) AS NewMembers
-FROM MEMBER
-GROUP BY DATE_FORMAT(CreatedAt, '%Y-%m')
-ORDER BY Month;
+CREATE TABLE TRAINER_COURSE (
+    TrainerID INT,
+    CourseID INT,
+    AssignedDate DATE NOT NULL,
+    TeachingRole VARCHAR(50),
+    PRIMARY KEY (TrainerID, CourseID),
+    FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID),
+    FOREIGN KEY (CourseID) REFERENCES COURSE(CourseID)
+);
 
--- Dashboard: points earned vs redeemed by month
-SELECT 
-    DATE_FORMAT(TransactionDate, '%Y-%m') AS Month,
-    SUM(CASE WHEN PointsChange > 0 THEN PointsChange ELSE 0 END) AS PointsEarned,
-    SUM(CASE WHEN PointsChange < 0 THEN ABS(PointsChange) ELSE 0 END) AS PointsRedeemed,
-    SUM(PointsChange) AS NetChange
-FROM POINT_TRANSACTION
-GROUP BY DATE_FORMAT(TransactionDate, '%Y-%m')
-ORDER BY Month DESC;
-
--- ==========================================
--- SECTION 3: DATA VALIDATION QUERIES
--- (ใช้ตรวจสอบความถูกต้องของข้อมูล)
--- ==========================================
-
--- ✅ BR18 Check: ทุก PointTransaction ต้องมี PaymentID (ห้าม null)
-SELECT 
-    'Orphan PointTransaction' AS Issue,
-    COUNT(*) AS Count
-FROM POINT_TRANSACTION
-WHERE PaymentID IS NULL
-UNION ALL
--- ✅ BR18 Check: ทุก Payment ที่มี Points ต้อง link กับ entity 1 ตัว
-SELECT 
-    'Payment with no entity' AS Issue,
-    COUNT(*) AS Count
-FROM PAYMENT
-WHERE BookingID IS NULL 
-  AND RedemptionID IS NULL 
-  AND EnrollmentID IS NULL;
-
--- ✅ Check: แต้มที่ใช้ (Redeem) ต้องไม่เกินแต้มที่มี
-SELECT 
-    m.MemberID,
-    m.Name,
-    COALESCE(SUM(pt.PointsChange), 0) AS Balance,
-    CASE WHEN COALESCE(SUM(pt.PointsChange), 0) < 0 THEN '⚠️ Negative!' ELSE 'OK' END AS Status
-FROM MEMBER m
-LEFT JOIN POINT_TRANSACTION pt ON pt.MemberID = m.MemberID
-GROUP BY m.MemberID, m.Name
-HAVING Balance < 0;
-
--- ✅ Check: Payment ที่ Amount = 0 ต้องเป็น Redemption เท่านั้น
-SELECT 
-    p.PaymentID,
-    p.Amount,
-    p.PaymentMethod,
-    p.BookingID,
-    p.RedemptionID,
-    p.EnrollmentID,
-    CASE 
-        WHEN p.Amount = 0 AND p.RedemptionID IS NULL THEN '⚠️ Zero amount without Redemption'
-        ELSE 'OK'
-    END AS Status
-FROM PAYMENT p
-WHERE p.Amount = 0;
-
--- ==========================================
--- SECTION 4: DEMO QUERIES (สำหรับ Present)
--- ==========================================
-
--- Demo 1: ภาพรวมรายได้ทุกเดือน
-SELECT 
-    DATE_FORMAT(PaymentDate, '%Y-%m') AS Month,
-    SUM(Amount) AS TotalRevenue,
-    COUNT(*) AS Transactions
-FROM PAYMENT
-WHERE PaymentStatus = 'PAID'
-  AND Amount > 0
-GROUP BY DATE_FORMAT(PaymentDate, '%Y-%m')
-ORDER BY Month DESC;
-
--- Demo 2: Top 5 Members ที่จ่ายมากสุด
-SELECT 
-    m.Name,
-    m.MemberLevel,
-    SUM(p.Amount) AS TotalSpending
-FROM MEMBER m
-JOIN BOOKING b ON b.MemberID = m.MemberID
-JOIN PAYMENT p ON p.BookingID = b.BookingID
-WHERE p.PaymentStatus = 'PAID'
-GROUP BY m.MemberID, m.Name, m.MemberLevel
-ORDER BY TotalSpending DESC
-LIMIT 5;
-
--- Demo 3: แต้มที่ใช้ vs แต้มที่ได้ (ทุก Member)
-SELECT 
-    m.Name,
-    SUM(CASE WHEN pt.PointsChange > 0 THEN pt.PointsChange ELSE 0 END) AS Earned,
-    SUM(CASE WHEN pt.PointsChange < 0 THEN ABS(pt.PointsChange) ELSE 0 END) AS Redeemed,
-    SUM(pt.PointsChange) AS Balance
-FROM MEMBER m
-JOIN POINT_TRANSACTION pt ON pt.MemberID = m.MemberID
-GROUP BY m.MemberID, m.Name
-ORDER BY Balance DESC;
+CREATE TABLE STUDIO_SPORT_TYPE (
+    StudioCode VARCHAR(10),
+    SportTypeID INT,
+    PRIMARY KEY (StudioCode, SportTypeID),
+    FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
+    FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
+);
