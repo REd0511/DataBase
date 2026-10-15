@@ -52,7 +52,7 @@ exports.createBooking = async (req, res) => {
         bookingId,
         eq.EquipmentID || eq,
         eq.Quantity || 1,
-        'Not Returned',
+        'NOT_ISSUED',
       ]);
       await db.promise().query(
         `INSERT INTO BOOKING_EQUIPMENT 
@@ -163,6 +163,7 @@ exports.getAllBookings = async (req, res) => {
         m.Name AS MemberName,
         r.RoomName,
         r.Capacity,
+        s.StudioCode,   /* ✅ เพิ่มบรรทัดนี้เข้ามา เพื่อให้ Manager เอาไปใช้กรองสาขาได้ */
         s.Name AS StudioName,
         s.Location,
         st.SportName,
@@ -183,7 +184,7 @@ exports.getAllBookings = async (req, res) => {
        JOIN STUDIO s ON s.StudioCode = r.StudioCode
        LEFT JOIN SPORT_TYPE st ON st.SportTypeID = r.SportTypeID
        LEFT JOIN PAYMENT p ON p.BookingID = b.BookingID
-       ORDER BY b.BookingDate DESC, b.StartTime DESC`,
+       ORDER BY b.BookingDate DESC, b.StartTime DESC`
     );
 
     const enrichedBookings = bookings.map((b) => ({

@@ -127,16 +127,22 @@ function renderHistory(filteredBookings = null) {
   tbody.innerHTML = bookings
     .map((b) => {
       // ✅ รองรับหลาย Field Name (API + Mock)
-      const date = b.BookingDate || b.Date || "-";
-      const startTime = b.StartTime || "-";
-      const endTime = b.EndTime || "-";
+      const rawDate = b.BookingDate || b.Date || "-";
+      let date = rawDate;
+      if (rawDate !== "-" && rawDate.includes("T")) {
+        const d = new Date(rawDate);
+        date = d.getFullYear() + "-" + 
+               String(d.getMonth() + 1).padStart(2, '0') + "-" + 
+               String(d.getDate()).padStart(2, '0');
+      }
+      const startTime = (b.StartTime || "-").substring(0, 5);
+      const endTime = (b.EndTime || "-").substring(0, 5);
       const studio = b.Location || b.StudioName || b.StudioLocation || "-";
       const sport = b.SportName || "-";
       const room = b.RoomName || "-";
       const capacity = b.Capacity || "-";
       const trainer = b.TrainerName || b.TrainerID || "—";
-      const equipment =
-        b.Equipments && b.Equipments.length > 0
+      const equipment = b.Equipments && b.Equipments.length > 0
           ? b.Equipments.map((e) => e.Name || e).join(", ")
           : "—";
       const points = b.Points || 0;

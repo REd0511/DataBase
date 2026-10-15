@@ -37,15 +37,11 @@ exports.getMemberPoints = (req, res) => {
     const memberId = req.params.id;
     const sql = `
         SELECT 
-            COALESCE(SUM(CASE WHEN pt.PointsEarned > 0 THEN pt.PointsEarned ELSE 0 END), 0) AS TotalEarned,
-            COALESCE(SUM(CASE WHEN pt.PointsRedeemed > 0 THEN pt.PointsRedeemed ELSE 0 END), 0) AS TotalRedeemed,
-            COALESCE(SUM(pt.PointsEarned) - SUM(pt.PointsRedeemed), 0) AS Balance
+            COALESCE(SUM(CASE WHEN pt.PointsChange > 0 THEN pt.PointsChange ELSE 0 END), 0) AS TotalEarned,
+            COALESCE(SUM(CASE WHEN pt.PointsChange < 0 THEN ABS(pt.PointsChange) ELSE 0 END), 0) AS TotalRedeemed,
+            COALESCE(SUM(pt.PointsChange), 0) AS Balance
         FROM POINT_TRANSACTION pt
-        WHERE pt.PaymentID IN (
-            SELECT p.PaymentID FROM PAYMENT p
-            JOIN BOOKING b ON p.BookingID = b.BookingID
-            WHERE b.MemberID = ?
-        )
+        WHERE pt.MemberID = ?
     `;
     db.query(sql, [memberId], (err, results) => {
         if (err) return res.status(500).json(err);
