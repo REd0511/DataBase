@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const user = JSON.parse(localStorage.getItem("user"));
 
   if (!user || (user.role !== "member" && user.role !== "admin")) {
-    renderEmptyPoints("กรุณาเข้าสู่ระบบในฐานะสมาชิก (Member)");
+    renderEmptyPoints("Please log in as a Member");
     return;
   }
 
@@ -49,26 +49,24 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       return {
-        Date: t.TransactionDate || t.Date,       // ✅ วันที่จริงจาก POINT_TRANSACTION
-        TransactionID: t.TransactionID,          // ✅ ID จริง
+        Date: t.TransactionDate || t.Date,     
+        TransactionID: t.TransactionID,       
         Description: description,
         Earned: pointsChange > 0 ? pointsChange : 0,
         Redeemed: pointsChange < 0 ? Math.abs(pointsChange) : 0,
       };
     });
 
-    // ✅ Sort: ใหม่สุดก่อน (ใช้ TransactionID เป็น tie-breaker)
     history.sort((a, b) => {
       const dateA = new Date(a.Date).getTime() || 0;
       const dateB = new Date(b.Date).getTime() || 0;
 
       if (dateB !== dateA) return dateB - dateA;
 
-      // วัน+เวลาเดียวกัน → TransactionID มาก = ใหม่กว่า
       return (b.TransactionID || 0) - (a.TransactionID || 0);
     });
 
-    // คำนวณ Balance ย้อนหลัง
+
     let runningBalance = apiBalance;
     const withBalance = history.map((h) => {
       const currentBalance = runningBalance;

@@ -494,7 +494,7 @@ async function saveItem() {
 async function deleteItem(item) {
   const name = item.Name || item.RoomName || item.Title || item.SportName || "this item";
 
-  if (!confirm(`Are you sure you want to permanently delete "${name}" อย่างถาวร?`)) return;
+  if (!confirm(`Are you sure you want to permanently delete "${name}"`)) return;
 
   if (currentTab === "courses") {
     try {
