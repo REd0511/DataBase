@@ -126,3 +126,53 @@ FROM PAYMENT
 WHERE PaymentStatus = 'PAID'
 GROUP BY DATE_FORMAT(PaymentDate, '%Y-%m')
 ORDER BY Month;
+
+-- ==========================================
+-- View
+-- ==========================================
+-- Q12: Create a view for easy access to active course enrollments
+CREATE VIEW v_active_enrollments AS
+SELECT e.MemberID, m.Name AS MemberName, c.Title AS CourseTitle, e.PaymentStatus
+FROM ENROLLMENT e
+JOIN MEMBER m ON e.MemberID = m.MemberID
+JOIN COURSE c ON e.CourseID = c.CourseID
+WHERE m.IsActive = TRUE AND e.PaymentStatus = 'PAID';
+
+-- ==========================================
+-- Single Table
+-- ==========================================
+-- Q13: Find all equipment currently marked for maintenance
+SELECT EquipmentID, Name, LateFee 
+FROM EQUIPMENT 
+WHERE ConditionStatus = 'MAINTENANCE';
+
+-- ==========================================
+-- UPDATE and DELETE 
+-- ==========================================
+-- Q14: Update equipment condition after repair
+UPDATE EQUIPMENT 
+SET ConditionStatus = 'GOOD' 
+WHERE EquipmentID = 3;
+
+-- Q15: Delete a cancelled booking (assuming no payment ledger is tied to it yet)
+DELETE FROM BOOKING 
+WHERE BookingID = 999 AND Status = 'CANCELLED';
+
+-- ==========================================
+-- Rules Refused (Testing Constraints)
+-- ==========================================
+-- Q16a: ERROR - Tests CHECK (Capacity > 0)
+INSERT INTO ROOM (RoomName, Capacity, StudioCode, SportTypeID) 
+VALUES ('Error Room', 0, 'ST001', 1);
+
+-- Q16b: ERROR - Tests UNIQUE constraint on Member Phone
+INSERT INTO MEMBER (Name, Phone, StudioCode) 
+VALUES ('Duplicate Phone', '081-234-5678', 'ST001');
+
+-- Q16c: ERROR - Tests CHECK (Amount >= 0) on Payment
+INSERT INTO PAYMENT (Amount, PaymentDate, PaymentStatus, BookingID) 
+VALUES (-500.00, '2026-10-20', 'UNPAID', 1);
+
+-- Q16d: ERROR - Tests Foreign Key RESTRICT/Dependency (Cannot add booking for non-existent room)
+INSERT INTO BOOKING (BookingDate, StartTime, EndTime, MemberID, RoomID) 
+VALUES ('2026-10-25', '10:00:00', '11:00:00', 1, 9999);
