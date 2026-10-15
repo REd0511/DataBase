@@ -36,17 +36,19 @@ exports.getAvailableRooms = (req, res) => {
         return res.status(400).json({ message: 'Please specify date, startTime, endTime' });
     }
 
+    const cleanDate = String(date).split('T')[0].split(' ')[0];
+
     const sql = `
         SELECT r.*, s.Location AS StudioLocation
         FROM ROOM r
         JOIN STUDIO s ON r.StudioCode = s.StudioCode
         WHERE r.RoomID NOT IN (
             SELECT RoomID FROM BOOKING
-            WHERE BookingDate = ?
+            WHERE DATE_FORMAT(BookingDate, '%Y-%m-%d') = ?
               AND (StartTime < ? AND EndTime > ?)
         )
     `;
-    db.query(sql, [date, endTime, startTime], (err, results) => {
+    db.query(sql, [cleanDate, endTime, startTime], (err, results) => {
         if (err) return res.status(500).json(err);
         res.json(results);
     });

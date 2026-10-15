@@ -88,7 +88,10 @@ function renderDateSlots() {
 
   container.innerHTML = dates
     .map((d, i) => {
-      const dateStr = d.toISOString().split("T")[0];
+      const dateStr = d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+
       const day = d.getDate();
       const month = d.toLocaleString("en-US", { month: "short" });
       const isToday = i === 0;
@@ -281,19 +284,13 @@ function proceedToSummary() {
 // ==================== Check booking ====================
 function isRoomBooked(roomID, date, startTime, endTime) {
   return bookedSlotsCache.some((b) => {
-    // 1. Convert date from API to Local Date (YYYY-MM-DD) to prevent timezone shift
-    const d = new Date(b.BookingDate);
-    const bDate = d.getFullYear() + "-" +
-      String(d.getMonth() + 1).padStart(2, '0') + "-" +
-      String(d.getDate()).padStart(2, '0');
+    const rawDate = String(b.BookingDate || "");
+    const bDate = rawDate.split("T")[0].split(" ")[0];
 
-    // 2. Trim time string to HH:MM (since MySQL often sends 10:00:00)
     const bStart = (b.StartTime || "").substring(0, 5);
     const bEnd = (b.EndTime || "").substring(0, 5);
 
-    // 3. Check if same room, same date, and overlapping times
     return (
-      Number(b.RoomID || roomID) === Number(roomID) &&
       bDate === date &&
       bStart < endTime &&
       bEnd > startTime

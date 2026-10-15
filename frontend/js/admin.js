@@ -213,20 +213,15 @@ function renderAdminContent() {
   const content = document.getElementById("admin-content");
   if (!content) return;
 
-  if (currentTab === "loyalty") {
-    renderLoyaltySettings(content);
-    return;
-  }
-
   const dataMap = {
-    studios:    { data: dbStudios,    name: (x) => x.Name,       extra: (x) => `${x.Location}` },
-    sports:     { data: dbSports,     name: (x) => x.SportName,  extra: (x) => `Intensity: ${x.IntensityLevel}` },
-    rooms:      { data: dbRooms,      name: (x) => x.RoomName,   extra: (x) => `${x.StudioLocation || x.StudioCode} • Capacity: ${x.Capacity}` },
-    courses:    { data: dbCourses,    name: (x) => x.Title,      extra: (x) => `${x.Level} • ฿${x.StandardFee}` },
-    trainers:   { data: dbTrainers,   name: (x) => x.Name,       extra: (x) => `${x.SportName || "Trainer"} • ${x.Phone}` },
-    rewards:    { data: dbRewards,    name: (x) => x.Name,       extra: (x) => `${x.PointCost} pts • ${x.Category}` },
-    equipments: { data: dbEquipments, name: (x) => x.Name,       extra: (x) => `${x.SportName || "Equipment"} • ${x.ConditionStatus || "Good"}` },
-    members:    { data: dbMembers,    name: (x) => x.Name,       extra: (x) => `Level: ${x.MemberLevel} • Phone: ${x.Phone}` },
+    studios: { data: dbStudios, name: (x) => x.Name, extra: (x) => `${x.Location}` },
+    sports: { data: dbSports, name: (x) => x.SportName, extra: (x) => `Intensity: ${x.IntensityLevel}` },
+    rooms: { data: dbRooms, name: (x) => x.RoomName, extra: (x) => `${x.StudioLocation || x.StudioCode} • Capacity: ${x.Capacity}` },
+    courses: { data: dbCourses, name: (x) => x.Title, extra: (x) => `${x.Level} • ฿${x.StandardFee}` },
+    trainers: { data: dbTrainers, name: (x) => x.Name, extra: (x) => `${x.SportName || "Trainer"} • ${x.Phone}` },
+    rewards: { data: dbRewards, name: (x) => x.Name, extra: (x) => `${x.PointCost} pts • ${x.Category}` },
+    equipments: { data: dbEquipments, name: (x) => x.Name, extra: (x) => `${x.SportName || "Equipment"} • ${x.ConditionStatus || "Good"}` },
+    members: { data: dbMembers, name: (x) => x.Name, extra: (x) => `Level: ${x.MemberLevel} • Phone: ${x.Phone}` },
   };
 
   const config = dataMap[currentTab];
@@ -249,13 +244,13 @@ function renderAdminContent() {
       </thead>
       <tbody>
         ${data.length === 0
-          ? `<tr><td colspan="4" style="text-align:center;">No data available in Database.</td></tr>`
-          : data.map((item, idx) => `
+      ? `<tr><td colspan="4" style="text-align:center;">No data available in Database.</td></tr>`
+      : data.map((item, idx) => `
             <tr>
               <td>
                 ${item.ImageURL
-                  ? `<img src="${item.ImageURL}" class="table-thumb" alt="image" onerror="this.style.display='none'">`
-                  : `<div class="no-image">No img</div>`}
+          ? `<img src="${item.ImageURL}" class="table-thumb" alt="image" onerror="this.style.display='none'">`
+          : `<div class="no-image">No img</div>`}
               </td>
               <td><strong>${escapeHtml(config.name(item))}</strong></td>
               <td>${escapeHtml(config.extra(item))}</td>
@@ -281,37 +276,6 @@ function renderAdminContent() {
       deleteItem(d);
     });
   });
-}
-
-// ============================================
-// LOYALTY SETTINGS
-// ============================================
-function renderLoyaltySettings(content) {
-  const rules = JSON.parse(localStorage.getItem("loyaltyRules")) || {
-    pointsPerHour: 30, pointsPerTrainer: 50, pointsPerEquipment: 20, pointsPerCapacity: 2
-  };
-
-  content.innerHTML = `
-    <h3 style="color: var(--pink-deep); margin-bottom: 8px;">Loyalty Points Settings</h3>
-    <div class="loyalty-settings">
-      <div class="loyalty-item"><label>Points per Hour</label><input type="number" id="pts-hr" value="${rules.pointsPerHour}"></div>
-      <div class="loyalty-item"><label>Points per Trainer</label><input type="number" id="pts-tr" value="${rules.pointsPerTrainer}"></div>
-      <div class="loyalty-item"><label>Points per Equipment</label><input type="number" id="pts-eq" value="${rules.pointsPerEquipment}"></div>
-      <div class="loyalty-item"><label>Points per Person</label><input type="number" id="pts-cp" value="${rules.pointsPerCapacity}"></div>
-    </div>
-    <button class="btn-primary" onclick="saveLoyaltySettings()">Save Settings</button>
-  `;
-}
-
-function saveLoyaltySettings() {
-  const rules = {
-    pointsPerHour: parseInt(document.getElementById("pts-hr").value) || 0,
-    pointsPerTrainer: parseInt(document.getElementById("pts-tr").value) || 0,
-    pointsPerEquipment: parseInt(document.getElementById("pts-eq").value) || 0,
-    pointsPerCapacity: parseInt(document.getElementById("pts-cp").value) || 0,
-  };
-  localStorage.setItem("loyaltyRules", JSON.stringify(rules));
-  alert("Loyalty Points settings saved");
 }
 
 // ============================================
@@ -362,7 +326,7 @@ async function loadAvailableRooms() {
     return;
   }
 
-  container.innerHTML = "<p style='color:var(--text-mid); padding:20px;'>กำลังค้นหาข้อมูลห้องว่างจาก Database...</p>";
+  container.innerHTML = "<p style='color:var(--text-mid); padding:20px;'>Searching for available rooms from the Database...</p>";
 
   try {
     const api = window.SheSparksAPI;
@@ -376,15 +340,15 @@ async function loadAvailableRooms() {
     let html = "";
 
     html += `<h3>Available Rooms (${rooms.length})</h3><div class="room-list">`;
-    html += rooms.map((r) => `<div class="room-card"><h3>${escapeHtml(r.RoomName)}</h3><p>Capacity: ${r.Capacity} people</p><p>Studio: ${escapeHtml(r.StudioLocation || r.StudioCode)}</p></div>`).join("") || '<p style="color:var(--text-mid);">ไม่มีห้องว่าง</p>';
+    html += rooms.map((r) => `<div class="room-card"><h3>${escapeHtml(r.RoomName)}</h3><p>Capacity: ${r.Capacity} people</p><p>Studio: ${escapeHtml(r.StudioLocation || r.StudioCode)}</p></div>`).join("") || '<p style="color:var(--text-mid);">No rooms available.</p>';
     html += `</div>`;
 
     html += `<h3 style="margin-top:24px;">Available Equipment (${equipment.length})</h3><div class="room-list">`;
-    html += equipment.map((e) => `<div class="room-card" style="background:var(--white);"><h3>${escapeHtml(e.Name)}</h3><p>Condition: ${escapeHtml(e.ConditionStatus || e.Condition)}</p><p>Studio: ${escapeHtml(e.StudioCode)}</p></div>`).join("") || '<p style="color:var(--text-mid);">ไม่มีอุปกรณ์ว่าง</p>';
+    html += equipment.map((e) => `<div class="room-card" style="background:var(--white);"><h3>${escapeHtml(e.Name)}</h3><p>Condition: ${escapeHtml(e.ConditionStatus || e.Condition)}</p><p>Studio: ${escapeHtml(e.StudioCode)}</p></div>`).join("") || '<p style="color:var(--text-mid);">No equipment available.</p>';
     html += `</div>`;
 
     html += `<h3 style="margin-top:24px;">Available Trainers (${trainers.length})</h3><div class="room-list">`;
-    html += trainers.map((t) => `<div class="room-card"><h3>${escapeHtml(t.Name)}</h3><p>Sport: ${escapeHtml(t.SportName)}</p><p>Studio: ${escapeHtml(t.StudioCode)}</p></div>`).join("") || '<p style="color:var(--text-mid);">ไม่มีเทรนเนอร์ว่าง</p>';
+    html += trainers.map((t) => `<div class="room-card"><h3>${escapeHtml(t.Name)}</h3><p>Sport: ${escapeHtml(t.SportName)}</p><p>Studio: ${escapeHtml(t.StudioCode)}</p></div>`).join("") || '<p style="color:var(--text-mid);">No trainers available.</p>';
     html += `</div>`;
 
     container.innerHTML = html;
@@ -466,9 +430,9 @@ function renderModalFields(item) {
         <select name="PrerequisiteCourseID">
           <option value="">-- None --</option>
           ${dbCourses
-            .filter((c) => !item || Number(c.CourseID) !== Number(item.CourseID))
-            .map((c) => `<option value="${c.CourseID}" ${Number(item?.PrerequisiteCourseID) === Number(c.CourseID) ? "selected" : ""}>${c.Title}</option>`)
-            .join("")}
+        .filter((c) => !item || Number(c.CourseID) !== Number(item.CourseID))
+        .map((c) => `<option value="${c.CourseID}" ${Number(item?.PrerequisiteCourseID) === Number(c.CourseID) ? "selected" : ""}>${c.Title}</option>`)
+        .join("")}
         </select>
       </div>
       <div class="form-group">
@@ -477,7 +441,7 @@ function renderModalFields(item) {
       </div>
     `;
   } else {
-    html = `<p style="text-align:center; color:var(--text-mid); padding:20px;">ระบบหน้าฟอร์มของแท็บ ${currentTab} ยังไม่ได้เปิดใช้งานในเวอร์ชัน MVP</p>`;
+    html = `<p style="text-align:center; color:var(--text-mid); padding:20px;">The form for the ${currentTab} tab is not yet available in the MVP version.</p>`;
   }
 
   fields.innerHTML = html;
@@ -509,19 +473,19 @@ async function saveItem() {
     try {
       if (editingId) {
         await window.SheSparksAPI.put(`/courses/${editingId.CourseID}`, newData);
-        alert("อัปเดตข้อมูลคอร์สเรียบร้อยแล้ว!");
+        alert("Course updated successfully!");
       } else {
         await window.SheSparksAPI.post(`/courses`, newData);
-        alert("สร้างคอร์สใหม่เรียบร้อยแล้ว!");
+        alert("Course created successfully!");
       }
 
       closeModal();
       await loadDashboard();
     } catch (error) {
-      alert("เกิดข้อผิดพลาด: " + error.message);
+      alert("Error: " + error.message);
     }
   } else {
-    alert('ระบบอัปเดตของแท็บนี้ยังไม่เปิดใช้งาน');
+    alert('The update feature for this tab is not yet available.');
     closeModal();
   }
 }
@@ -530,17 +494,17 @@ async function saveItem() {
 async function deleteItem(item) {
   const name = item.Name || item.RoomName || item.Title || item.SportName || "this item";
 
-  if (!confirm(`คุณแน่ใจหรือไม่ที่จะลบ "${name}" อย่างถาวร?`)) return;
+  if (!confirm(`Are you sure you want to permanently delete "${name}" อย่างถาวร?`)) return;
 
   if (currentTab === "courses") {
     try {
       await window.SheSparksAPI.delete(`/courses/${item.CourseID}`);
-      alert(`ลบคอร์ส "${name}" ออกจากระบบแล้ว`);
+      alert(`Course "${name}" has been removed from the system.`);
       await loadDashboard();
     } catch (error) {
-      alert("ไม่สามารถลบได้: " + error.message);
+      alert("Cannot delete: " + error.message);
     }
   } else {
-    alert('ระบบลบข้อมูลของแท็บนี้ยังไม่เปิดใช้งาน');
+    alert('The delete feature for this tab is not yet available.');
   }
 }
