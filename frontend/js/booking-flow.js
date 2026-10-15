@@ -1,21 +1,51 @@
 /* ============================================
-   booking-flow.js - Studio → Sport → Room
+   booking-flow.js - Studio → Sport → Room (API Connected)
    FEATURES:
-   - Step 1: เลือก Studio
-   - Step 2: เลือก Sport
-   - Step 3: เลือก Room (ตรวจสอบจาก API)
+   - Step 1: เลือก Studio (ดึงจาก DB)
+   - Step 2: เลือก Sport (กรองจาก DB)
+   - Step 3: เลือก Room (ตรวจสอบห้องว่างจาก API /api/rooms/available)
    ============================================ */
 
 let flow = JSON.parse(localStorage.getItem("bookingFlow")) || {};
-let bookedSlotsCache = [];   // ✅ Cache จาก API
+
+// ตัวแปรสำหรับเก็บข้อมูลจาก Database
+let dbStudios = [];
+let dbSports = [];
+let dbRooms = [];
+
+// ==================== INIT ====================
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    // 1. ดึงข้อมูล Master Data จาก API แทน Mock Data
+    dbStudios = await SheSparksAPI.studios();
+    dbSports = await SheSparksAPI.sports();
+    dbRooms = await SheSparksAPI.rooms();
+
+    // 2. Render หน้าที่กำลังเปิดอยู่
+    if (document.getElementById("studio-list")) renderStudios();
+    if (document.getElementById("sport-list")) renderSports();
+    if (document.getElementById("room-list")) renderRooms();
+  } catch (error) {
+    console.error("Failed to load data from API:", error);
+    alert("ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาตรวจสอบว่ารัน Backend แล้วหรือยัง");
+  }
+});
+
+// Helper: หาว่า Studio นี้มีกีฬาอะไรบ้าง โดยดูจากข้อมูลห้อง (ROOMS) ใน DB
+function getSportsForStudio(studioCode) {
+  // หา SportTypeID ทั้งหมดที่มีห้องใน Studio นี้
+  const sportIdsInStudio = [...new Set(dbRooms.filter(r => r.StudioCode === studioCode).map(r => r.SportTypeID))];
+  // คืนค่าออบเจกต์กีฬา
+  return dbSports.filter(s => sportIdsInStudio.includes(s.SportTypeID));
+}
 
 // ==================== STEP 1: STUDIO ====================
 function renderStudios() {
   const container = document.getElementById("studio-list");
   if (!container) return;
 
-  container.innerHTML = STUDIOS.map((s) => {
-    const sports = getStudioSports(s.StudioCode)
+  container.innerHTML = dbStudios.map((s) => {
+    const sports = getSportsForStudio(s.StudioCode)
       .map((st) => st.SportName)
       .join(" • ");
 
@@ -31,7 +61,7 @@ function renderStudios() {
 }
 
 function selectStudio(code) {
-  flow.studio = STUDIOS.find((s) => s.StudioCode === code);
+  flow.studio = dbStudios.find((s) => s.StudioCode === code);
   saveFlow();
   window.location.href = "/views/sport.html";
 }
@@ -44,7 +74,7 @@ function renderSports() {
   const label = document.getElementById("selected-studio-label");
   if (label) label.textContent = `at ${flow.studio.Name}`;
 
-  const sports = getStudioSports(flow.studio.StudioCode);
+  const sports = getSportsForStudio(flow.studio.StudioCode);
 
   if (sports.length === 0) {
     container.innerHTML = "<p>No sports available at this studio.</p>";
@@ -65,7 +95,7 @@ function renderSports() {
 }
 
 function selectSport(sportTypeID) {
-  flow.sport = SPORT_TYPES.find((s) => s.SportTypeID === sportTypeID);
+  flow.sport = dbSports.find((s) => s.SportTypeID === sportTypeID);
   saveFlow();
   window.location.href = "/views/room.html";
 }
@@ -85,13 +115,10 @@ function renderRooms(filteredRooms = null) {
     label.textContent = `${flow.sport.SportName} at ${flow.studio.Name}`;
   }
 
-  const rooms =
-    filteredRooms ||
-    ROOMS.filter(
-      (r) =>
-        r.StudioCode === flow.studio.StudioCode &&
-        r.SportTypeID === flow.sport.SportTypeID,
-    );
+  // ถ้าไม่ได้กรองด้วยฟิลเตอร์ ให้แสดงห้องทั้งหมดของสตูดิโอและกีฬานั้นๆ
+  const rooms = filteredRooms || dbRooms.filter(
+      (r) => r.StudioCode === flow.studio.StudioCode && r.SportTypeID === flow.sport.SportTypeID
+  );
 
   if (rooms.length === 0) {
     container.innerHTML = "<p>No rooms available for this selection.</p>";
@@ -100,27 +127,28 @@ function renderRooms(filteredRooms = null) {
 
   container.innerHTML = rooms
     .map(
-      (r) => `
-    <div class="room-card" onclick="openRoomModal(${r.RoomID})">
-      ${r.ImageURL ? `<img src="${r.ImageURL}" class="card-image" alt="${r.RoomName}" onerror="this.style.display='none'">` : ""}
-      <h3>${r.RoomName}</h3>
-      <p>Capacity: ${r.Capacity} people</p>
-      <p>Sport: ${getSportName(r.SportTypeID)}</p>
-      <button class="btn-primary">Select</button>
-    </div>
-  `,
-    )
+      (r) => {
+        const sportName = dbSports.find(s => s.SportTypeID === r.SportTypeID)?.SportName || 'Unknown';
+        return `
+        <div class="room-card" onclick="openRoomModal(${r.RoomID})">
+          ${r.ImageURL ? `<img src="${r.ImageURL}" class="card-image" alt="${r.RoomName}" onerror="this.style.display='none'">` : ""}
+          <h3>${r.RoomName}</h3>
+          <p>Capacity: ${r.Capacity} people</p>
+          <p>Sport: ${sportName}</p>
+          <button class="btn-primary">Select</button>
+        </div>
+      `})
     .join("");
 }
 
-// ==================== APPLY FILTERS ====================
+// ==================== APPLY FILTERS (เรียก API ตรวจสอบห้องว่าง) ====================
 async function applyFilters() {
   const date = document.getElementById("filterDate")?.value;
   const startTime = document.getElementById("filterStartTime")?.value;
   const endTime = document.getElementById("filterEndTime")?.value;
   const capacity = parseInt(document.getElementById("filterCapacity")?.value) || 1;
 
-  // ถ้าไม่เลือกวัน/เวลา → แสดงทั้งหมด
+  // ถ้าไม่เลือกวัน/เวลา → แสดงทั้งหมดตามปกติ
   if (!date || !startTime || !endTime) {
     renderRooms();
     return;
@@ -144,55 +172,22 @@ async function applyFilters() {
     return;
   }
 
-  // ✅ โหลด Booked Slots จาก API
-  await loadAllBookedSlots();
-
-  // กรอง
-  const filtered = ROOMS.filter((r) => {
-    if (r.StudioCode !== flow.studio.StudioCode) return false;
-    if (r.SportTypeID !== flow.sport.SportTypeID) return false;
-    if (r.Capacity < capacity) return false;
-
-    const isBooked = isRoomBooked(r.RoomID, date, startTime, endTime);
-    return !isBooked;
-  });
-
-  renderRooms(filtered);
-}
-
-// ==================== LOAD BOOKED SLOTS ====================
-async function loadAllBookedSlots() {
   try {
-    const rooms = ROOMS.filter(
-      (r) =>
-        r.StudioCode === flow.studio.StudioCode &&
-        r.SportTypeID === flow.sport.SportTypeID,
-    );
+    // ✅ เรียก API หาห้องว่างโดยตรง (จัดการเรื่องการป้องกันห้องซ้อนได้ 100%)
+    const availableRoomsFromApi = await SheSparksAPI.availableRooms(date, startTime, endTime);
 
-    const allSlots = [];
+    // กรองเพิ่มตาม Studio, Sport และความจุห้อง
+    const filtered = availableRoomsFromApi.filter((r) => {
+      if (r.StudioCode !== flow.studio.StudioCode) return false;
+      if (r.SportTypeID !== flow.sport.SportTypeID) return false;
+      if (r.Capacity < capacity) return false;
+      return true;
+    });
 
-    for (const room of rooms) {
-      try {
-        const slots = await SheSparksAPI.get(
-          `/bookings/room/${room.RoomID}/booked-slots`,
-        );
-        if (slots && slots.length > 0) {
-          allSlots.push(
-            ...slots.map((s) => ({
-              ...s,
-              RoomID: room.RoomID,
-            })),
-          );
-        }
-      } catch (e) {
-        // Skip if error
-      }
-    }
-
-    bookedSlotsCache = allSlots;
+    renderRooms(filtered);
   } catch (error) {
-    console.warn("Cannot load booked slots:", error.message);
-    bookedSlotsCache = [];
+    console.error("Filter error:", error);
+    showModal({ type: "error", title: "Error", message: "ไม่สามารถค้นหาห้องว่างจากระบบได้" });
   }
 }
 
@@ -210,19 +205,6 @@ function clearFilters() {
   renderRooms();
 }
 
-// ==================== ตรวจสอบการจอง ====================
-function isRoomBooked(roomID, date, startTime, endTime) {
-  return bookedSlotsCache.some((b) => {
-    const bDate = (b.BookingDate || "").toString().split("T")[0];
-    return (
-      Number(b.RoomID) === Number(roomID) &&
-      bDate === date &&
-      b.StartTime < endTime &&
-      b.EndTime > startTime
-    );
-  });
-}
-
 // ==================== HELPERS ====================
 function saveFlow() {
   localStorage.setItem("bookingFlow", JSON.stringify(flow));
@@ -231,10 +213,3 @@ function saveFlow() {
 function goBack() {
   window.history.back();
 }
-
-// ==================== INIT ====================
-document.addEventListener("DOMContentLoaded", () => {
-  if (document.getElementById("studio-list")) renderStudios();
-  if (document.getElementById("sport-list")) renderSports();
-  if (document.getElementById("room-list")) renderRooms();
-});

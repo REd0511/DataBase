@@ -1,212 +1,156 @@
 /* ============================================
-   trainer-dashboard.js - Trainer Dashboard
-   FEATURES:
-   - View Switcher (Dropdown) — สลับ Trainer ได้
-   - Profile ของ Trainer ที่เลือก
-   - Upcoming Sessions จาก localStorage.bookings
-   - Fallback Mock ถ้าไม่มีข้อมูล
+   trainer-dashboard.js - Trainer Dashboard (API Connected)
    ============================================ */
 
-// ==================== MOCK DATA (Fallback) ====================
-const MOCK_SESSIONS = [];
-const MOCK_TRAINER_COURSES = [
-  {
-    CourseID: 1,
-    Title: "Basic Yoga",
-    Level: "Beginner",
-    DurationHours: 10,
-    StandardFee: 1500,
-  },
-  {
-    CourseID: 2,
-    Title: "Advanced Yoga",
-    Level: "Advanced",
-    DurationHours: 15,
-    StandardFee: 2500,
-  },
-];
-const MOCK_STUDENTS = [];
-const MOCK_DEPENDENTS = [
-  { Name: "Yoga Mat Pro", Relationship: "Equipment", Age: "2 years" },
-  { Name: "Assistant Kwan", Relationship: "Assistant", Age: "25" },
-];
-
-// ==================== STATE ====================
 let currentTrainerId = null;
 
-// ==================== INIT ====================
-window.addEventListener("DOMContentLoaded", () => {
+let dbTrainers = [];
+let dbStudios = [];
+let dbCourses = [];
+let dbBookings = [];
+
+window.addEventListener("DOMContentLoaded", async () => {
   const user = JSON.parse(localStorage.getItem("user"));
 
-  // ตรวจสอบสิทธิ์: Admin หรือ Trainer
+  // ตรวจสอบสิทธิ์
   if (!user || (user.role !== "trainer" && user.role !== "admin")) {
     alert("Please login as Trainer or Admin");
     window.location.href = "/views/login.html";
     return;
   }
 
-  // สร้าง Dropdown สำหรับสลับ Trainer
-  populateTrainerSwitcher();
+  try {
+    const api = window.SheSparksAPI;
 
-  // ถ้า Login เป็น Trainer → ใช้ TrainerID ของตัวเอง
-  // ถ้า Login เป็น Admin → ใช้ Trainer คนแรก
-  if (user.role === "trainer") {
-    currentTrainerId = user.trainerId;
-  } else {
-    currentTrainerId = TRAINERS[0].TrainerID;
+    // โหลดข้อมูลจาก API รวดเดียว
+    [dbTrainers, dbStudios, dbCourses, dbBookings] = await Promise.all([
+      api.trainers(),
+      api.studios(),
+      api.courses(),
+      api.bookings()
+    ]);
+
+    populateTrainerSwitcher();
+
+    if (user.role === "trainer") {
+      currentTrainerId = user.trainerId || dbTrainers[0]?.TrainerID;
+    } else {
+      currentTrainerId = dbTrainers[0]?.TrainerID;
+    }
+
+    document.getElementById("trainerSwitcher").value = currentTrainerId;
+    loadTrainerDashboard(currentTrainerId);
+
+  } catch (error) {
+    console.error("Failed to load trainer dashboard:", error);
+    alert("ไม่สามารถโหลดข้อมูลได้ กรุณาตรวจสอบว่า Backend ทำงานอยู่");
   }
-
-  // ตั้งค่า Dropdown
-  document.getElementById("trainerSwitcher").value = currentTrainerId;
-
-  // โหลด Dashboard
-  loadTrainerDashboard(currentTrainerId);
 });
 
-// ==================== POPULATE SWITCHER ====================
 function populateTrainerSwitcher() {
   const select = document.getElementById("trainerSwitcher");
   if (!select) return;
-
-  select.innerHTML = TRAINERS.map((t) => {
-    const sport = getSportName(t.SportTypeID);
-    return `<option value="${t.TrainerID}">${t.Name} (${sport})</option>`;
-  }).join("");
+  select.innerHTML = dbTrainers.map((t) => `<option value="${t.TrainerID}">${t.Name} (${t.SportName || "Trainer"})</option>`).join("");
 }
 
-// ==================== SWITCH TRAINER ====================
 function switchTrainer(trainerId) {
   currentTrainerId = parseInt(trainerId);
   loadTrainerDashboard(currentTrainerId);
 }
 
-// ==================== LOAD DASHBOARD ====================
 function loadTrainerDashboard(trainerId) {
-  const trainer = TRAINERS.find((t) => t.TrainerID === trainerId);
-  if (!trainer) {
-    alert("Trainer not found");
-    return;
-  }
+  const trainer = dbTrainers.find((t) => Number(t.TrainerID) === Number(trainerId));
+  if (!trainer) return;
 
-  const studio = STUDIOS.find((s) => s.StudioCode === trainer.StudioCode);
-  const sportName = getSportName(trainer.SportTypeID);
+  const studio = dbStudios.find((s) => s.StudioCode === trainer.StudioCode);
 
   // ==================== PROFILE ====================
-  document.getElementById("profile-avatar").textContent =
-    trainer.Name.charAt(0);
+  document.getElementById("profile-avatar").textContent = trainer.Name.split(" ")[1]?.[0] || trainer.Name.charAt(0);
   document.getElementById("trainer-name").textContent = trainer.Name;
-  document.getElementById("trainer-sport").textContent =
-    `🏋️ ${sportName || "-"}`;
-  document.getElementById("trainer-studio").textContent =
-    `📍 ${studio?.Name || "-"} (${studio?.Location || "-"})`;
-  document.getElementById("trainer-qual").textContent =
-    `🎓 ${trainer.Qualification || "-"}`;
+  document.getElementById("trainer-sport").textContent = `🏋️ ${trainer.SportName || "-"}`;
+  document.getElementById("trainer-studio").textContent = `📍 ${studio?.Name || "-"} (${studio?.Location || "-"})`;
+  document.getElementById("trainer-qual").textContent = `🎓 ${trainer.Qualification || "Certified Trainer"}`;
 
-  // ==================== LOAD SESSIONS FROM localStorage ====================
-  const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-  const trainerBookings = bookings.filter((b) => b.TrainerID === trainerId);
+  // ==================== FILTER BOOKINGS ====================
+  // ค้นหา Booking ที่มีชื่อเทรนเนอร์คนนี้
+  const trainerBookings = dbBookings.filter(b => b.TrainerName && b.TrainerName.includes(trainer.Name));
+  const trainerCourses = dbCourses.filter(c => Number(c.TrainerID) === Number(trainerId));
+
+  // คัดเฉพาะตารางสอนที่เป็นของวันนี้หรืออนาคต
+  const todayStr = new Date().toISOString().split('T')[0];
+  const upcomingSessions = trainerBookings.filter(b => {
+    const d = new Date(b.BookingDate);
+    const bDate = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
+    return bDate >= todayStr && b.Status !== "Cancelled";
+  });
 
   // ==================== SUMMARY CARDS ====================
-  document.getElementById("upcomingCount").textContent =
-    trainerBookings.length || MOCK_SESSIONS.length;
-  document.getElementById("courseCount").textContent =
-    MOCK_TRAINER_COURSES.length;
-  document.getElementById("studentCount").textContent =
-    trainerBookings.length || MOCK_STUDENTS.length;
-  document.getElementById("dependentCount").textContent =
-    MOCK_DEPENDENTS.length;
+  document.getElementById("upcomingCount").textContent = upcomingSessions.length;
+  document.getElementById("courseCount").textContent = trainerCourses.length;
+  document.getElementById("studentCount").textContent = upcomingSessions.length;
 
-  // ==================== UPCOMING SESSIONS ====================
-  renderSessions(trainerBookings);
-
-  // ==================== MY COURSES ====================
-  renderCourses();
-
-  // ==================== MY STUDENTS ====================
-  renderStudents(trainerBookings);
-
-  // ==================== DEPENDENTS ====================
-  renderDependents();
+  renderSessions(upcomingSessions);
+  renderCourses(trainerCourses);
+  renderStudents(upcomingSessions);
 }
 
-// ==================== RENDER SESSIONS ====================
-function renderSessions(trainerBookings) {
+// ==================== RENDERERS ====================
+function renderSessions(sessions) {
   const tbody = document.querySelector("#sessionsTable tbody");
   if (!tbody) return;
-
-  if (trainerBookings.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-mid);">No sessions yet — waiting for bookings.</td></tr>`;
+  if (sessions.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-mid);">No upcoming sessions.</td></tr>`;
     return;
   }
-
-  tbody.innerHTML = trainerBookings
-    .map(
-      (b) => `
+  tbody.innerHTML = sessions.map(b => {
+    const d = new Date(b.BookingDate);
+    const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
+    const start = (b.StartTime || "").substring(0, 5);
+    const end = (b.EndTime || "").substring(0, 5);
+    return `
     <tr>
-      <td>${b.Date}</td>
-      <td>${b.StartTime} - ${b.EndTime}</td>
-      <td>${b.RoomName}</td>
-      <td>${b.SportName}</td>
-      <td>${b.MemberName}</td>
+      <td>${dateStr}</td>
+      <td>${start} - ${end}</td>
+      <td>${b.RoomName || "-"}</td>
+      <td>${b.SportName || "-"}</td>
+      <td>${b.MemberName || "-"}</td>
     </tr>
-  `,
-    )
-    .join("");
+  `}).join("");
 }
 
-// ==================== RENDER COURSES ====================
-function renderCourses() {
+function renderCourses(courses) {
   const container = document.getElementById("trainerCourses");
   if (!container) return;
-
-  container.innerHTML = MOCK_TRAINER_COURSES.map(
-    (c) => `
+  if (courses.length === 0) {
+    container.innerHTML = `<p style="color:var(--text-mid);">No courses assigned.</p>`;
+    return;
+  }
+  container.innerHTML = courses.map(c => `
     <div class="course-card">
       <h3>${c.Title}</h3>
       <p>Level: ${c.Level}</p>
       <p>Duration: ${c.DurationHours} hours</p>
-      <p class="fee">฿${c.StandardFee.toLocaleString()}</p>
+      <p class="fee">฿${Number(c.StandardFee).toLocaleString()}</p>
     </div>
-  `,
-  ).join("");
+  `).join("");
 }
 
-// ==================== RENDER STUDENTS ====================
-function renderStudents(trainerBookings) {
+function renderStudents(sessions) {
   const tbody = document.querySelector("#studentsTable tbody");
   if (!tbody) return;
-
-  if (trainerBookings.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-mid);">No students yet — waiting for bookings.</td></tr>`;
+  if (sessions.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-mid);">No students.</td></tr>`;
     return;
   }
-
-  tbody.innerHTML = trainerBookings
-    .map(
-      (b) => `
+  tbody.innerHTML = sessions.map(b => {
+    const d = new Date(b.BookingDate);
+    const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
+    return `
     <tr>
-      <td>${b.MemberName}</td>
-      <td>${b.SportName}</td>
-      <td>${b.Date}</td>
-      <td class="earned">${b.Status || "Confirmed"}</td>
+      <td>${b.MemberName || "-"}</td>
+      <td>${b.SportName || "-"}</td>
+      <td>${dateStr}</td>
+      <td><span class="condition-badge ${b.Status === "Cancelled" ? "cancelled" : "confirmed"}">${b.Status || "Confirmed"}</span></td>
     </tr>
-  `,
-    )
-    .join("");
-}
-
-// ==================== RENDER DEPENDENTS ====================
-function renderDependents() {
-  const container = document.getElementById("dependentsList");
-  if (!container) return;
-
-  container.innerHTML = MOCK_DEPENDENTS.map(
-    (d) => `
-    <div class="dependent-card">
-      <div class="avatar">${d.Name.charAt(0)}</div>
-      <h4>${d.Name}</h4>
-      <p>${d.Relationship} • ${d.Age}</p>
-    </div>
-  `,
-  ).join("");
+  `}).join("");
 }

@@ -1,46 +1,20 @@
 /* ============================================
-   manager-dashboard.js - Studio Manager Dashboard
+   manager-dashboard.js - Studio Manager Dashboard (API Connected)
    FEATURES:
-   - View Switcher (Dropdown) — สลับ Studio ได้
-   - Profile ของ Studio ที่เลือก
-   - Bookings จาก localStorage.bookings
-   - Fallback Mock ถ้าไม่มีข้อมูล
+   - โหลดข้อมูล Master Data และ Bookings ทั้งหมดจาก API
+   - สลับดูข้อมูลของแต่ละ Studio ได้
    ============================================ */
 
-// ==================== MOCK DATA (Fallback) ====================
-const MOCK_TODAY_BOOKINGS = []; // ← ตั้งเป็น array ว่าง
-const MOCK_EQUIPMENT = [
-  {
-    StudioCode: "ST001",
-    EquipmentID: 1,
-    Name: "Yoga Mat Pro",
-    SportName: "Yoga",
-    Condition: "Good",
-    LateFee: 50,
-  },
-  {
-    StudioCode: "ST001",
-    EquipmentID: 2,
-    Name: "Pilates Ball",
-    SportName: "Pilates",
-    Condition: "Good",
-    LateFee: 80,
-  },
-  {
-    StudioCode: "ST002",
-    EquipmentID: 5,
-    Name: "Boxing Gloves",
-    SportName: "Boxing",
-    Condition: "Good",
-    LateFee: 120,
-  },
-];
-
-// ==================== STATE ====================
 let currentStudioCode = null;
 
-// ==================== INIT ====================
-window.addEventListener("DOMContentLoaded", () => {
+// เก็บข้อมูลที่โหลดมาจาก Database
+let dbStudios = [];
+let dbRooms = [];
+let dbTrainers = [];
+let dbBookings = [];
+let dbEquipment = [];
+
+window.addEventListener("DOMContentLoaded", async () => {
   const user = JSON.parse(localStorage.getItem("user"));
 
   // ตรวจสอบสิทธิ์: Admin หรือ Manager
@@ -50,21 +24,36 @@ window.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // สร้าง Dropdown
-  populateStudioSwitcher();
+  try {
+    // โหลดข้อมูลทั้งหมดจาก API รวดเดียว
+    const api = window.SheSparksAPI;
+    [dbStudios, dbRooms, dbTrainers, dbBookings, dbEquipment] = await Promise.all([
+      api.studios(),
+      api.rooms(),
+      api.trainers(),
+      api.bookings(),
+      api.get('/equipments')
+    ]);
 
-  // ถ้า Login เป็น Manager → ใช้ Studio ของตัวเอง
-  // ถ้า Login เป็น Admin → ใช้ Studio แรก
-  if (user.role === "manager") {
-    currentStudioCode = user.studioCode;
-  } else {
-    currentStudioCode = STUDIOS[0].StudioCode;
+    // สร้างตัวเลือก Dropdown สำหรับสลับสาขา
+    populateStudioSwitcher();
+
+    // กำหนด Studio เริ่มต้นตาม Role ของผู้ใช้
+    if (user.role === "manager") {
+      currentStudioCode = user.studioCode || dbStudios[0]?.StudioCode;
+    } else {
+      currentStudioCode = dbStudios[0]?.StudioCode;
+    }
+
+    document.getElementById("studioSwitcher").value = currentStudioCode;
+
+    // เริ่มแสดงข้อมูล Dashboard
+    loadManagerDashboard(currentStudioCode);
+
+  } catch (error) {
+    console.error("Failed to load manager dashboard data:", error);
+    alert("ไม่สามารถโหลดข้อมูลจากระบบได้ กรุณาตรวจสอบว่า Backend กำลังทำงานอยู่");
   }
-
-  document.getElementById("studioSwitcher").value = currentStudioCode;
-
-  // โหลด Dashboard
-  loadManagerDashboard(currentStudioCode);
 });
 
 // ==================== POPULATE SWITCHER ====================
@@ -72,7 +61,7 @@ function populateStudioSwitcher() {
   const select = document.getElementById("studioSwitcher");
   if (!select) return;
 
-  select.innerHTML = STUDIOS.map((s) => {
+  select.innerHTML = dbStudios.map((s) => {
     return `<option value="${s.StudioCode}">${s.Name} (${s.Location})</option>`;
   }).join("");
 }
@@ -85,7 +74,7 @@ function switchStudio(studioCode) {
 
 // ==================== LOAD DASHBOARD ====================
 function loadManagerDashboard(studioCode) {
-  const studio = STUDIOS.find((s) => s.StudioCode === studioCode);
+  const studio = dbStudios.find((s) => s.StudioCode === studioCode);
   if (!studio) {
     alert("Studio not found");
     return;
@@ -93,54 +82,38 @@ function loadManagerDashboard(studioCode) {
 
   // ==================== PROFILE ====================
   document.getElementById("profile-avatar").textContent = studio.Name.charAt(0);
-  document.getElementById("manager-name").textContent =
-    `Manager of ${studio.Name}`;
+  document.getElementById("manager-name").textContent = `Manager of ${studio.Name}`;
   document.getElementById("manager-studio").textContent = `🏢 ${studio.Name}`;
-  document.getElementById("manager-location").textContent =
-    `📍 ${studio.Location}`;
-
-  const studioSports = getStudioSports(studio.StudioCode);
-  const sportNames = studioSports.map((s) => s.SportName).join(" • ");
-  document.getElementById("manager-sporttypes").textContent =
-    `🏋️ ${sportNames || "No sports"}`;
+  document.getElementById("manager-location").textContent = `📍 ${studio.Location}`;
+  document.getElementById("manager-sporttypes").textContent = `⚙️ Studio Management`;
 
   // ==================== FILTER DATA ====================
-  const studioRooms = ROOMS.filter((r) => r.StudioCode === studio.StudioCode);
-  const studioTrainers = TRAINERS.filter(
-    (t) => t.StudioCode === studio.StudioCode,
-  );
+  // กรองข้อมูลให้ตรงกับสาขาที่เลือก
+  const studioRooms = dbRooms.filter((r) => r.StudioCode === studio.StudioCode);
+  const studioTrainers = dbTrainers.filter((t) => t.StudioCode === studio.StudioCode);
+  const studioEquipment = dbEquipment.filter((e) => e.StudioCode === studio.StudioCode);
 
-  // ==================== LOAD BOOKINGS FROM localStorage ====================
-  const allBookings = JSON.parse(localStorage.getItem("bookings")) || [];
-  const studioBookings = allBookings.filter(
-    (b) => b.StudioCode === studio.StudioCode,
-  );
-
-  // Equipment จาก Mock
-  const studioEquipment = MOCK_EQUIPMENT.filter(
-    (e) => e.StudioCode === studio.StudioCode,
-  );
+  // กรอง Booking ให้แสดงเฉพาะ "ของวันนี้" และ "สาขานี้"
+  // แปลงเวลาให้เทียบง่ายขึ้นเป็น YYYY-MM-DD
+  const today = new Date();
+  const todayStr = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, '0') + "-" + String(today.getDate()).padStart(2, '0');
+  
+  const studioBookings = dbBookings.filter((b) => {
+      const bDate = new Date(b.BookingDate);
+      const bDateStr = bDate.getFullYear() + "-" + String(bDate.getMonth() + 1).padStart(2, '0') + "-" + String(bDate.getDate()).padStart(2, '0');
+      return b.StudioCode === studio.StudioCode && bDateStr === todayStr;
+  });
 
   // ==================== SUMMARY CARDS ====================
   document.getElementById("roomCount").textContent = studioRooms.length;
   document.getElementById("trainerCount").textContent = studioTrainers.length;
-  document.getElementById("bookingCount").textContent =
-    studioBookings.length ||
-    MOCK_TODAY_BOOKINGS.filter((b) => b.StudioCode === studio.StudioCode)
-      .length;
-  document.getElementById("equipmentCount").textContent =
-    studioEquipment.length;
+  document.getElementById("bookingCount").textContent = studioBookings.length;
+  document.getElementById("equipmentCount").textContent = studioEquipment.length;
 
-  // ==================== ROOMS ====================
+  // ==================== RENDER SECTIONS ====================
   renderRooms(studioRooms);
-
-  // ==================== TRAINERS ====================
   renderTrainers(studioTrainers);
-
-  // ==================== BOOKINGS ====================
-  renderBookings(studioBookings, studio.StudioCode);
-
-  // ==================== EQUIPMENT ====================
+  renderBookings(studioBookings);
   renderEquipment(studioEquipment);
 }
 
@@ -150,22 +123,16 @@ function renderRooms(studioRooms) {
   if (!container) return;
 
   if (studioRooms.length === 0) {
-    container.innerHTML =
-      '<p style="color:var(--text-mid);">No rooms in this studio.</p>';
+    container.innerHTML = '<p style="color:var(--text-mid);">No rooms in this studio.</p>';
     return;
   }
 
-  container.innerHTML = studioRooms
-    .map(
-      (r) => `
+  container.innerHTML = studioRooms.map((r) => `
     <div class="room-card">
       <h3>${r.RoomName}</h3>
       <p>Capacity: ${r.Capacity} people</p>
-      <p>Sport: ${getSportName(r.SportTypeID)}</p>
     </div>
-  `,
-    )
-    .join("");
+  `).join("");
 }
 
 // ==================== RENDER TRAINERS ====================
@@ -174,49 +141,48 @@ function renderTrainers(studioTrainers) {
   if (!container) return;
 
   if (studioTrainers.length === 0) {
-    container.innerHTML =
-      '<p style="color:var(--text-mid);">No trainers in this studio.</p>';
+    container.innerHTML = '<p style="color:var(--text-mid);">No trainers in this studio.</p>';
     return;
   }
 
-  container.innerHTML = studioTrainers
-    .map(
-      (t) => `
+  container.innerHTML = studioTrainers.map((t) => `
     <div class="trainer-card">
       <div class="avatar">${t.Name.split(" ")[1]?.[0] || "T"}</div>
       <h3>${t.Name}</h3>
-      <span class="specialty">${getSportName(t.SportTypeID)}</span>
-      <p>${t.Phone}</p>
+      <span class="specialty">${t.SportName || "Trainer"}</span>
+      <p>${t.Phone || "-"}</p>
     </div>
-  `,
-    )
-    .join("");
+  `).join("");
 }
 
 // ==================== RENDER BOOKINGS ====================
-function renderBookings(studioBookings, studioCode) {
+function renderBookings(studioBookings) {
   const tbody = document.querySelector("#bookingsTable tbody");
   if (!tbody) return;
 
   if (studioBookings.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-mid);">No bookings yet — waiting for bookings.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-mid);">No bookings for today.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = studioBookings
-    .map(
-      (b) => `
+  tbody.innerHTML = studioBookings.map((b) => {
+    // จัด Format วันเวลา
+    const d = new Date(b.BookingDate);
+    const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
+    const start = (b.StartTime || "").substring(0, 5);
+    const end = (b.EndTime || "").substring(0, 5);
+    const statusClass = b.Status === "Cancelled" ? "cancelled" : (b.Status === "Completed" ? "completed" : "confirmed");
+
+    return `
     <tr>
-      <td>${b.Date}</td>
-      <td>${b.StartTime} - ${b.EndTime}</td>
-      <td>${b.RoomName}</td>
-      <td>${b.SportName}</td>
-      <td>${b.MemberName}</td>
-      <td class="earned">${b.Status || "Confirmed"}</td>
+      <td>${dateStr}</td>
+      <td>${start} - ${end}</td>
+      <td>${b.RoomName || "-"}</td>
+      <td>${b.SportName || "-"}</td>
+      <td>${b.MemberName || "-"}</td>
+      <td><span class="condition-badge ${statusClass}">${b.Status || "Confirmed"}</span></td>
     </tr>
-  `,
-    )
-    .join("");
+  `}).join("");
 }
 
 // ==================== RENDER EQUIPMENT ====================
@@ -229,16 +195,12 @@ function renderEquipment(studioEquipment) {
     return;
   }
 
-  tbody.innerHTML = studioEquipment
-    .map(
-      (e) => `
+  tbody.innerHTML = studioEquipment.map((e) => `
     <tr>
       <td>${e.Name}</td>
-      <td>${e.SportName}</td>
-      <td>${e.Condition}</td>
-      <td>฿${e.LateFee}</td>
+      <td>${e.SportName || "-"}</td>
+      <td><span class="condition-badge ${(e.ConditionStatus || "good").toLowerCase()}">${e.ConditionStatus || "Good"}</span></td>
+      <td>฿${e.LateFee || 0}</td>
     </tr>
-  `,
-    )
-    .join("");
+  `).join("");
 }

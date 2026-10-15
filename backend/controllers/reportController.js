@@ -28,7 +28,7 @@ exports.getRevenueReport = (req, res) => {
             DATE_FORMAT(p.PaymentDate, '%Y-%m') AS Month,
             COUNT(p.PaymentID) AS TotalTransactions,
             SUM(p.Amount) AS TotalRevenue,
-            COALESCE(SUM(pt.PointsEarned), 0) AS TotalPointsEarned
+            COALESCE(SUM(CASE WHEN pt.PointsChange > 0 THEN pt.PointsChange ELSE 0 END), 0) AS TotalPointsEarned
         FROM PAYMENT p
         LEFT JOIN POINT_TRANSACTION pt ON pt.PaymentID = p.PaymentID
         GROUP BY Month
@@ -74,7 +74,7 @@ exports.getMemberLevelReport = (req, res) => {
 };
 
 
- // Report: Course revenue grouped by enrollment month
+// Report: Course revenue grouped by enrollment month
 exports.getMonthlyCourseRevenueReport = (req, res) => {
     const sql = `
         SELECT

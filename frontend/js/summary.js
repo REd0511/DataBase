@@ -1,13 +1,9 @@
 /* ============================================
-   summary.js - Summary + Trainer + Equipment + Loyalty Points
-   FEATURES:
-   - Summary → ถาม Trainer
-   - No Trainer → ถาม Equipment
-   - Yes Trainer → ไปเลือก Trainer → กลับมา → ถาม Equipment
-   - Equipment → Confirm → API
+   summary.js - Summary + Trainer + Equipment + Loyalty Points (API Connected)
    ============================================ */
 
 let selectedEquipments = [];
+let dbAvailableEquipments = []; // เก็บข้อมูลอุปกรณ์จาก API
 
 // ==================== INIT ====================
 document.addEventListener("DOMContentLoaded", () => {
@@ -30,9 +26,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ==================== DECIDE NEXT STEP ====================
 function decideNextStep(flow) {
-  if (flow.trainer) {
+  // 1. ถ้าเคยกด Yes แต่กดย้อนกลับมา (ไม่มี trainer ติดมาด้วย) ให้โชว์คำถามใหม่
+  if (flow.wantTrainer === true && !flow.trainer) {
+    showTrainerOption();
+    return;
+  }
+
+  // 2. ถ้ามีเทรนเนอร์แล้ว หรือกด No ข้ามเทรนเนอร์มา -> ไปสเตปถาม Equipment
+  if (flow.trainer || flow.wantTrainer === false) {
     if (flow.wantEquipment === true) {
-      renderEquipmentList(flow);
+      loadAndRenderEquipment(flow);
       showEquipmentListSection();
     } else if (flow.wantEquipment === false) {
       showConfirmSection();
@@ -42,11 +45,7 @@ function decideNextStep(flow) {
     return;
   }
 
-  if (flow.wantTrainer === true && !flow.trainer) {
-    showConfirmSection();
-    return;
-  }
-
+  // 3. เริ่มต้นปกติ (ยังไม่ได้เลือกอะไรเลย)
   showTrainerOption();
 }
 
@@ -66,10 +65,9 @@ function renderSummary(flow) {
     <p><strong>Time:</strong> ${flow.startTime} - ${flow.endTime}</p>
     <p><strong>Capacity:</strong> ${flow.capacity} people</p>
     ${flow.trainer ? `<p><strong>Trainer:</strong> ${flow.trainer.Name}</p>` : ""}
-    ${
-      flow.equipments && flow.equipments.length > 0
-        ? `<p><strong>Equipment:</strong> ${flow.equipments.map((e) => e.Name).join(", ")}</p>`
-        : ""
+    ${flow.equipments && flow.equipments.length > 0
+      ? `<p><strong>Equipment:</strong> ${flow.equipments.map((e) => e.Name).join(", ")}</p>`
+      : ""
     }
     <hr style="margin: 16px 0; border: none; border-top: 1px dashed var(--pink-main);">
     <p style="color: var(--pink-deep); font-weight: 700;">
@@ -124,14 +122,14 @@ function showEquipmentListSection() {
   hideElement("#confirm-section");
 }
 
-// ==================== EQUIPMENT ====================
+// ==================== EQUIPMENT (API) ====================
 function showEquipmentList(wantEquipment) {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
 
   if (wantEquipment) {
     flow.wantEquipment = true;
     localStorage.setItem("bookingFlow", JSON.stringify(flow));
-    renderEquipmentList(flow);
+    loadAndRenderEquipment(flow);
     showEquipmentListSection();
   } else {
     flow.wantEquipment = false;
@@ -141,60 +139,106 @@ function showEquipmentList(wantEquipment) {
   }
 }
 
-function renderEquipmentList(flow) {
+async function loadAndRenderEquipment(flow) {
   const container = document.getElementById("equipment-grid");
   if (!container) return;
 
-  const equipments = EQUIPMENTS.filter(
-    (e) =>
-      e.StudioCode === flow.studio.StudioCode &&
-      e.SportTypeID === flow.sport.SportTypeID,
-  );
+  container.innerHTML = "<p style='text-align:center; width:100%;'>กำลังโหลดข้อมูลอุปกรณ์...</p>";
 
-  if (equipments.length === 0) {
-    container.innerHTML = "<p>No equipment available.</p>";
+  try {
+    const allAvailableEq = await SheSparksAPI.get(`/equipments/available?date=${flow.date}&startTime=${flow.startTime}&endTime=${flow.endTime}`);
+
+    dbAvailableEquipments = allAvailableEq.filter(
+      (e) => e.StudioCode === flow.studio.StudioCode && e.SportTypeID === flow.sport.SportTypeID
+    );
+
+    selectedEquipments = flow.equipments || [];
+    renderEquipmentHTML(flow.capacity); // ส่งจำนวนคนในห้องไปเป็น Max limit
+
+  } catch (error) {
+    console.error("Equipment API error:", error);
+    container.innerHTML = "<p style='color:var(--danger)'>เกิดข้อผิดพลาดในการโหลดอุปกรณ์</p>";
+  }
+}
+
+function renderEquipmentHTML(maxCapacity) {
+  const container = document.getElementById("equipment-grid");
+  if (!container) return;
+
+  // === กรณีไม่มีอุปกรณ์เหลือเลย (Empty State) ===
+  if (dbAvailableEquipments.length === 0) {
+    container.style.gridTemplateColumns = "1fr";
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px;">
+        <h3 style="color: var(--pink-deep); margin-bottom: 8px;">Out of Stock 😢</h3>
+        <p style="color: var(--text-mid); margin-bottom: 20px;">อุปกรณ์กีฬาทั้งหมดถูกยืมไปแล้วในช่วงเวลานี้</p>
+        <button class="btn-primary" onclick="showEquipmentList(false)">ดำเนินการต่อโดยไม่รับอุปกรณ์</button>
+      </div>
+    `;
+    // ซ่อนปุ่ม Confirm Equipment ด้านล่างออกไป
+    const confirmBtn = container.nextElementSibling;
+    if (confirmBtn && confirmBtn.tagName === 'BUTTON') confirmBtn.style.display = 'none';
     return;
   }
 
-  selectedEquipments = flow.equipments || [];
+  // === กรณีมีอุปกรณ์ ===
+  container.style.gridTemplateColumns = "repeat(auto-fit, minmax(180px, 1fr))";
 
-  container.innerHTML = equipments
-    .map((e) => {
-      const isSelected = selectedEquipments.some(
-        (sel) => sel.EquipmentID === e.EquipmentID,
-      );
-      return `
-        <div class="equipment-card ${isSelected ? "selected" : ""}" onclick="toggleEquipment(${e.EquipmentID})" data-id="${e.EquipmentID}">
+  // โชว์ปุ่ม Confirm กลับมาเผื่อโดนซ่อนไว้
+  const confirmBtn = container.nextElementSibling;
+  if (confirmBtn && confirmBtn.tagName === 'BUTTON') confirmBtn.style.display = 'inline-flex';
+
+  container.innerHTML = dbAvailableEquipments.map((e) => {
+    // เช็กว่าไอเทมนี้ถูกเลือกไว้ใน selectedEquipments ไหม
+    const selEq = selectedEquipments.find((sel) => sel.EquipmentID === e.EquipmentID);
+    const isSelected = !!selEq;
+    const qty = selEq ? (selEq.Quantity || 1) : 1;
+
+    return `
+      <div class="equipment-card ${isSelected ? "selected" : ""}" data-id="${e.EquipmentID}">
+        <!-- พื้นที่กดเลือกอุปกรณ์ -->
+        <div onclick="toggleEquipment(${e.EquipmentID})" style="cursor:pointer; position:relative;">
           ${e.ImageURL ? `<img src="${e.ImageURL}" alt="${e.Name}" onerror="this.style.display='none'">` : ""}
           <h4>${e.Name}</h4>
-          <p>Condition: ${e.Condition}</p>
+          <p>Condition: ${e.ConditionStatus || e.Condition || "Good"}</p>
           <p>Late Fee: ฿${e.LateFee}</p>
-          <p style="color: var(--pink-deep); font-weight: 600;">+20 pts</p>
+          <p style="color: var(--pink-deep); font-weight: 600;">+20 pts/item</p>
         </div>
-      `;
-    })
-    .join("");
+        
+        <!-- กล่องใส่จำนวน (จะโผล่มาเมื่อถูกเลือกเท่านั้น) -->
+        ${isSelected ? `
+          <div style="margin-top: 12px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="event.stopPropagation()">
+            <label style="font-size:0.85rem; color:var(--text-dark); font-weight:600;">Qty:</label>
+            <input type="number" min="1" max="${maxCapacity || 10}" value="${qty}" onchange="updateEquipmentQty(${e.EquipmentID}, this.value)"
+                   style="width: 70px; padding: 6px; text-align: center; border: 1.5px solid var(--pink-main); border-radius: 6px; font-family:'Poppins';">
+          </div>
+        ` : ""}
+      </div>
+    `;
+  }).join("");
 }
 
+// คลิกเพื่อเลือก / ยกเลิกการเลือก
 function toggleEquipment(equipmentID) {
-  const card = document.querySelector(
-    `.equipment-card[data-id="${equipmentID}"]`,
-  );
-  if (!card) return;
-
-  const equipment = EQUIPMENTS.find((e) => e.EquipmentID === equipmentID);
-  if (!equipment) return;
-
-  const index = selectedEquipments.findIndex(
-    (e) => e.EquipmentID === equipmentID,
-  );
-
+  const index = selectedEquipments.findIndex((e) => e.EquipmentID === equipmentID);
   if (index >= 0) {
-    selectedEquipments.splice(index, 1);
-    card.classList.remove("selected");
+    selectedEquipments.splice(index, 1); // เอาออก
   } else {
-    selectedEquipments.push(equipment);
-    card.classList.add("selected");
+    const equipment = dbAvailableEquipments.find((e) => e.EquipmentID === equipmentID);
+    selectedEquipments.push({ ...equipment, Quantity: 1 }); // เลือกพร้อมตั้งค่าดีฟอลต์ = 1
+  }
+
+  // Re-render UI เพื่อโชว์/ซ่อนกล่อง Quantity
+  const flow = JSON.parse(localStorage.getItem("bookingFlow"));
+  renderEquipmentHTML(flow.capacity);
+}
+
+// อัปเดตตัวเลขจำนวนเมื่อผู้ใช้พิมพ์หรือกดปุ่มขึ้นลง
+function updateEquipmentQty(equipmentID, newQty) {
+  const equipment = selectedEquipments.find((e) => e.EquipmentID === equipmentID);
+  if (equipment) {
+    const qty = parseInt(newQty) || 1;
+    equipment.Quantity = qty;
   }
 }
 
@@ -235,16 +279,16 @@ async function confirmBooking() {
     RoomID: Number(flow.room.RoomID),
     EquipmentIDs: (flow.equipments || []).map((e) => ({
       EquipmentID: e.EquipmentID,
-      Quantity: 1,
+      Quantity: parseInt(e.Quantity) || 1,
     })),
     TrainerIDs: flow.trainer
       ? [
-          {
-            TrainerID: flow.trainer.TrainerID,
-            TrainerRole: "Main Trainer",
-            HourlyRate: 500,
-          },
-        ]
+        {
+          TrainerID: flow.trainer.TrainerID,
+          TrainerRole: "Main Trainer",
+          HourlyRate: 500,
+        },
+      ]
       : [],
   };
 

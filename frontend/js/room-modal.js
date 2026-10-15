@@ -12,7 +12,7 @@ let selectedTimeSlot = null;
 
 // ==================== เปิด Modal ====================
 async function openRoomModal(roomID) {
-  const room = ROOMS.find((r) => r.RoomID === roomID);
+  const room = dbRooms.find((r) => r.RoomID === roomID);
   if (!room) return;
 
   currentRoom = room;
@@ -206,12 +206,17 @@ function confirmRoomSelection() {
     return;
   }
 
-  // บันทึกใน flow
+  // save in flow
   flow.room = currentRoom;
   flow.date = selectedDate;
   flow.startTime = startTime;
   flow.endTime = endTime;
   flow.capacity = capacity;
+
+  flow.trainer = null;
+  flow.wantTrainer = null;
+  flow.equipments = [];
+  flow.wantEquipment = null;
 
   saveFlow();
 
@@ -277,12 +282,22 @@ function proceedToSummary() {
 // ==================== ตรวจสอบการจอง (จาก API Cache) ====================
 function isRoomBooked(roomID, date, startTime, endTime) {
   return bookedSlotsCache.some((b) => {
-    const bDate = (b.BookingDate || '').toString().split('T')[0];
+    // 1. แปลงวันที่จาก API ให้เป็น Local Date (YYYY-MM-DD) ป้องกันปัญหา Timezone Shift คลาดเคลื่อน 1 วัน
+    const d = new Date(b.BookingDate);
+    const bDate = d.getFullYear() + "-" +
+      String(d.getMonth() + 1).padStart(2, '0') + "-" +
+      String(d.getDate()).padStart(2, '0');
+
+    // 2. ตัด String ของเวลาให้เหลือแค่ HH:MM (เพราะ MySQL มักส่งมาเป็น 10:00:00)
+    const bStart = (b.StartTime || "").substring(0, 5);
+    const bEnd = (b.EndTime || "").substring(0, 5);
+
+    // 3. เช็กว่าห้องเดียวกัน วันเดียวกัน และเวลาทับซ้อนกันหรือไม่
     return (
       Number(b.RoomID || roomID) === Number(roomID) &&
       bDate === date &&
-      b.StartTime < endTime &&
-      b.EndTime > startTime
+      bStart < endTime &&
+      bEnd > startTime
     );
   });
 }
