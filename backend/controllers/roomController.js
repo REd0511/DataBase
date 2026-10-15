@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-// สตูดิโอ
+// สตูดิโอทั้งหมด
 exports.getAllStudios = (req, res) => {
     db.query('SELECT * FROM STUDIO', (err, results) => {
         if (err) return res.status(500).json(err);
@@ -21,7 +21,7 @@ exports.getAllRooms = (req, res) => {
     });
 };
 
-// ประเภทกีฬา
+// ประเภทกีฬาทั้งหมด
 exports.getAllSportTypes = (req, res) => {
     db.query('SELECT * FROM SPORT_TYPE', (err, results) => {
         if (err) return res.status(500).json(err);
@@ -29,7 +29,7 @@ exports.getAllSportTypes = (req, res) => {
     });
 };
 
-// ห้องว่างในวันที่และเวลาที่กำหนด (สำคัญมาก!)
+// ห้องว่างในวันที่และเวลาที่กำหนด
 exports.getAvailableRooms = (req, res) => {
     const { date, startTime, endTime } = req.query;
     if (!date || !startTime || !endTime) {

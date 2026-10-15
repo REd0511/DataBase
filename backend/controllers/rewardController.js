@@ -1,71 +1,96 @@
 const db = require('../config/db');
 
+// ============================================
 // รางวัลทั้งหมด
+// ============================================
 exports.getAllRewards = (req, res) => {
-    db.query('SELECT * FROM REWARD_ITEM', (err, results) => {
+    db.query('SELECT * FROM REWARD_ITEM WHERE IsActive = TRUE ORDER BY PointCost', (err, results) => {
         if (err) return res.status(500).json(err);
         res.json(results);
     });
 };
 
-// แลกรางวัล (ตรวจสอบแต้มก่อน)
+// ============================================
+// แลกรางวัล (BR18: PointTransaction ต้องมี PaymentID)
+// ✅ แก้: ให้ TransactionDate ใช้ NOW() เพื่อเก็บเวลาจริง
+// ============================================
 exports.redeemReward = (req, res) => {
     const { MemberID, RewardID, RedemptionDate, PointsUsed } = req.body;
     if (!MemberID || !RewardID || !PointsUsed) {
         return res.status(400).json({ message: 'กรอกข้อมูลให้ครบ' });
     }
 
-    // คำนวณแต้มคงเหลือ
+    // 1. คำนวณแต้มคงเหลือ
     const pointsSql = `
-        SELECT COALESCE(SUM(pt.PointsEarned) - SUM(pt.PointsRedeemed), 0) AS Balance
-        FROM POINT_TRANSACTION pt
-        WHERE pt.PaymentID IN (
-            SELECT p.PaymentID FROM PAYMENT p
-            JOIN BOOKING b ON p.BookingID = b.BookingID
-            WHERE b.MemberID = ?
-        )
+        SELECT COALESCE(SUM(PointsChange), 0) AS Balance
+        FROM POINT_TRANSACTION
+        WHERE MemberID = ?
     `;
     db.query(pointsSql, [MemberID], (err, results) => {
         if (err) return res.status(500).json(err);
-        const balance = results[0].Balance;
+        const balance = Number(results[0].Balance);
 
         if (balance < PointsUsed) {
             return res.status(400).json({ message: `แต้มไม่พอ (มี ${balance}, ต้องใช้ ${PointsUsed})` });
         }
 
-        // บันทึกการแลก
-        const redeemSql = 'INSERT INTO REDEMPTION (MemberID, RewardID, RedemptionDate, PointsUsed) VALUES (?, ?, ?, ?)';
-        db.query(redeemSql, [MemberID, RewardID, RedemptionDate || new Date(), PointsUsed], (err, result) => {
-            if (err) return res.status(500).json(err);
+        const redeemDate = RedemptionDate || new Date();
 
-            // หา PaymentID ของสมาชิกเพื่อบันทึกการหักแต้ม
-            const findPaymentSql = `
-                SELECT p.PaymentID FROM PAYMENT p
-                JOIN BOOKING b ON p.BookingID = b.BookingID
-                WHERE b.MemberID = ? LIMIT 1
+        // 2. INSERT REDEMPTION
+        const redeemSql = 'INSERT INTO REDEMPTION (MemberID, RewardID, RedemptionDate, PointsUsed) VALUES (?, ?, ?, ?)';
+        db.query(redeemSql, [MemberID, RewardID, redeemDate, PointsUsed], (err, result) => {
+            if (err) return res.status(500).json(err);
+            const redemptionId = result.insertId;
+
+            // 3. INSERT PAYMENT (Amount=0, ผูก RedemptionID)
+            const paymentSql = `
+                INSERT INTO PAYMENT 
+                (Amount, PaymentDate, PaymentMethod, PaymentStatus, BookingID, RedemptionID, EnrollmentID)
+                VALUES (0, NOW(), 'Reward Redemption', 'PAID', NULL, ?, NULL)
             `;
-            db.query(findPaymentSql, [MemberID], (err, payments) => {
-                if (err || payments.length === 0) {
-                    return res.status(201).json({ message: 'แลกรางวัลสำเร็จ (ไม่มี PaymentID บันทึกแต้ม)' });
+            db.query(paymentSql, [redemptionId], (err2, paymentResult) => {
+                if (err2) {
+                    console.error('redeemReward payment error:', err2);
+                    return res.status(500).json({
+                        error: err2.message,
+                        hint: 'Check PAYMENT table has EnrollmentID column'
+                    });
                 }
-                const insertPointsSql = 'INSERT INTO POINT_TRANSACTION (PointsEarned, PointsRedeemed, Date, PaymentID) VALUES (0, ?, ?, ?)';
-                db.query(insertPointsSql, [PointsUsed, RedemptionDate || new Date(), payments[0].PaymentID], (err) => {
-                    if (err) return res.status(500).json(err);
-                    res.status(201).json({ message: 'แลกรางวัลสำเร็จ', RedemptionID: result.insertId });
+                const paymentId = paymentResult.insertId;
+
+                // 4. INSERT POINT_TRANSACTION
+                // ✅ แก้: ใช้ NOW() แทน redeemDate → เก็บเวลาจริงตอน redeem
+                const pointsSql2 = `
+                    INSERT INTO POINT_TRANSACTION (MemberID, PaymentID, PointsChange, Reason, TransactionDate)
+                    VALUES (?, ?, ?, 'REDEEM_REWARD', NOW())
+                `;
+                db.query(pointsSql2, [MemberID, paymentId, -Math.abs(PointsUsed)], (err3) => {
+                    if (err3) {
+                        console.error('redeemReward points error:', err3);
+                        return res.status(500).json({ error: err3.message });
+                    }
+                    res.status(201).json({
+                        message: 'แลกรางวัลสำเร็จ',
+                        RedemptionID: redemptionId,
+                        PaymentID: paymentId,
+                    });
                 });
             });
         });
     });
 };
 
+// ============================================
 // ประวัติการแลกรางวัลของสมาชิก
+// ✅ แก้: เรียงตาม RedemptionDate + RedemptionID DESC
+// ============================================
 exports.getMemberRedemptions = (req, res) => {
     const sql = `
         SELECT r.*, rw.Name AS RewardName, rw.Category
         FROM REDEMPTION r
         JOIN REWARD_ITEM rw ON r.RewardID = rw.RewardID
         WHERE r.MemberID = ?
-        ORDER BY r.RedemptionDate DESC
+        ORDER BY r.RedemptionDate DESC, r.RedemptionID DESC
     `;
     db.query(sql, [req.params.id], (err, results) => {
         if (err) return res.status(500).json(err);

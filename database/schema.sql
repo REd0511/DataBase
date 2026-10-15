@@ -1,8 +1,12 @@
+-- ============================================
+-- SheSparks Wellness - Database Schema
+-- ============================================
+
 CREATE DATABASE IF NOT EXISTS shesparks;
 USE shesparks;
 
 -- ============================
--- 1. MASTER TABLES (ไม่พึ่งพา FK)
+-- 1. MASTER TABLES
 -- ============================
 
 CREATE TABLE STUDIO (
@@ -75,13 +79,12 @@ CREATE TABLE TRAINER (
     FOREIGN KEY (SportTypeID) REFERENCES SPORT_TYPE(SportTypeID)
 );
 
--- เพิ่มตามรายงาน: จัดการระบบ Login และ Role
 CREATE TABLE USER_ACCOUNT (
     UserID INT PRIMARY KEY AUTO_INCREMENT,
     Username VARCHAR(50) NOT NULL UNIQUE,
     PasswordHash VARCHAR(255) NOT NULL,
     Role ENUM('MEMBER', 'TRAINER', 'STUDIO_MANAGER', 'ADMIN') NOT NULL,
-    TrainerID INT UNIQUE, -- เชื่อมกับ Trainer Profile (ถ้ามี)
+    TrainerID INT UNIQUE,
     IsActive BOOLEAN DEFAULT TRUE,
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID) ON DELETE SET NULL
@@ -93,6 +96,8 @@ CREATE TABLE ROOM (
     Capacity INT NOT NULL CHECK (Capacity > 0),
     StudioCode VARCHAR(10) NOT NULL,
     SportTypeID INT,
+    HourlyRate DECIMAL(10,2) NOT NULL DEFAULT 200.00 CHECK (HourlyRate >= 0),
+    TrainerRate DECIMAL(10,2) NOT NULL DEFAULT 500.00 CHECK (TrainerRate >= 0),
     IsActive BOOLEAN DEFAULT TRUE,
     ImageURL VARCHAR(500),
     FOREIGN KEY (StudioCode) REFERENCES STUDIO(StudioCode),
@@ -133,7 +138,6 @@ CREATE TABLE COURSE (
 -- 3. TRANSACTION TABLES
 -- ============================
 
--- เพิ่มตามรายงาน: ป้องกันการจองคิวเทรนเนอร์ซ้อน
 CREATE TABLE TRAINER_SCHEDULE (
     ScheduleID INT PRIMARY KEY AUTO_INCREMENT,
     TrainerID INT NOT NULL,
@@ -143,7 +147,10 @@ CREATE TABLE TRAINER_SCHEDULE (
     ScheduleStatus ENUM('AVAILABLE', 'UNAVAILABLE') DEFAULT 'AVAILABLE',
     FOREIGN KEY (TrainerID) REFERENCES TRAINER(TrainerID)
 );
-
+ิ
+-- ============================
+-- 4. BOOKING
+-- ============================
 CREATE TABLE BOOKING (
     BookingID INT PRIMARY KEY AUTO_INCREMENT,
     BookingDate DATE NOT NULL,
@@ -152,33 +159,14 @@ CREATE TABLE BOOKING (
     Status ENUM('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED') DEFAULT 'PENDING',
     MemberID INT NOT NULL,
     RoomID INT NOT NULL,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,   -- ✅ เพิ่ม CreatedAt เก็บเวลาจองจริง
     FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
     FOREIGN KEY (RoomID) REFERENCES ROOM(RoomID)
 );
 
-CREATE TABLE PAYMENT (
-    PaymentID INT PRIMARY KEY AUTO_INCREMENT,
-    Amount DECIMAL(10,2) NOT NULL CHECK (Amount >= 0),
-    PaymentDate DATETIME,
-    PaymentMethod VARCHAR(30),
-    PaymentStatus ENUM('UNPAID', 'PAID', 'REFUNDED') DEFAULT 'UNPAID',
-    BookingID INT NOT NULL UNIQUE,
-    FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID)
-);
-
--- ปรับปรุงตามรายงาน: เปลี่ยนเป็น Ledger (สมุดบัญชี) แทนการบวกลบแต้มในคอลัมน์เดียว
-CREATE TABLE POINT_TRANSACTION (
-    TransactionID INT PRIMARY KEY AUTO_INCREMENT,
-    MemberID INT NOT NULL,
-    PaymentID INT,
-    TransactionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PointsChange INT NOT NULL,
-    Reason VARCHAR(40) NOT NULL,
-    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
-    FOREIGN KEY (PaymentID) REFERENCES PAYMENT(PaymentID)
-);
-
--- ปรับปรุงตามรายงาน: ใช้ RedemptionID เป็น PK เดี่ยว
+-- ============================
+-- 5. REDEMPTION
+-- ============================
 CREATE TABLE REDEMPTION (
     RedemptionID INT PRIMARY KEY AUTO_INCREMENT,
     MemberID INT NOT NULL,
@@ -190,20 +178,54 @@ CREATE TABLE REDEMPTION (
     FOREIGN KEY (RewardID) REFERENCES REWARD_ITEM(RewardID)
 );
 
+-- ============================
+-- 6. ENROLLMENT
+-- ============================
 CREATE TABLE ENROLLMENT (
-    MemberID INT,
-    CourseID INT,
+    EnrollmentID INT PRIMARY KEY AUTO_INCREMENT,
+    MemberID INT NOT NULL,
+    CourseID INT NOT NULL,
     EnrollmentDate DATE NOT NULL,
     PaymentStatus ENUM('UNPAID', 'PAID', 'CANCELLED') DEFAULT 'UNPAID',
-    PRIMARY KEY (MemberID, CourseID),
+    UNIQUE KEY unique_member_course (MemberID, CourseID),
     FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
     FOREIGN KEY (CourseID) REFERENCES COURSE(CourseID)
 );
 
 -- ============================
--- 4. JUNCTION TABLES (M:N)
+-- 7. PAYMENT
 -- ============================
+CREATE TABLE PAYMENT (
+    PaymentID INT PRIMARY KEY AUTO_INCREMENT,
+    Amount DECIMAL(10,2) NOT NULL CHECK (Amount >= 0),
+    PaymentDate DATETIME,
+    PaymentMethod VARCHAR(30),
+    PaymentStatus ENUM('UNPAID', 'PAID', 'REFUNDED') DEFAULT 'UNPAID',
+    BookingID INT NULL,
+    RedemptionID INT NULL,
+    EnrollmentID INT NULL,
+    FOREIGN KEY (BookingID) REFERENCES BOOKING(BookingID),
+    FOREIGN KEY (RedemptionID) REFERENCES REDEMPTION(RedemptionID),
+    FOREIGN KEY (EnrollmentID) REFERENCES ENROLLMENT(EnrollmentID)
+);
 
+-- ============================
+-- 8. POINT_TRANSACTION
+-- ============================
+CREATE TABLE POINT_TRANSACTION (
+    TransactionID INT PRIMARY KEY AUTO_INCREMENT,
+    MemberID INT NOT NULL,
+    PaymentID INT NOT NULL,
+    TransactionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PointsChange INT NOT NULL,
+    Reason VARCHAR(40) NOT NULL,
+    FOREIGN KEY (MemberID) REFERENCES MEMBER(MemberID),
+    FOREIGN KEY (PaymentID) REFERENCES PAYMENT(PaymentID)
+);
+
+-- ============================
+-- Junction Tables (M:N)
+-- ============================
 CREATE TABLE COURSE_PREREQUISITE (
     CourseID INT,
     PrerequisiteCourseID INT,

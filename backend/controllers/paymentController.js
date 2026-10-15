@@ -1,32 +1,34 @@
 const db = require('../config/db');
 
-// ชำระเงิน + สะสมแต้ม (1 บาท = 1 แต้ม)
 exports.createPayment = (req, res) => {
-    const { Amount, PaymentDate, PaymentMethod, BookingID } = req.body;
+    const { Amount, PaymentDate, PaymentMethod, BookingID, MemberID } = req.body;
     if (!Amount || !PaymentDate || !PaymentMethod || !BookingID) {
         return res.status(400).json({ message: 'กรอกข้อมูลให้ครบ' });
     }
 
-    const insertPaymentSql = 'INSERT INTO PAYMENT (Amount, PaymentDate, PaymentMethod, BookingID) VALUES (?, ?, ?, ?)';
-    db.query(insertPaymentSql, [Amount, PaymentDate, PaymentMethod, BookingID], (err, paymentResult) => {
+    const insertPaymentSql = 'INSERT INTO PAYMENT (Amount, PaymentDate, PaymentMethod, PaymentStatus, BookingID) VALUES (?, ?, ?, ?, ?)';
+    db.query(insertPaymentSql, [Amount, PaymentDate, PaymentMethod, 'PAID', BookingID], (err, paymentResult) => {
         if (err) return res.status(500).json(err);
 
         const paymentId = paymentResult.insertId;
         const pointsEarned = Math.floor(Amount);
 
-        const insertPointsSql = 'INSERT INTO POINT_TRANSACTION (PointsEarned, PointsRedeemed, Date, PaymentID) VALUES (?, 0, ?, ?)';
-        db.query(insertPointsSql, [pointsEarned, PaymentDate, paymentId], (err) => {
-            if (err) return res.status(500).json(err);
-            res.status(201).json({
-                message: 'ชำระเงินสำเร็จ',
-                PaymentID: paymentId,
-                PointsEarned: pointsEarned
+        // ✅ Fixed: use MemberID + PointsChange + TransactionDate
+        if (MemberID) {
+            const insertPointsSql = `
+                INSERT INTO POINT_TRANSACTION (MemberID, PaymentID, PointsChange, Reason, TransactionDate) 
+                VALUES (?, ?, ?, 'EARN_FROM_PAYMENT', ?)
+            `;
+            db.query(insertPointsSql, [MemberID, paymentId, pointsEarned, PaymentDate], (err2) => {
+                if (err2) return res.status(500).json(err2);
+                res.status(201).json({ message: 'ชำระเงินสำเร็จ', PaymentID: paymentId, PointsEarned: pointsEarned });
             });
-        });
+        } else {
+            res.status(201).json({ message: 'ชำระเงินสำเร็จ', PaymentID: paymentId, PointsEarned: pointsEarned });
+        }
     });
 };
 
-// ประวัติการชำระเงินของสมาชิก
 exports.getMemberPayments = (req, res) => {
     const sql = `
         SELECT p.*, b.BookingDate, b.StartTime, b.EndTime, r.RoomName

@@ -19,11 +19,11 @@ exports.getMemberById = (req, res) => {
 
 // สมัครสมาชิกใหม่
 exports.createMember = (req, res) => {
-    const { Name, Phone, DOB, MemberLevel } = req.body;
+    const { Name, Phone, DOB, MemberLevel, StudioCode } = req.body;
     if (!Name || !Phone) return res.status(400).json({ message: 'กรอกชื่อและเบอร์โทร' });
 
-    const sql = 'INSERT INTO MEMBER (Name, Phone, DOB, MemberLevel) VALUES (?, ?, ?, ?)';
-    db.query(sql, [Name, Phone, DOB, MemberLevel || 'Silver'], (err, result) => {
+    const sql = 'INSERT INTO MEMBER (Name, Phone, DOB, MemberLevel, StudioCode) VALUES (?, ?, ?, ?, ?)';
+    db.query(sql, [Name, Phone, DOB, MemberLevel || 'Silver', StudioCode || 'ST001'], (err, result) => {
         if (err) {
             if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ message: 'เบอร์นี้ถูกใช้แล้ว' });
             return res.status(500).json(err);
@@ -49,16 +49,17 @@ exports.getMemberPoints = (req, res) => {
     });
 };
 
-// ประวัติแต้ม
 exports.getMemberTransactions = (req, res) => {
     const memberId = req.params.id;
     const sql = `
-        SELECT pt.*, p.Amount, p.PaymentDate
+        SELECT pt.TransactionID, pt.PointsChange, pt.TransactionDate AS Date,
+               pt.Reason, pt.PaymentID, 
+               p.Amount, p.PaymentDate, p.PaymentMethod,
+               p.BookingID, p.RedemptionID
         FROM POINT_TRANSACTION pt
-        JOIN PAYMENT p ON pt.PaymentID = p.PaymentID
-        JOIN BOOKING b ON p.BookingID = b.BookingID
-        WHERE b.MemberID = ?
-        ORDER BY pt.Date DESC
+        LEFT JOIN PAYMENT p ON pt.PaymentID = p.PaymentID
+        WHERE pt.MemberID = ?
+        ORDER BY pt.TransactionDate DESC, pt.TransactionID DESC
     `;
     db.query(sql, [memberId], (err, results) => {
         if (err) return res.status(500).json(err);

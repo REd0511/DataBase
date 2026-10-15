@@ -32,6 +32,42 @@
   font-weight: 500;
 }
 
+/* ========== Price Breakdown ========== */
+.price-breakdown {
+  background: linear-gradient(135deg, var(--pink-bg), var(--pink-soft));
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-top: 16px;
+  border: 1.5px solid var(--pink-main);
+}
+
+.price-breakdown h4 {
+  color: var(--pink-deep);
+  font-size: 1rem;
+  margin-bottom: 14px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+}
+
+.price-breakdown p {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  color: var(--text-mid);
+}
+
+.price-breakdown p.total {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--pink-deep);
+  border-top: 1px dashed var(--pink-main);
+  padding-top: 12px;
+  margin-top: 12px;
+  margin-bottom: 0;
+  font-family: "Playfair Display", serif;
+}
+
 .trainer-option {
   background: var(--pink-bg);
   border: 1px dashed var(--pink-main);
@@ -116,6 +152,7 @@
   text-align: center;
   cursor: pointer;
   transition: all 0.25s ease;
+  position: relative;
 }
 
 .equipment-card:hover {
@@ -185,5 +222,8 @@
   }
   .equipment-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .price-breakdown {
+    padding: 16px;
   }
 }

@@ -31,6 +31,28 @@ exports.getTrainerById = (req, res) => {
     });
 };
 
+// ✅ NEW: bookings ของเทรนเนอร์คนนี้ (ใช้ใน trainer-dashboard.js)
+exports.getTrainerBookings = (req, res) => {
+    const sql = `
+        SELECT b.BookingID, b.BookingDate, b.StartTime, b.EndTime,
+               m.Name AS MemberName, r.RoomName, st.SportName,
+               p.PaymentStatus,
+               CASE WHEN p.PaymentStatus = 'PAID' THEN 'Confirmed' ELSE 'Pending' END AS Status
+        FROM BOOKING_TRAINER bt
+        JOIN BOOKING b ON bt.BookingID = b.BookingID
+        JOIN MEMBER m ON b.MemberID = m.MemberID
+        JOIN ROOM r ON b.RoomID = r.RoomID
+        LEFT JOIN SPORT_TYPE st ON r.SportTypeID = st.SportTypeID
+        LEFT JOIN PAYMENT p ON p.BookingID = b.BookingID
+        WHERE bt.TrainerID = ?
+        ORDER BY b.BookingDate DESC, b.StartTime DESC
+    `;
+    db.query(sql, [req.params.id], (err, results) => {
+        if (err) return res.status(500).json(err);
+        res.json(results);
+    });
+};
+
 // เทรนเนอร์ว่างในวันและเวลา
 exports.getAvailableTrainers = (req, res) => {
     const { date, startTime, endTime } = req.query;

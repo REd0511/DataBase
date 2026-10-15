@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 // ============================================
-// CREATE BOOKING (ตรวจสอบ + INSERT ครบ)
+// CREATE BOOKING (คำนวณราคาจริง + แต้ม 1 บาท = 1 แต้ม)
 // ============================================
 exports.createBooking = async (req, res) => {
   const {
@@ -14,7 +14,6 @@ exports.createBooking = async (req, res) => {
     TrainerIDs,
   } = req.body;
 
-  // 1. Validation
   if (!BookingDate || !StartTime || !EndTime || !MemberID || !RoomID) {
     return res.status(400).json({ message: 'กรอกข้อมูลให้ครบ' });
   }
@@ -25,28 +24,54 @@ exports.createBooking = async (req, res) => {
   }
 
   try {
-    // 2. ตรวจสอบห้องว่าง
+    // 1. ดึงราคาห้อง
+    const [roomRows] = await db.promise().query(
+      `SELECT HourlyRate, TrainerRate FROM ROOM WHERE RoomID = ?`,
+      [RoomID]
+    );
+    if (roomRows.length === 0) {
+      return res.status(400).json({ message: 'ไม่พบห้องนี้' });
+    }
+    const hourlyRate = Number(roomRows[0].HourlyRate || 200);
+    const trainerRate = Number(roomRows[0].TrainerRate || 500);
+
+    // 2. คำนวณชั่วโมง
+    const startH = parseInt(StartTime.split(':')[0]);
+    const startM = parseInt(StartTime.split(':')[1] || '0');
+    const endH = parseInt(EndTime.split(':')[0]);
+    const endM = parseInt(EndTime.split(':')[1] || '0');
+    const hours = ((endH * 60 + endM) - (startH * 60 + startM)) / 60;
+
+    if (hours <= 0) {
+      return res.status(400).json({ message: 'เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น' });
+    }
+
+    // 3. เช็กห้องซ้อน
     const [overlap] = await db.promise().query(
       `SELECT BookingID FROM BOOKING 
        WHERE RoomID = ? AND BookingDate = ? 
        AND StartTime < ? AND EndTime > ?`,
-      [RoomID, BookingDate, EndTime, StartTime],
+      [RoomID, BookingDate, EndTime, StartTime]
     );
-
     if (overlap.length > 0) {
       return res.status(400).json({ message: 'ห้องถูกจองแล้วในช่วงเวลานี้' });
     }
 
-    // 3. INSERT BOOKING
+    // 4. คำนวณราคารวม
+    let amount = hours * hourlyRate;
+    if (TrainerIDs && TrainerIDs.length > 0) {
+      amount += hours * trainerRate * TrainerIDs.length;
+    }
+
+    // 5. INSERT BOOKING
     const [bookingResult] = await db.promise().query(
       `INSERT INTO BOOKING (BookingDate, StartTime, EndTime, MemberID, RoomID) 
        VALUES (?, ?, ?, ?, ?)`,
-      [BookingDate, StartTime, EndTime, MemberID, RoomID],
+      [BookingDate, StartTime, EndTime, MemberID, RoomID]
     );
-
     const bookingId = bookingResult.insertId;
 
-    // 4. INSERT EQUIPMENT (ถ้ามี) — ใช้ await
+    // 6. INSERT EQUIPMENT
     if (EquipmentIDs && EquipmentIDs.length > 0) {
       const equipValues = EquipmentIDs.map((eq) => [
         bookingId,
@@ -55,32 +80,53 @@ exports.createBooking = async (req, res) => {
         'NOT_ISSUED',
       ]);
       await db.promise().query(
-        `INSERT INTO BOOKING_EQUIPMENT 
-         (BookingID, EquipmentID, Quantity, ReturnStatus) VALUES ?`,
-        [equipValues],
+        `INSERT INTO BOOKING_EQUIPMENT (BookingID, EquipmentID, Quantity, ReturnStatus) VALUES ?`,
+        [equipValues]
       );
     }
 
-    // 5. INSERT TRAINER (ถ้ามี) — ใช้ await
+    // 7. INSERT TRAINER
     if (TrainerIDs && TrainerIDs.length > 0) {
       const trainerValues = TrainerIDs.map((t) => [
         bookingId,
         t.TrainerID || t,
         t.TrainerRole || 'Main Trainer',
-        t.HourlyRate || 500,
+        trainerRate,
       ]);
       await db.promise().query(
-        `INSERT INTO BOOKING_TRAINER 
-         (BookingID, TrainerID, TrainerRole, HourlyRateAtBooking) VALUES ?`,
-        [trainerValues],
+        `INSERT INTO BOOKING_TRAINER (BookingID, TrainerID, TrainerRole, HourlyRateAtBooking) VALUES ?`,
+        [trainerValues]
       );
     }
 
-    // 6. ส่ง Response หลัง INSERT เสร็จหมด
+    // 8. INSERT PAYMENT
+    const [paymentResult] = await db.promise().query(
+      `INSERT INTO PAYMENT (Amount, PaymentDate, PaymentMethod, PaymentStatus, BookingID, RedemptionID, EnrollmentID) 
+       VALUES (?, NOW(), 'Pending', 'UNPAID', ?, NULL, NULL)`,
+      [amount, bookingId]
+    );
+    const paymentId = paymentResult.insertId;
+
+    // 9. INSERT POINT_TRANSACTION
+    const earnedPoints = Math.floor(amount);
+    if (earnedPoints > 0) {
+      await db.promise().query(
+        `INSERT INTO POINT_TRANSACTION (MemberID, PaymentID, PointsChange, Reason, TransactionDate)
+         VALUES (?, ?, ?, 'EARN_FROM_BOOKING', NOW())`,
+        [MemberID, paymentId, earnedPoints]
+      );
+    }
+
     res.status(201).json({
       message: 'จองสำเร็จ',
       BookingID: bookingId,
+      PaymentID: paymentId,
+      Amount: amount,
+      PointsEarned: earnedPoints,
+      Hours: hours,
+      HourlyRate: hourlyRate,
     });
+
   } catch (err) {
     console.error('createBooking error:', err);
     res.status(500).json({ error: err.message });
@@ -88,7 +134,55 @@ exports.createBooking = async (req, res) => {
 };
 
 // ============================================
-// GET MEMBER BOOKINGS (JOIN ครบ)
+// GET BOOKING PREVIEW
+// ============================================
+exports.getBookingPreview = async (req, res) => {
+  const { RoomID, StartTime, EndTime, TrainerCount } = req.query;
+
+  if (!RoomID || !StartTime || !EndTime) {
+    return res.status(400).json({ message: 'กรุณาระบุ RoomID, StartTime, EndTime' });
+  }
+
+  try {
+    const [roomRows] = await db.promise().query(
+      `SELECT HourlyRate, TrainerRate FROM ROOM WHERE RoomID = ?`,
+      [RoomID]
+    );
+    if (roomRows.length === 0) {
+      return res.status(404).json({ message: 'ไม่พบห้องนี้' });
+    }
+
+    const hourlyRate = Number(roomRows[0].HourlyRate || 200);
+    const trainerRate = Number(roomRows[0].TrainerRate || 500);
+
+    const startH = parseInt(StartTime.split(':')[0]);
+    const startM = parseInt(StartTime.split(':')[1] || '0');
+    const endH = parseInt(EndTime.split(':')[0]);
+    const endM = parseInt(EndTime.split(':')[1] || '0');
+    const hours = ((endH * 60 + endM) - (startH * 60 + startM)) / 60;
+
+    const trainerCount = parseInt(TrainerCount || '0');
+    let amount = hours * hourlyRate;
+    if (trainerCount > 0) {
+      amount += hours * trainerRate * trainerCount;
+    }
+
+    res.json({
+      Hours: hours,
+      HourlyRate: hourlyRate,
+      TrainerRate: trainerRate,
+      TrainerCount: trainerCount,
+      Amount: amount,
+      PointsEarned: Math.floor(amount),
+    });
+  } catch (err) {
+    console.error('getBookingPreview error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ============================================
+// GET MEMBER BOOKINGS (with CreatedAt)
 // ============================================
 exports.getMemberBookings = async (req, res) => {
   try {
@@ -100,6 +194,7 @@ exports.getMemberBookings = async (req, res) => {
         b.BookingDate,
         b.StartTime,
         b.EndTime,
+        b.CreatedAt,
         b.MemberID,
         b.RoomID,
         r.RoomName,
@@ -113,28 +208,30 @@ exports.getMemberBookings = async (req, res) => {
          FROM BOOKING_TRAINER bt 
          JOIN TRAINER t ON t.TrainerID = bt.TrainerID 
          WHERE bt.BookingID = b.BookingID) AS TrainerName,
-        (SELECT GROUP_CONCAT(e.Name SEPARATOR ', ') 
+        (SELECT GROUP_CONCAT(CONCAT(e.Name, ' (x', be.Quantity, ')') SEPARATOR ', ') 
          FROM BOOKING_EQUIPMENT be 
          JOIN EQUIPMENT e ON e.EquipmentID = be.EquipmentID 
          WHERE be.BookingID = b.BookingID) AS EquipmentNames,
         p.PaymentID,
         p.Amount,
-        p.PaymentStatus
+        p.PaymentDate,
+        p.PaymentStatus,
+        (SELECT SUM(pt.PointsChange) FROM POINT_TRANSACTION pt 
+         WHERE pt.PaymentID = p.PaymentID AND pt.PointsChange > 0) AS EarnedPoints
        FROM BOOKING b
        JOIN ROOM r ON r.RoomID = b.RoomID
        JOIN STUDIO s ON s.StudioCode = r.StudioCode
        LEFT JOIN SPORT_TYPE st ON st.SportTypeID = r.SportTypeID
        LEFT JOIN PAYMENT p ON p.BookingID = b.BookingID
        WHERE b.MemberID = ?
-       ORDER BY b.BookingDate DESC, b.StartTime DESC`,
-      [memberId],
+       ORDER BY b.CreatedAt DESC, b.BookingID DESC`,
+      [memberId]
     );
 
-    // เพิ่ม Points + Status
     const enrichedBookings = bookings.map((b) => ({
       ...b,
-      Points: Math.floor(Number(b.Amount || 0)),
-      Status: b.PaymentStatus === 'Paid' ? 'Confirmed' : 'Pending',
+      Points: Math.floor(Number(b.EarnedPoints || 0)),
+      Status: b.PaymentStatus === 'PAID' ? 'Confirmed' : 'Pending',
       Equipments: b.EquipmentNames
         ? b.EquipmentNames.split(', ').map((name) => ({ Name: name }))
         : [],
@@ -158,12 +255,13 @@ exports.getAllBookings = async (req, res) => {
         b.BookingDate,
         b.StartTime,
         b.EndTime,
+        b.CreatedAt,
         b.MemberID,
         b.RoomID,
         m.Name AS MemberName,
         r.RoomName,
         r.Capacity,
-        s.StudioCode,   /* ✅ เพิ่มบรรทัดนี้เข้ามา เพื่อให้ Manager เอาไปใช้กรองสาขาได้ */
+        s.StudioCode,
         s.Name AS StudioName,
         s.Location,
         st.SportName,
@@ -171,26 +269,29 @@ exports.getAllBookings = async (req, res) => {
          FROM BOOKING_TRAINER bt 
          JOIN TRAINER t ON t.TrainerID = bt.TrainerID 
          WHERE bt.BookingID = b.BookingID) AS TrainerName,
-        (SELECT GROUP_CONCAT(e.Name SEPARATOR ', ') 
+        (SELECT GROUP_CONCAT(CONCAT(e.Name, ' (x', be.Quantity, ')') SEPARATOR ', ') 
          FROM BOOKING_EQUIPMENT be 
          JOIN EQUIPMENT e ON e.EquipmentID = be.EquipmentID 
          WHERE be.BookingID = b.BookingID) AS EquipmentNames,
         p.PaymentID,
         p.Amount,
-        p.PaymentStatus
+        p.PaymentDate,
+        p.PaymentStatus,
+        (SELECT SUM(pt.PointsChange) FROM POINT_TRANSACTION pt 
+         WHERE pt.PaymentID = p.PaymentID AND pt.PointsChange > 0) AS EarnedPoints
        FROM BOOKING b
        JOIN MEMBER m ON m.MemberID = b.MemberID
        JOIN ROOM r ON r.RoomID = b.RoomID
        JOIN STUDIO s ON s.StudioCode = r.StudioCode
        LEFT JOIN SPORT_TYPE st ON st.SportTypeID = r.SportTypeID
        LEFT JOIN PAYMENT p ON p.BookingID = b.BookingID
-       ORDER BY b.BookingDate DESC, b.StartTime DESC`
+       ORDER BY b.CreatedAt DESC, b.BookingID DESC`
     );
 
     const enrichedBookings = bookings.map((b) => ({
       ...b,
-      Points: Math.floor(Number(b.Amount || 0)),
-      Status: b.PaymentStatus === 'Paid' ? 'Confirmed' : 'Pending',
+      Points: Math.floor(Number(b.EarnedPoints || 0)),
+      Status: b.PaymentStatus === 'PAID' ? 'Confirmed' : 'Pending',
       Equipments: b.EquipmentNames
         ? b.EquipmentNames.split(', ').map((name) => ({ Name: name }))
         : [],
@@ -204,7 +305,7 @@ exports.getAllBookings = async (req, res) => {
 };
 
 // ============================================
-// GET BOOKED SLOTS (สำหรับ Room Modal)
+// GET BOOKED SLOTS
 // ============================================
 exports.getBookedSlots = async (req, res) => {
   try {
@@ -216,7 +317,7 @@ exports.getBookedSlots = async (req, res) => {
        WHERE RoomID = ? 
        AND BookingDate >= CURDATE()
        ORDER BY BookingDate, StartTime`,
-      [roomId],
+      [roomId]
     );
 
     res.json(bookings);
@@ -233,26 +334,57 @@ exports.cancelBooking = async (req, res) => {
   try {
     const bookingId = req.params.id;
 
-    // ลบ Equipment ก่อน (FK)
-    await db.promise().query('DELETE FROM BOOKING_EQUIPMENT WHERE BookingID = ?', [
-      bookingId,
-    ]);
-
-    // ลบ Trainer (FK)
-    await db.promise().query('DELETE FROM BOOKING_TRAINER WHERE BookingID = ?', [
-      bookingId,
-    ]);
-
-    // ลบ Payment (FK)
-    await db.promise().query('DELETE FROM PAYMENT WHERE BookingID = ?', [
-      bookingId,
-    ]);
-
-    // ลบ Booking
-    const [result] = await db.promise().query(
-      'DELETE FROM BOOKING WHERE BookingID = ?',
-      [bookingId],
+    // 1. ดึง PaymentID ของ Booking นี้
+    const [payments] = await db.promise().query(
+      'SELECT PaymentID FROM PAYMENT WHERE BookingID = ?',
+      [bookingId]
     );
+
+    // 2. ดึงแต้มที่เคยได้จาก Booking นี้
+    let pointsEarned = 0;
+    if (payments.length > 0) {
+      const [points] = await db.promise().query(
+        `SELECT COALESCE(SUM(PointsChange), 0) AS Total
+         FROM POINT_TRANSACTION
+         WHERE PaymentID = ? AND PointsChange > 0`,
+        [payments[0].PaymentID]
+      );
+      pointsEarned = Number(points[0].Total || 0);
+    }
+
+    // 3. ตรวจสอบแต้มพอหักคืนไหม
+    const [booking] = await db.promise().query(
+      'SELECT MemberID FROM BOOKING WHERE BookingID = ?',
+      [bookingId]
+    );
+
+    if (booking.length > 0 && pointsEarned > 0) {
+      const memberId = booking[0].MemberID;
+      const [balanceRows] = await db.promise().query(
+        `SELECT COALESCE(SUM(PointsChange), 0) AS Balance
+         FROM POINT_TRANSACTION WHERE MemberID = ?`,
+        [memberId]
+      );
+      const currentBalance = Number(balanceRows[0].Balance || 0);
+
+      if (currentBalance - pointsEarned < 0) {
+        return res.status(400).json({
+          message: `ไม่สามารถยกเลิกได้ เพราะคุณใช้แต้มไปแล้ว (มี ${currentBalance} แต้ม แต่ต้องหักคืน ${pointsEarned} แต้ม)`
+        });
+      }
+    }
+
+    // 4. ลบข้อมูลตามลำดับ
+    await db.promise().query(
+      `DELETE FROM POINT_TRANSACTION 
+       WHERE PaymentID IN (SELECT PaymentID FROM PAYMENT WHERE BookingID = ?)`,
+      [bookingId]
+    );
+    await db.promise().query('DELETE FROM BOOKING_EQUIPMENT WHERE BookingID = ?', [bookingId]);
+    await db.promise().query('DELETE FROM BOOKING_TRAINER WHERE BookingID = ?', [bookingId]);
+    await db.promise().query('DELETE FROM PAYMENT WHERE BookingID = ?', [bookingId]);
+
+    const [result] = await db.promise().query('DELETE FROM BOOKING WHERE BookingID = ?', [bookingId]);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'ไม่พบการจอง' });

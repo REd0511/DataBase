@@ -1,11 +1,12 @@
 /* ============================================
    points.js - Points Page (API Connected)
+   ✅ แก้: ใช้ /members/:id/transactions โดยตรง
    ============================================ */
 
 document.addEventListener("DOMContentLoaded", async () => {
   const user = JSON.parse(localStorage.getItem("user"));
 
-  if (!user || user.role !== "member") {
+  if (!user || (user.role !== "member" && user.role !== "admin")) {
     renderEmptyPoints("กรุณาเข้าสู่ระบบในฐานะสมาชิก (Member)");
     return;
   }
@@ -15,48 +16,68 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const api = window.SheSparksAPI;
 
-    // โหลดข้อมูลแบบขนาน (Parallel) เพื่อความรวดเร็ว
-    const [pointsData, redemptionsData, bookingsData] = await Promise.allSettled([
+    // ✅ เรียก 2 API: Points Summary + Transactions (จาก POINT_TRANSACTION โดยตรง)
+    const [pointsData, transactionsData] = await Promise.allSettled([
       api.memberPoints(memberId),
-      api.get(`/rewards/member/${memberId}`),
-      api.memberBookings(memberId)
+      api.get(`/members/${memberId}/transactions`)
     ]);
 
-    const totalPoints = pointsData.status === "fulfilled" ? Number(pointsData.value.Balance || 0) : 0;
-    const redemptions = redemptionsData.status === "fulfilled" && Array.isArray(redemptionsData.value) ? redemptionsData.value : [];
-    const bookings = bookingsData.status === "fulfilled" && Array.isArray(bookingsData.value) ? bookingsData.value : [];
+    const apiBalance = pointsData.status === "fulfilled"
+      ? Number(pointsData.value.Balance || 0)
+      : 0;
 
-    // สร้าง Transaction History (ประวัติการได้แต้มและใช้แต้ม)
-    const history = [];
+    const transactions = transactionsData.status === "fulfilled" && Array.isArray(transactionsData.value)
+      ? transactionsData.value
+      : [];
 
-    // เพิ่มประวัติการได้แต้มจากการจอง
-    bookings.forEach((b) => {
-      const earned = Number(b.Points || b.PointsEarned || 0);
-      if (earned > 0) {
-        history.push({
-          Date: b.BookingDate,
-          Description: `Booking: ${b.RoomName || "-"}`,
-          Earned: earned,
-          Redeemed: 0,
-        });
+    // ✅ สร้าง History โดยตรงจาก Transactions
+    // (Backend ส่ง TransactionDate ที่มีเวลาจริงมาแล้ว)
+    const history = transactions.map((t) => {
+      const pointsChange = Number(t.PointsChange || 0);
+
+      // สร้าง Description จาก Reason
+      let description = "—";
+      if (t.Reason === "EARN_FROM_BOOKING") {
+        description = `Booking (฿${Number(t.Amount || 0).toLocaleString()})`;
+      } else if (t.Reason === "EARN_FROM_COURSE") {
+        description = `Course Enrollment (฿${Number(t.Amount || 0).toLocaleString()})`;
+      } else if (t.Reason === "REDEEM_REWARD") {
+        description = `Redeemed Reward`;
+      } else if (t.Reason === "EARN_FROM_PAYMENT") {
+        description = `Payment (฿${Number(t.Amount || 0).toLocaleString()})`;
+      } else {
+        description = t.Reason || "—";
       }
+
+      return {
+        Date: t.TransactionDate || t.Date,       // ✅ วันที่จริงจาก POINT_TRANSACTION
+        TransactionID: t.TransactionID,          // ✅ ID จริง
+        Description: description,
+        Earned: pointsChange > 0 ? pointsChange : 0,
+        Redeemed: pointsChange < 0 ? Math.abs(pointsChange) : 0,
+      };
     });
 
-    // เพิ่มประวัติการใช้แต้มแลกของรางวัล
-    redemptions.forEach((r) => {
-      history.push({
-        Date: r.RedemptionDate,
-        Description: `Redeemed: ${r.RewardName || "-"}`,
-        Earned: 0,
-        Redeemed: Number(r.PointsUsed || 0),
-      });
+    // ✅ Sort: ใหม่สุดก่อน (ใช้ TransactionID เป็น tie-breaker)
+    history.sort((a, b) => {
+      const dateA = new Date(a.Date).getTime() || 0;
+      const dateB = new Date(b.Date).getTime() || 0;
+
+      if (dateB !== dateA) return dateB - dateA;
+
+      // วัน+เวลาเดียวกัน → TransactionID มาก = ใหม่กว่า
+      return (b.TransactionID || 0) - (a.TransactionID || 0);
     });
 
-    // เรียงประวัติตามวันที่ (ใหม่สุดขึ้นก่อน)
-    history.sort((a, b) => new Date(b.Date) - new Date(a.Date));
+    // คำนวณ Balance ย้อนหลัง
+    let runningBalance = apiBalance;
+    const withBalance = history.map((h) => {
+      const currentBalance = runningBalance;
+      runningBalance = runningBalance - (h.Earned || 0) + (h.Redeemed || 0);
+      return { ...h, BalanceAfter: currentBalance };
+    });
 
-    // แสดงผลข้อมูลลงหน้าเว็บ
-    renderPoints({ total: totalPoints, history });
+    renderPoints({ total: apiBalance, history: withBalance });
     renderMemberLevel(user);
 
   } catch (error) {
@@ -87,31 +108,29 @@ function renderPoints(points) {
     return;
   }
 
-  let runningBalance = points.total; // เริ่มต้นจากแต้มปัจจุบัน
-  
-  // สร้างแถวข้อมูลประวัติ
-  const rowsHtml = points.history.map((h, index) => {
-    // 1. แปลงรูปแบบวันที่ให้อ่านง่ายและตัด Timezone
+  const rowsHtml = points.history.map((h) => {
     const rawDate = h.Date || "-";
     let dateDisplay = rawDate;
     if (rawDate !== "-" && String(rawDate).includes("T")) {
       const d = new Date(rawDate);
-      dateDisplay = d.getFullYear() + "-" + 
-                    String(d.getMonth() + 1).padStart(2, '0') + "-" + 
-                    String(d.getDate()).padStart(2, '0');
+      dateDisplay = d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, '0') + "-" +
+        String(d.getDate()).padStart(2, '0');
+    } else if (rawDate !== "-" && String(rawDate).includes(" ")) {
+      dateDisplay = String(rawDate).split(" ")[0];
     }
 
-    // 2. คำนวณ Balance ย้อนหลัง
-    const currentBalance = runningBalance;
-    runningBalance = runningBalance - (h.Earned || 0) + (h.Redeemed || 0);
+    const earned = Number(h.Earned || 0);
+    const redeemed = Number(h.Redeemed || 0);
+    const balance = Number(h.BalanceAfter || 0);
 
     return `
       <tr>
         <td>${dateDisplay}</td>
         <td>${h.Description || "—"}</td>
-        <td class="earned">${h.Earned > 0 ? "+" + h.Earned.toLocaleString() : "—"}</td>
-        <td class="redeemed">${h.Redeemed > 0 ? "-" + h.Redeemed.toLocaleString() : "—"}</td>
-        <td class="balance">${currentBalance.toLocaleString()}</td>
+        <td class="earned">${earned > 0 ? "+" + earned.toLocaleString() : "—"}</td>
+        <td class="redeemed">${redeemed > 0 ? "-" + redeemed.toLocaleString() : "—"}</td>
+        <td class="balance">${balance.toLocaleString()}</td>
       </tr>
     `;
   }).join("");
@@ -141,14 +160,13 @@ function renderMemberLevel(user) {
   if (!user) return;
 
   const level = user.memberLevel || user.MemberLevel || "Silver";
-  
-  // ตั้งค่าข้อมูลระดับสมาชิก
+
   const MEMBER_LEVELS = {
     Silver: { pointsMultiplier: 1, discount: 0 },
     Gold: { pointsMultiplier: 1.5, discount: 5 },
     Platinum: { pointsMultiplier: 2, discount: 10 },
   };
-  
+
   const info = MEMBER_LEVELS[level] || MEMBER_LEVELS.Silver;
 
   const badge = document.getElementById("memberLevelBadge");

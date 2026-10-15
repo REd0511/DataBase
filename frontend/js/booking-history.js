@@ -1,10 +1,5 @@
 /* ============================================
    booking-history.js - Booking History (API)
-   FEATURES:
-   - Load bookings from API
-   - Admin/Manager เห็นทั้งหมด
-   - Trainer เห็นเฉพาะของตัวเอง
-   - Member เห็นของตัวเอง
    ============================================ */
 
 let allBookings = [];
@@ -25,7 +20,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // ✅ โหลดจาก API
   await loadBookings();
   renderHistory();
 });
@@ -36,21 +30,17 @@ async function loadBookings() {
     let bookings = [];
 
     if (currentUser.role === "admin" || currentUser.role === "manager") {
-      // Admin/Manager → ดูทั้งหมด
       bookings = await SheSparksAPI.bookings();
     } else if (currentUser.role === "trainer") {
-      // Trainer → ดูของตัวเอง
       const trainerId = currentUser.trainerId || 1;
       bookings = await SheSparksAPI.get(`/trainers/${trainerId}/bookings`);
     } else {
-      // Member → ดูของตัวเอง
       const memberId = currentUser.MemberID || currentUser.id;
       bookings = await SheSparksAPI.memberBookings(memberId);
     }
 
     allBookings = bookings || [];
 
-    // เรียงตามวันที่ (ใหม่ → เก่า)
     allBookings.sort((a, b) => {
       const dateA = new Date(a.BookingDate || a.CreatedAt || 0);
       const dateB = new Date(b.BookingDate || b.CreatedAt || 0);
@@ -60,7 +50,6 @@ async function loadBookings() {
     console.error("Load bookings error:", error);
     allBookings = [];
 
-    // แสดง Error
     const tbody = document.getElementById("bookingTableBody");
     if (tbody) {
       tbody.innerHTML = `
@@ -78,15 +67,9 @@ async function loadBookings() {
 function renderHistory(filteredBookings = null) {
   const bookings = filteredBookings || allBookings;
 
-  // ==================== SUMMARY CARDS ====================
   const totalBookings = bookings.length;
-  const totalPoints = bookings.reduce(
-    (sum, b) => sum + Number(b.Points || 0),
-    0,
-  );
-  const upcoming = bookings.filter(
-    (b) => b.Status === "Confirmed" || !b.Status,
-  ).length;
+  const totalPoints = bookings.reduce((sum, b) => sum + Number(b.Points || 0), 0);
+  const upcoming = bookings.filter((b) => b.Status === "Confirmed" || b.Status === "Pending" || !b.Status).length;
   const completed = bookings.filter((b) => b.Status === "Completed").length;
 
   const elTotal = document.getElementById("totalBookings");
@@ -99,7 +82,6 @@ function renderHistory(filteredBookings = null) {
   if (elUpcoming) elUpcoming.textContent = upcoming;
   if (elCompleted) elCompleted.textContent = completed;
 
-  // ==================== TABLE ====================
   const tbody = document.getElementById("bookingTableBody");
   if (!tbody) return;
 
@@ -126,7 +108,6 @@ function renderHistory(filteredBookings = null) {
 
   tbody.innerHTML = bookings
     .map((b) => {
-      // ✅ รองรับหลาย Field Name (API + Mock)
       const rawDate = b.BookingDate || b.Date || "-";
       let date = rawDate;
       if (rawDate !== "-" && rawDate.includes("T")) {
@@ -146,7 +127,10 @@ function renderHistory(filteredBookings = null) {
           ? b.Equipments.map((e) => e.Name || e).join(", ")
           : "—";
       const points = b.Points || 0;
+      const amount = Number(b.Amount || 0);
       const status = b.Status || "Confirmed";
+
+      const isCancelable = status !== "Cancelled" && status !== "Completed";
 
       return `
         <tr>
@@ -158,16 +142,43 @@ function renderHistory(filteredBookings = null) {
           <td>${capacity} people</td>
           <td>${trainer}</td>
           <td>${equipment}</td>
+          <td style="color: var(--gold); font-weight: 600;">฿${amount.toLocaleString()}</td>
           <td style="color: var(--pink-deep); font-weight: 600;">+${points}</td>
           <td>
             <span class="status-badge ${getStatusClass(status)}">
               ${status}
             </span>
+            ${isCancelable ? `<br><button onclick="cancelMyBooking(${b.BookingID})" style="margin-top:8px; padding:4px 10px; font-size:0.75rem; background:var(--white); color:var(--danger); border:1px solid var(--danger); border-radius:50px; cursor:pointer; transition:all 0.2s;">Cancel</button>` : ''}
           </td>
         </tr>
       `;
     })
     .join("");
+}
+
+// ==================== CANCEL BOOKING ====================
+async function cancelMyBooking(bookingId) {
+  if (!confirm("คุณแน่ใจหรือไม่ที่จะยกเลิกการจองนี้?")) return;
+
+  try {
+    await SheSparksAPI.delete(`/bookings/${bookingId}`);
+    
+    showModal({
+      type: "success",
+      title: "Cancelled",
+      message: "ยกเลิกการจองสำเร็จ",
+      onClose: async () => {
+        await loadBookings();
+        renderHistory();
+      }
+    });
+  } catch (error) {
+    showModal({
+      type: "error",
+      title: "Error",
+      message: "ไม่สามารถยกเลิกการจองได้: " + error.message
+    });
+  }
 }
 
 // ==================== FILTER ====================
@@ -182,7 +193,15 @@ function filterBookings() {
   }
 
   if (date) {
-    filtered = filtered.filter((b) => (b.BookingDate || b.Date) === date);
+    filtered = filtered.filter((b) => {
+        const rawDate = b.BookingDate || b.Date || "-";
+        let dStr = rawDate;
+        if (rawDate !== "-" && rawDate.includes("T")) {
+          const d = new Date(rawDate);
+          dStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
+        }
+        return dStr === date;
+    });
   }
 
   renderHistory(filtered);
@@ -200,6 +219,7 @@ function clearFilters() {
 function getStatusClass(status) {
   const map = {
     Confirmed: "confirmed",
+    Pending: "confirmed",
     Completed: "completed",
     Cancelled: "cancelled",
   };

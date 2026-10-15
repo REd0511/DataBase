@@ -1,10 +1,5 @@
 /* ============================================
    rewards.js - Rewards Page (API Only)
-   FEATURES:
-   - Load Points from API
-   - Load Rewards from API
-   - Redeem via API
-   - Show "Redeemed" state
    ============================================ */
 
 let allRewards = [];
@@ -28,30 +23,37 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const memberId = user.MemberID || user.id;
+  const container = document.getElementById("reward-list");
 
-  // ✅ Load Points from API
+  if (container) {
+    container.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:var(--text-mid);">กำลังโหลดข้อมูลรางวัล...</p>';
+  }
+
+  // 1. Load Points
   try {
     const pointsData = await SheSparksAPI.memberPoints(memberId);
-    userPoints = Number(pointsData.Balance || pointsData.balance || 0);
+    userPoints = Number(pointsData.Balance || 0);
   } catch (error) {
     console.warn("Cannot load points:", error.message);
     userPoints = 0;
   }
 
-  // ✅ Load Rewards from API
+  // 2. Load Rewards
   try {
     const apiRewards = await SheSparksAPI.rewards();
-    allRewards = apiRewards || [];
+    allRewards = Array.isArray(apiRewards) ? apiRewards : [];
+    console.log("Loaded rewards:", allRewards.length, allRewards);
   } catch (error) {
-    console.warn("Cannot load rewards:", error.message);
+    console.error("Cannot load rewards:", error);
     allRewards = [];
   }
 
-  // ✅ Load Redemptions from API
+  // 3. Load Redemptions
   try {
-    userRedemptions = await SheSparksAPI.get(`/rewards/member/${memberId}`);
-    userRedemptions = userRedemptions || [];
+    const redemptions = await SheSparksAPI.get(`/rewards/member/${memberId}`);
+    userRedemptions = Array.isArray(redemptions) ? redemptions : [];
   } catch (error) {
+    console.warn("Cannot load redemptions:", error.message);
     userRedemptions = [];
   }
 
@@ -72,9 +74,13 @@ function renderRewards(rewards) {
   const container = document.getElementById("reward-list");
   if (!container) return;
 
-  if (rewards.length === 0) {
-    container.innerHTML =
-      '<p style="text-align:center;grid-column:1/-1;color:var(--text-mid);">No rewards available.</p>';
+  if (!rewards || rewards.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:60px 20px;">
+        <p style="color:var(--text-mid);margin-bottom:16px;">No rewards available.</p>
+        <button class="btn-secondary" onclick="location.reload()">Reload</button>
+      </div>
+    `;
     return;
   }
 
@@ -89,7 +95,7 @@ function renderRewards(rewards) {
       if (isRedeemed) {
         buttonHTML = `<button class="btn-primary redeemed" disabled>✓ Redeemed</button>`;
       } else if (!canAfford) {
-        buttonHTML = `<button class="btn-primary" disabled>Not enough points</button>`;
+        buttonHTML = `<button class="btn-primary" disabled>Not enough points (${r.PointCost} pts needed)</button>`;
       } else {
         buttonHTML = `<button class="btn-primary" onclick="openRedeemModal(${r.RewardID})">Redeem</button>`;
       }
@@ -173,33 +179,42 @@ function closeRedeemModal() {
     modal.classList.remove("active");
     setTimeout(() => modal.remove(), 300);
   }
-  currentReward = null;
 }
 
 // ==================== CONFIRM REDEEM (API) ====================
 async function confirmRedeem() {
   const user = JSON.parse(localStorage.getItem("user"));
-  if (!user || !currentReward) return;
+  if (!user) return;
+
+  const reward = currentReward;
+  if (!reward) {
+    showModal({
+      type: "error",
+      title: "Error",
+      message: "ไม่พบข้อมูลรางวัล กรุณาลองใหม่",
+    });
+    return;
+  }
 
   closeRedeemModal();
 
   const memberId = user.MemberID || user.id;
 
   try {
-    // ✅ เรียก API
     await SheSparksAPI.post("/rewards/redeem", {
       MemberID: Number(memberId),
-      RewardID: Number(currentReward.RewardID),
+      RewardID: Number(reward.RewardID),
       RedemptionDate: new Date().toISOString().split("T")[0],
-      PointsUsed: currentReward.PointCost,
+      PointsUsed: reward.PointCost,
     });
 
-    // ✅ อัปเดต state
-    userPoints -= currentReward.PointCost;
+    userPoints -= reward.PointCost;
     userRedemptions.push({
-      RewardID: currentReward.RewardID,
+      RewardID: reward.RewardID,
       RedemptionDate: new Date().toISOString().split("T")[0],
     });
+
+    currentReward = null;
 
     renderPointsBadge();
     renderRewards(allRewards);
@@ -208,8 +223,8 @@ async function confirmRedeem() {
       type: "success",
       title: "Redeemed Successfully!",
       message: `
-        <strong>Reward:</strong> ${currentReward.Name}<br>
-        <strong>Points Used:</strong> ${currentReward.PointCost}<br>
+        <strong>Reward:</strong> ${reward.Name}<br>
+        <strong>Points Used:</strong> ${reward.PointCost}<br>
         <strong>Remaining Points:</strong> ${userPoints}
       `,
       buttonText: "View Points History",
@@ -218,6 +233,7 @@ async function confirmRedeem() {
       },
     });
   } catch (error) {
+    currentReward = null;
     showModal({
       type: "error",
       title: "Redeem Failed",

@@ -1,12 +1,13 @@
 /* ============================================
-   summary.js - Summary + Trainer + Equipment + Loyalty Points (API Connected)
+   summary.js - Summary + Trainer + Equipment + Real Payment
    ============================================ */
 
 let selectedEquipments = [];
-let dbAvailableEquipments = []; // เก็บข้อมูลอุปกรณ์จาก API
+let dbAvailableEquipments = [];
+let currentPrice = { Amount: 0, PointsEarned: 0, Hours: 0, HourlyRate: 0, TrainerRate: 0 };
 
 // ==================== INIT ====================
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
 
   if (!flow || !flow.room) {
@@ -20,19 +21,43 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  renderSummary(flow);
+  await renderSummary(flow);
   decideNextStep(flow);
 });
 
+// ==================== FETCH PRICE FROM BACKEND ====================
+async function fetchPriceFromBackend(flow) {
+  try {
+    const trainerCount = flow.trainer ? 1 : 0;
+    const params = new URLSearchParams({
+      RoomID: flow.room.RoomID,
+      StartTime: flow.startTime,
+      EndTime: flow.endTime,
+      TrainerCount: trainerCount,
+    });
+    const data = await SheSparksAPI.get(`/bookings/preview?${params.toString()}`);
+    currentPrice = {
+      Amount: Number(data.Amount || 0),
+      PointsEarned: Number(data.PointsEarned || 0),
+      Hours: Number(data.Hours || 0),
+      HourlyRate: Number(data.HourlyRate || 0),
+      TrainerRate: Number(data.TrainerRate || 0),
+    };
+    return currentPrice;
+  } catch (error) {
+    console.warn("Cannot fetch price:", error.message);
+    currentPrice = { Amount: 0, PointsEarned: 0, Hours: 0, HourlyRate: 0, TrainerRate: 0 };
+    return currentPrice;
+  }
+}
+
 // ==================== DECIDE NEXT STEP ====================
 function decideNextStep(flow) {
-  // 1. ถ้าเคยกด Yes แต่กดย้อนกลับมา (ไม่มี trainer ติดมาด้วย) ให้โชว์คำถามใหม่
   if (flow.wantTrainer === true && !flow.trainer) {
     showTrainerOption();
     return;
   }
 
-  // 2. ถ้ามีเทรนเนอร์แล้ว หรือกด No ข้ามเทรนเนอร์มา -> ไปสเตปถาม Equipment
   if (flow.trainer || flow.wantTrainer === false) {
     if (flow.wantEquipment === true) {
       loadAndRenderEquipment(flow);
@@ -45,16 +70,20 @@ function decideNextStep(flow) {
     return;
   }
 
-  // 3. เริ่มต้นปกติ (ยังไม่ได้เลือกอะไรเลย)
   showTrainerOption();
 }
 
 // ==================== RENDER SUMMARY ====================
-function renderSummary(flow) {
+async function renderSummary(flow) {
   const card = document.getElementById("summary-card");
   if (!card) return;
 
-  const points = calculateLoyaltyPoints(flow);
+  card.innerHTML = `<p style="text-align:center;color:var(--text-mid);">กำลังคำนวณราคา...</p>`;
+
+  await fetchPriceFromBackend(flow);
+
+  const amount = currentPrice.Amount;
+  const points = currentPrice.PointsEarned;
 
   card.innerHTML = `
     <h3>Your Booking</h3>
@@ -62,7 +91,7 @@ function renderSummary(flow) {
     <p><strong>Sport:</strong> ${flow.sport.SportName}</p>
     <p><strong>Room:</strong> ${flow.room.RoomName}</p>
     <p><strong>Date:</strong> ${flow.date || "Not selected"}</p>
-    <p><strong>Time:</strong> ${flow.startTime} - ${flow.endTime}</p>
+    <p><strong>Time:</strong> ${flow.startTime} - ${flow.endTime} (${currentPrice.Hours} hr)</p>
     <p><strong>Capacity:</strong> ${flow.capacity} people</p>
     ${flow.trainer ? `<p><strong>Trainer:</strong> ${flow.trainer.Name}</p>` : ""}
     ${flow.equipments && flow.equipments.length > 0
@@ -70,8 +99,16 @@ function renderSummary(flow) {
       : ""
     }
     <hr style="margin: 16px 0; border: none; border-top: 1px dashed var(--pink-main);">
-    <p style="color: var(--pink-deep); font-weight: 700;">
-      🎉 Loyalty Points: ${points} pts
+
+    <div class="price-breakdown">
+      <h4>💰 Price Breakdown</h4>
+      <p><span>Room Rate:</span> <span>฿${currentPrice.HourlyRate.toLocaleString()} × ${currentPrice.Hours} hr</span></p>
+      ${flow.trainer ? `<p><span>Trainer Rate:</span> <span>฿${currentPrice.TrainerRate.toLocaleString()} × ${currentPrice.Hours} hr</span></p>` : ""}
+      <p class="total"><span>Total:</span> <span>฿${amount.toLocaleString()}</span></p>
+    </div>
+
+    <p style="color: var(--pink-deep); font-weight: 700; font-size: 1.1rem; text-align:center; margin-top: 12px;">
+      🎉 You will earn ${points.toLocaleString()} points
     </p>
   `;
 }
@@ -90,6 +127,7 @@ function addTrainer(wantTrainer) {
     flow.wantEquipment = null;
     localStorage.setItem("bookingFlow", JSON.stringify(flow));
     showEquipmentOption();
+    renderSummary(flow);
   }
 }
 
@@ -122,7 +160,7 @@ function showEquipmentListSection() {
   hideElement("#confirm-section");
 }
 
-// ==================== EQUIPMENT (API) ====================
+// ==================== EQUIPMENT ====================
 function showEquipmentList(wantEquipment) {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
 
@@ -136,6 +174,7 @@ function showEquipmentList(wantEquipment) {
     flow.equipments = [];
     localStorage.setItem("bookingFlow", JSON.stringify(flow));
     showConfirmSection();
+    renderSummary(flow);
   }
 }
 
@@ -146,15 +185,16 @@ async function loadAndRenderEquipment(flow) {
   container.innerHTML = "<p style='text-align:center; width:100%;'>กำลังโหลดข้อมูลอุปกรณ์...</p>";
 
   try {
-    const allAvailableEq = await SheSparksAPI.get(`/equipments/available?date=${flow.date}&startTime=${flow.startTime}&endTime=${flow.endTime}`);
+    const allAvailableEq = await SheSparksAPI.get(
+      `/equipments/available?date=${flow.date}&startTime=${flow.startTime}&endTime=${flow.endTime}`
+    );
 
     dbAvailableEquipments = allAvailableEq.filter(
       (e) => e.StudioCode === flow.studio.StudioCode && e.SportTypeID === flow.sport.SportTypeID
     );
 
     selectedEquipments = flow.equipments || [];
-    renderEquipmentHTML(flow.capacity); // ส่งจำนวนคนในห้องไปเป็น Max limit
-
+    renderEquipmentHTML(flow.capacity);
   } catch (error) {
     console.error("Equipment API error:", error);
     container.innerHTML = "<p style='color:var(--danger)'>เกิดข้อผิดพลาดในการโหลดอุปกรณ์</p>";
@@ -165,7 +205,6 @@ function renderEquipmentHTML(maxCapacity) {
   const container = document.getElementById("equipment-grid");
   if (!container) return;
 
-  // === กรณีไม่มีอุปกรณ์เหลือเลย (Empty State) ===
   if (dbAvailableEquipments.length === 0) {
     container.style.gridTemplateColumns = "1fr";
     container.innerHTML = `
@@ -175,37 +214,30 @@ function renderEquipmentHTML(maxCapacity) {
         <button class="btn-primary" onclick="showEquipmentList(false)">ดำเนินการต่อโดยไม่รับอุปกรณ์</button>
       </div>
     `;
-    // ซ่อนปุ่ม Confirm Equipment ด้านล่างออกไป
     const confirmBtn = container.nextElementSibling;
-    if (confirmBtn && confirmBtn.tagName === 'BUTTON') confirmBtn.style.display = 'none';
+    if (confirmBtn && confirmBtn.tagName === "BUTTON") confirmBtn.style.display = "none";
     return;
   }
 
-  // === กรณีมีอุปกรณ์ ===
   container.style.gridTemplateColumns = "repeat(auto-fit, minmax(180px, 1fr))";
 
-  // โชว์ปุ่ม Confirm กลับมาเผื่อโดนซ่อนไว้
   const confirmBtn = container.nextElementSibling;
-  if (confirmBtn && confirmBtn.tagName === 'BUTTON') confirmBtn.style.display = 'inline-flex';
+  if (confirmBtn && confirmBtn.tagName === "BUTTON") confirmBtn.style.display = "inline-flex";
 
   container.innerHTML = dbAvailableEquipments.map((e) => {
-    // เช็กว่าไอเทมนี้ถูกเลือกไว้ใน selectedEquipments ไหม
     const selEq = selectedEquipments.find((sel) => sel.EquipmentID === e.EquipmentID);
     const isSelected = !!selEq;
-    const qty = selEq ? (selEq.Quantity || 1) : 1;
+    const qty = selEq ? selEq.Quantity || 1 : 1;
 
     return `
       <div class="equipment-card ${isSelected ? "selected" : ""}" data-id="${e.EquipmentID}">
-        <!-- พื้นที่กดเลือกอุปกรณ์ -->
         <div onclick="toggleEquipment(${e.EquipmentID})" style="cursor:pointer; position:relative;">
           ${e.ImageURL ? `<img src="${e.ImageURL}" alt="${e.Name}" onerror="this.style.display='none'">` : ""}
           <h4>${e.Name}</h4>
           <p>Condition: ${e.ConditionStatus || e.Condition || "Good"}</p>
           <p>Late Fee: ฿${e.LateFee}</p>
-          <p style="color: var(--pink-deep); font-weight: 600;">+20 pts/item</p>
+          <p style="color: var(--pink-deep); font-weight: 600;">Free rental</p>
         </div>
-        
-        <!-- กล่องใส่จำนวน (จะโผล่มาเมื่อถูกเลือกเท่านั้น) -->
         ${isSelected ? `
           <div style="margin-top: 12px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="event.stopPropagation()">
             <label style="font-size:0.85rem; color:var(--text-dark); font-weight:600;">Qty:</label>
@@ -218,27 +250,23 @@ function renderEquipmentHTML(maxCapacity) {
   }).join("");
 }
 
-// คลิกเพื่อเลือก / ยกเลิกการเลือก
 function toggleEquipment(equipmentID) {
   const index = selectedEquipments.findIndex((e) => e.EquipmentID === equipmentID);
   if (index >= 0) {
-    selectedEquipments.splice(index, 1); // เอาออก
+    selectedEquipments.splice(index, 1);
   } else {
     const equipment = dbAvailableEquipments.find((e) => e.EquipmentID === equipmentID);
-    selectedEquipments.push({ ...equipment, Quantity: 1 }); // เลือกพร้อมตั้งค่าดีฟอลต์ = 1
+    selectedEquipments.push({ ...equipment, Quantity: 1 });
   }
 
-  // Re-render UI เพื่อโชว์/ซ่อนกล่อง Quantity
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
   renderEquipmentHTML(flow.capacity);
 }
 
-// อัปเดตตัวเลขจำนวนเมื่อผู้ใช้พิมพ์หรือกดปุ่มขึ้นลง
 function updateEquipmentQty(equipmentID, newQty) {
   const equipment = selectedEquipments.find((e) => e.EquipmentID === equipmentID);
   if (equipment) {
-    const qty = parseInt(newQty) || 1;
-    equipment.Quantity = qty;
+    equipment.Quantity = parseInt(newQty) || 1;
   }
 }
 
@@ -252,7 +280,7 @@ function confirmEquipment() {
   showConfirmSection();
 }
 
-// ==================== CONFIRM BOOKING (API) ====================
+// ==================== CONFIRM BOOKING ====================
 async function confirmBooking() {
   const flow = JSON.parse(localStorage.getItem("bookingFlow"));
   const user = JSON.parse(localStorage.getItem("user"));
@@ -268,9 +296,9 @@ async function confirmBooking() {
     return;
   }
 
-  // ✅ เตรียมข้อมูลส่ง API
   const memberId = user.MemberID || user.id;
 
+  // ส่งเฉพาะข้อมูลจำเป็น — Backend จะคำนวณราคาและแต้มเอง
   const bookingData = {
     BookingDate: flow.date,
     StartTime: flow.startTime,
@@ -282,21 +310,13 @@ async function confirmBooking() {
       Quantity: parseInt(e.Quantity) || 1,
     })),
     TrainerIDs: flow.trainer
-      ? [
-        {
-          TrainerID: flow.trainer.TrainerID,
-          TrainerRole: "Main Trainer",
-          HourlyRate: 500,
-        },
-      ]
+      ? [{ TrainerID: flow.trainer.TrainerID, TrainerRole: "Main Trainer" }]
       : [],
   };
 
   try {
-    // ✅ เรียก API
     const result = await SheSparksAPI.post("/bookings", bookingData);
 
-    // ✅ สำเร็จ
     showModal({
       type: "success",
       title: "จองสำเร็จ!",
@@ -306,10 +326,13 @@ async function confirmBooking() {
         <strong>Sport:</strong> ${flow.sport.SportName}<br>
         <strong>Room:</strong> ${flow.room.RoomName}<br>
         <strong>Date:</strong> ${flow.date}<br>
-        <strong>Time:</strong> ${flow.startTime} - ${flow.endTime}<br>
+        <strong>Time:</strong> ${flow.startTime} - ${flow.endTime} (${result.Hours} hr)<br>
         <strong>Capacity:</strong> ${flow.capacity} people<br>
         ${flow.trainer ? `<strong>Trainer:</strong> ${flow.trainer.Name}<br>` : ""}
         ${flow.equipments && flow.equipments.length > 0 ? `<strong>Equipment:</strong> ${flow.equipments.map((e) => e.Name).join(", ")}<br>` : ""}
+        <hr style="margin: 12px 0; border: none; border-top: 1px dashed var(--pink-main);">
+        <strong>Total Paid:</strong> ฿${Number(result.Amount).toLocaleString()}<br>
+        <strong>Points Earned:</strong> +${result.PointsEarned} points
       `,
       buttonText: "ดูประวัติการจอง",
       onClose: () => {
@@ -318,42 +341,12 @@ async function confirmBooking() {
       },
     });
   } catch (error) {
-    // ❌ Error
     showModal({
       type: "error",
       title: "จองไม่สำเร็จ",
       message: error.message || "เกิดข้อผิดพลาด",
     });
   }
-}
-
-// ==================== CALCULATE LOYALTY POINTS ====================
-function calculateLoyaltyPoints(flow) {
-  const rules = JSON.parse(localStorage.getItem("loyaltyRules")) || {
-    pointsPerHour: 30,
-    pointsPerTrainer: 50,
-    pointsPerEquipment: 20,
-    pointsPerCapacity: 2,
-  };
-
-  let points = 0;
-
-  const start = parseInt(flow.startTime.split(":")[0]);
-  const end = parseInt(flow.endTime.split(":")[0]);
-  const hours = end - start;
-  points += hours * rules.pointsPerHour;
-
-  if (flow.trainer) {
-    points += rules.pointsPerTrainer;
-  }
-
-  if (flow.equipments && flow.equipments.length > 0) {
-    points += flow.equipments.length * rules.pointsPerEquipment;
-  }
-
-  points += (flow.capacity || 1) * rules.pointsPerCapacity;
-
-  return points;
 }
 
 // ==================== HELPERS ====================

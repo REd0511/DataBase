@@ -16,10 +16,8 @@ function renderNavbar() {
   const user = JSON.parse(localStorage.getItem("user"));
   const role = user ? user.role : "guest";
 
-  // ==================== Nav Links ====================
   let navLinks = "";
 
-  // Home (everyone)
   navLinks += `
     <a href="/views/index.html" class="home-icon ${isActive("index.html")}">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -29,7 +27,6 @@ function renderNavbar() {
     </a>
   `;
 
-  // Role-based links
   if (role === "guest" || role === "member") {
     navLinks += `
       <a href="/views/booking.html" class="${isActive("booking.html")}">Booking</a>
@@ -45,7 +42,6 @@ function renderNavbar() {
     navLinks += `<a href="/views/manager-dashboard.html" class="${isActive("manager-dashboard.html")}">Dashboard</a>`;
   }
 
-  // Profile / Login
   let profileSection = "";
 
   if (user) {
@@ -135,9 +131,16 @@ function renderProfilePopover() {
     popoverContent = `
       <a href="/views/points.html" class="popover-points clickable">
         <span>Total Points</span>
-        <span class="points-value">${getUserTotalPoints(user)}</span>
+        <span class="points-value" id="popoverPointsValue">…</span>
       </a>
       <div class="popover-links">
+        <a href="/views/my-courses.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          My Courses
+        </a>
         <a href="/views/rewards.html">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 12 20 22 4 22 4 12"></polyline>
@@ -180,6 +183,32 @@ function renderProfilePopover() {
       Sign Out
     </button>
   `;
+
+  // ถ้าเป็น member → ยิง API ดึงแต้มจริง
+  if (role === "member") {
+    fetchUserPointsFromAPI(user);
+  }
+}
+
+async function fetchUserPointsFromAPI(user) {
+  const el = document.getElementById("popoverPointsValue");
+  if (!el) return;
+
+  try {
+    const api = window.SheSparksAPI;
+    if (!api) {
+      el.textContent = "0";
+      return;
+    }
+
+    const memberId = user.MemberID || user.id;
+    const data = await api.memberPoints(memberId);
+    const balance = Number(data.Balance || 0);
+    el.textContent = balance.toLocaleString();
+  } catch (error) {
+    console.warn("Cannot load points for popover:", error.message);
+    el.textContent = "0";
+  }
 }
 
 function getRoleLabel(role) {
@@ -243,27 +272,4 @@ function setupNavbarScroll() {
     window.addEventListener("scroll", handleScroll);
     handleScroll();
   }
-}
-
-// ==================== GET USER TOTAL POINTS ====================
-function getUserTotalPoints(user) {
-  if (!user) return 0;
-
-  if (user.role !== "member") return 0;
-
-  const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-  const redemptions = JSON.parse(localStorage.getItem("redemptions")) || [];
-
-  // Earned from bookings
-  const memberBookings = bookings.filter((b) => b.MemberID === user.id);
-  const earned = memberBookings.reduce((sum, b) => sum + (b.Points || 0), 0);
-
-  // Redeemed
-  const userRedemptions = redemptions.filter((r) => r.MemberID === user.id);
-  const redeemed = userRedemptions.reduce(
-    (sum, r) => sum + (r.PointsUsed || 0),
-    0,
-  );
-
-  return (earned - redeemed).toLocaleString();
 }

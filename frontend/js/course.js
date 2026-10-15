@@ -1,5 +1,5 @@
 /* ============================================
-   course.js - Course Page (API Connected 100%)
+   course.js - Course Page (API Connected)
    ============================================ */
 
 let allCourses = [];
@@ -42,14 +42,14 @@ function renderCourses(courses) {
     if (isEnrolled) {
       buttonHTML = `<button class="btn-primary enrolled" disabled>✓ Enrolled</button>`;
     } else if (!prereqMet) {
-      buttonHTML = `<button class="btn-primary locked" disabled>🔒 Prerequisite Required</button>`;
+      buttonHTML = `<button class="btn-primary locked" style="background:var(--border); color:var(--text-mid); cursor:not-allowed;" disabled>🔒 Prerequisite Required</button>`;
     } else {
       buttonHTML = `<button class="btn-primary" onclick="openEnrollModal(${Number(c.CourseID)})">Enroll Now</button>`;
     }
 
     const prereqHTML = prereq
-      ? `<p class="prerequisite ${prereqMet ? "met" : "not-met"}">
-         ${prereqMet ? "✓" : "🔒"} Prerequisite: ${prereq.Title}
+      ? `<p class="prerequisite ${prereqMet ? "met" : "not-met"}" style="font-size:0.8rem; padding:6px 10px; border-radius:8px; display:inline-block; margin-bottom:12px; ${prereqMet ? 'background:#e8f5e9; color:#4caf50;' : 'background:#ffebee; color:#f44336;'}">
+         ${prereqMet ? "✓" : "🔒"} Prerequisite: ${escapeHTML(prereq.Title)}
        </p>`
       : "";
 
@@ -60,7 +60,7 @@ function renderCourses(courses) {
         <h3>${escapeHTML(c.Title)}</h3>
         <p class="duration">⏱ ${escapeHTML(c.DurationHours)} hours</p>
         ${prereqHTML}
-        <p class="fee">฿${Number(c.StandardFee || 0).toLocaleString()}</p>
+        <p class="fee" style="margin-top:auto;">฿${Number(c.StandardFee || 0).toLocaleString()}</p>
         ${buttonHTML}
       </div>
     `;
@@ -93,6 +93,8 @@ function openEnrollModal(courseId) {
   const course = allCourses.find((c) => Number(c.CourseID) === Number(courseId));
   if (!course) return;
 
+  const pointsPreview = Math.floor(Number(course.StandardFee || 0));
+
   const modalHTML = `
     <div class="custom-modal-overlay" id="enroll-confirm-modal">
       <div class="custom-modal">
@@ -106,10 +108,11 @@ function openEnrollModal(courseId) {
           <p><strong>Duration:</strong> ${course.DurationHours} hours</p>
           <hr style="margin: 12px 0; border: none; border-top: 1px dashed var(--pink-main);">
           <p><strong>Fee:</strong> <span style="color: var(--pink-deep); font-weight: 700;">฿${Number(course.StandardFee || 0).toLocaleString()}</span></p>
+          <p style="color: var(--pink-deep); font-weight: 600;">🎉 You will earn ${pointsPreview} points</p>
         </div>
         <div class="custom-modal-actions">
           <button class="btn-secondary" onclick="closeEnrollModal()">Cancel</button>
-          <button class="btn-primary" onclick="confirmEnroll(${course.CourseID})">Confirm Enroll</button>
+          <button class="btn-primary" onclick="confirmEnroll(${course.CourseID})">Confirm & Pay</button>
         </div>
       </div>
     </div>
@@ -136,16 +139,16 @@ async function confirmEnroll(courseId) {
 
   try {
     const memberId = user.MemberID || user.id;
-    await SheSparksAPI.post("/courses/enroll", {
+    const result = await SheSparksAPI.post("/courses/enroll", {
       MemberID: Number(memberId),
       CourseID: Number(courseId),
       EnrollmentDate: new Date().toISOString().split("T")[0],
-      PaymentStatus: "Pending",
+      PaymentStatus: "PAID",   // ✅ จ่ายเงินทันที → ได้แต้ม
     });
 
     await loadUserEnrollments(user);
     renderCourses(allCourses);
-    showSuccessModal();
+    showSuccessModal(result.PointsEarned || 0);
   } catch (error) {
     alert(`ลงทะเบียนไม่สำเร็จ: ${error.message}`);
   }
@@ -162,13 +165,18 @@ async function loadUserEnrollments(user) {
   }
 }
 
-function showSuccessModal() {
+function showSuccessModal(pointsEarned) {
   const modalHTML = `
     <div class="custom-modal-overlay" id="enroll-success-modal">
       <div class="custom-modal">
         <div class="custom-modal-icon success">✓</div>
         <h3>Enrolled Successfully!</h3>
         <p>You have successfully enrolled in the course.</p>
+        ${pointsEarned > 0 ? `
+          <p style="color: var(--pink-deep); font-weight: 700; font-size: 1.15rem; margin-top: 12px;">
+            🎉 +${pointsEarned} points earned!
+          </p>
+        ` : ""}
         <div class="custom-modal-actions">
           <button class="btn-primary" onclick="closeSuccessAndReload()">OK</button>
         </div>

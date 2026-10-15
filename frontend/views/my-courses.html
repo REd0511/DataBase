@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Courses - SheSparks</title>
+    <link rel="icon" type="image/png" href="/assets/logo.png" />
+    <link rel="stylesheet" href="/css/global.css" />
+    <link rel="stylesheet" href="/css/navbar.css" />
+    <link rel="stylesheet" href="/css/tables.css" />
+    <link rel="stylesheet" href="/css/course.css" />
+    <link rel="stylesheet" href="/css/my-courses.css" />
+    <link rel="stylesheet" href="/css/forms.css" />
+    <link rel="stylesheet" href="/css/modal.css" />
+  </head>
+
+  <body>
+    <header class="navbar" id="navbar"></header>
+
+    <main>
+      <h2 class="section-title">My Courses</h2>
+      <p class="section-subtitle">คอร์สเรียนทั้งหมดที่คุณลงทะเบียนไว้</p>
+
+      <!-- Summary Cards -->
+      <section class="summary-cards">
+        <div class="card">
+          <h3>Total Courses</h3>
+          <p id="totalCourses">0</p>
+        </div>
+        <div class="card">
+          <h3>Total Paid</h3>
+          <p id="totalPaid">฿0</p>
+        </div>
+        <div class="card">
+          <h3>Points Earned</h3>
+          <p id="totalPointsEarned">0</p>
+        </div>
+      </section>
+
+      <!-- Filters -->
+      <section class="report">
+        <div class="filters">
+          <label>
+            Status
+            <select id="statusFilter" onchange="filterEnrollments()">
+              <option value="">All</option>
+              <option value="PAID">Paid</option>
+              <option value="UNPAID">Unpaid</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+          </label>
+          <button class="btn-secondary" onclick="clearFilters()">Clear</button>
+        </div>
+
+        <!-- Course Enrollment Cards -->
+        <div id="my-courses-list" class="my-courses-grid"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>© 2026 SheSparks Wellness | PorWoPor Team</p>
+    </footer>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/global.js"></script>
+    <script src="/js/modal.js"></script>
+    <script src="/js/my-courses.js"></script>
+  </body>
+</html>

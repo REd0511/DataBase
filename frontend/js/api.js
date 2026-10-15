@@ -20,6 +20,9 @@
   window.SheSparksAPI = {
     get: (path) => request(path),
     post: (path, data) => request(path, { method: 'POST', body: JSON.stringify(data) }),
+    put: (path, data) => request(path, { method: 'PUT', body: JSON.stringify(data) }),        // ✅ เพิ่ม PUT
+    delete: (path) => request(path, { method: 'DELETE' }),                                    // ✅ เพิ่ม DELETE
+
     members: () => request('/members'),
     member: (id) => request(`/members/${encodeURIComponent(id)}`),
     memberPoints: (id) => request(`/members/${encodeURIComponent(id)}/points`),
