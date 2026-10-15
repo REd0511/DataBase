@@ -3,7 +3,7 @@ const db = require('../config/db');
 exports.createPayment = (req, res) => {
     const { Amount, PaymentDate, PaymentMethod, BookingID, MemberID } = req.body;
     if (!Amount || !PaymentDate || !PaymentMethod || !BookingID) {
-        return res.status(400).json({ message: 'กรอกข้อมูลให้ครบ' });
+        return res.status(400).json({ message: 'Please fill in all required fields' });
     }
 
     const insertPaymentSql = 'INSERT INTO PAYMENT (Amount, PaymentDate, PaymentMethod, PaymentStatus, BookingID) VALUES (?, ?, ?, ?, ?)';
@@ -21,10 +21,10 @@ exports.createPayment = (req, res) => {
             `;
             db.query(insertPointsSql, [MemberID, paymentId, pointsEarned, PaymentDate], (err2) => {
                 if (err2) return res.status(500).json(err2);
-                res.status(201).json({ message: 'ชำระเงินสำเร็จ', PaymentID: paymentId, PointsEarned: pointsEarned });
+                res.status(201).json({ message: 'Payment successful', PaymentID: paymentId, PointsEarned: pointsEarned });
             });
         } else {
-            res.status(201).json({ message: 'ชำระเงินสำเร็จ', PaymentID: paymentId, PointsEarned: pointsEarned });
+            res.status(201).json({ message: 'Payment successful', PaymentID: paymentId, PointsEarned: pointsEarned });
         }
     });
 };

@@ -2,7 +2,7 @@
    Room Page + Room Modal
    ============================================ */
 
-/* ========== Room List (แสดงการ์ด) ========== */
+/* ========== Room List ========== */
 .room-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -109,7 +109,7 @@
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  overflow-x: hidden;              /* ✅ ซ่อน scrollbar แนวนอน */
+  overflow-x: hidden;             
   padding: 28px 24px;
   transform: scale(0.9);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -120,12 +120,10 @@
   transform: scale(1);
 }
 
-/* ซ่อน Scrollbar ของ Body ขณะเปิด Modal */
 body.modal-open {
   overflow: hidden;
 }
 
-/* ✅ Custom Scrollbar (วงรีสีชมพู) */
 .room-modal::-webkit-scrollbar {
   width: 8px;
 }
@@ -151,11 +149,10 @@ body.modal-open {
   scrollbar-color: var(--pink-main) transparent;
 }
 
-/* ========== ปุ่มปิด Modal (Sticky) ========== */
 .room-modal-close {
-  position: sticky;                /* ✅ Sticky อยู่บนสุดเสมอ */
+  position: sticky;                
   top: 0;
-  float: right;                    /* ✅ ชิดขวา */
+  float: right;                    
   margin-left: auto;
   width: 36px;
   height: 36px;
@@ -171,7 +168,7 @@ body.modal-open {
   justify-content: center;
   transition: all 0.2s ease;
   z-index: 100;
-  margin-bottom: -36px;            /* ✅ ดึงขึ้นมาให้ซ้อนทับ */
+  margin-bottom: -36px;          
 }
 
 .room-modal-close:hover {
@@ -180,7 +177,7 @@ body.modal-open {
   transform: rotate(90deg);
 }
 
-/* ========== รูป Room ========== */
+/* ========== Room ========== */
 .room-modal-image {
   width: 100%;
   height: 200px;
@@ -205,7 +202,7 @@ body.modal-open {
   display: none;
 }
 
-/* ========== ชื่อ Room ========== */
+/* ========== Room Name ========== */
 .room-modal-title {
   color: var(--pink-deep);
   font-size: 1.4rem;
@@ -231,11 +228,11 @@ body.modal-open {
 .date-slots {
   display: flex;
   gap: 10px;
-  overflow-x: auto;                /* ✅ เลื่อนได้แค่ซ้าย-ขวา */
-  overflow-y: hidden;              /* ✅ ไม่ให้เลื่อนขึ้นลง */
-  padding: 4px 4px 28px;           /* ✅ padding ล่างสำหรับ Today */
+  overflow-x: auto;          
+  overflow-y: hidden;        
+  padding: 4px 4px 28px;         
   scroll-behavior: smooth;
-  flex-wrap: nowrap;               /* ✅ ไม่ตัดบรรทัด */
+  flex-wrap: nowrap;              
   -webkit-overflow-scrolling: touch;
 }
 
@@ -260,7 +257,7 @@ body.modal-open {
 
 .date-slot {
   flex: 0 0 auto;
-  min-width: 90px;                 /* ✅ กว้างขึ้น */
+  min-width: 90px;                
   padding: 12px 16px;
   border-radius: 50px;
   border: 1.5px solid var(--border);
@@ -348,7 +345,7 @@ body.modal-open {
   opacity: 0.7;
 }
 
-/* ========== ช่องกรอก Capacity ========== */
+/* ========== Capacity ========== */
 #modal-capacity {
   width: 100%;
   padding: 12px 16px;
@@ -367,7 +364,7 @@ body.modal-open {
   box-shadow: 0 0 0 3px var(--pink-soft);
 }
 
-/* ========== ปุ่ม Select ========== */
+/* ========== Select btn ========== */
 .room-modal-select {
   width: 100%;
   padding: 14px;

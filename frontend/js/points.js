@@ -1,6 +1,5 @@
 /* ============================================
    points.js - Points Page (API Connected)
-   ✅ แก้: ใช้ /members/:id/transactions โดยตรง
    ============================================ */
 
 document.addEventListener("DOMContentLoaded", async () => {

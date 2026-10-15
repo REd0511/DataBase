@@ -1,14 +1,14 @@
 /* ============================================
    booking-flow.js - Studio → Sport → Room (API Connected)
    FEATURES:
-   - Step 1: เลือก Studio (ดึงจาก DB)
-   - Step 2: เลือก Sport (กรองจาก DB)
-   - Step 3: เลือก Room (ตรวจสอบห้องว่างจาก API /api/rooms/available)
+   - Step 1: Select Studio (from DB)
+   - Step 2: Select Sport (filtered from DB)
+   - Step 3: Select Room (check availability from API /api/rooms/available)
    ============================================ */
 
 let flow = JSON.parse(localStorage.getItem("bookingFlow")) || {};
 
-// ตัวแปรสำหรับเก็บข้อมูลจาก Database
+// Variables to store data from Database
 let dbStudios = [];
 let dbSports = [];
 let dbRooms = [];
@@ -16,26 +16,26 @@ let dbRooms = [];
 // ==================== INIT ====================
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    // 1. ดึงข้อมูล Master Data จาก API แทน Mock Data
+    // 1. Fetch Master Data from API instead of Mock Data
     dbStudios = await SheSparksAPI.studios();
     dbSports = await SheSparksAPI.sports();
     dbRooms = await SheSparksAPI.rooms();
 
-    // 2. Render หน้าที่กำลังเปิดอยู่
+    // 2. Render current page
     if (document.getElementById("studio-list")) renderStudios();
     if (document.getElementById("sport-list")) renderSports();
     if (document.getElementById("room-list")) renderRooms();
   } catch (error) {
     console.error("Failed to load data from API:", error);
-    alert("ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาตรวจสอบว่ารัน Backend แล้วหรือยัง");
+    alert("Cannot connect to database. Please check if Backend is running.");
   }
 });
 
-// Helper: หาว่า Studio นี้มีกีฬาอะไรบ้าง โดยดูจากข้อมูลห้อง (ROOMS) ใน DB
+// find which sports a Studio has by checking ROOMS data in DB
 function getSportsForStudio(studioCode) {
-  // หา SportTypeID ทั้งหมดที่มีห้องใน Studio นี้
+  // Find all SportTypeIDs that have rooms in this Studio
   const sportIdsInStudio = [...new Set(dbRooms.filter(r => r.StudioCode === studioCode).map(r => r.SportTypeID))];
-  // คืนค่าออบเจกต์กีฬา
+  // Return sport objects
   return dbSports.filter(s => sportIdsInStudio.includes(s.SportTypeID));
 }
 
@@ -115,7 +115,6 @@ function renderRooms(filteredRooms = null) {
     label.textContent = `${flow.sport.SportName} at ${flow.studio.Name}`;
   }
 
-  // ถ้าไม่ได้กรองด้วยฟิลเตอร์ ให้แสดงห้องทั้งหมดของสตูดิโอและกีฬานั้นๆ
   const rooms = filteredRooms || dbRooms.filter(
       (r) => r.StudioCode === flow.studio.StudioCode && r.SportTypeID === flow.sport.SportTypeID
   );
@@ -141,14 +140,14 @@ function renderRooms(filteredRooms = null) {
     .join("");
 }
 
-// ==================== APPLY FILTERS (เรียก API ตรวจสอบห้องว่าง) ====================
+// ==================== APPLY FILTERS ====================
 async function applyFilters() {
   const date = document.getElementById("filterDate")?.value;
   const startTime = document.getElementById("filterStartTime")?.value;
   const endTime = document.getElementById("filterEndTime")?.value;
   const capacity = parseInt(document.getElementById("filterCapacity")?.value) || 1;
 
-  // ถ้าไม่เลือกวัน/เวลา → แสดงทั้งหมดตามปกติ
+  // If no date/time selected → show all as normal
   if (!date || !startTime || !endTime) {
     renderRooms();
     return;
@@ -157,8 +156,8 @@ async function applyFilters() {
   if (startTime >= endTime) {
     showModal({
       type: "warning",
-      title: "เวลาไม่ถูกต้อง",
-      message: "เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น",
+      title: "Invalid time",
+      message: "End time must be after start time",
     });
     return;
   }
@@ -166,17 +165,17 @@ async function applyFilters() {
   if (capacity < 1 || capacity > 30) {
     showModal({
       type: "warning",
-      title: "จำนวนคนไม่ถูกต้อง",
-      message: "จำนวนคนต้องอยู่ระหว่าง 1 - 30 คน",
+      title: "Invalid capacity",
+      message: "Number of people must be between 1 and 30",
     });
     return;
   }
 
   try {
-    // ✅ เรียก API หาห้องว่างโดยตรง (จัดการเรื่องการป้องกันห้องซ้อนได้ 100%)
+    //  find available rooms directly 
     const availableRoomsFromApi = await SheSparksAPI.availableRooms(date, startTime, endTime);
 
-    // กรองเพิ่มตาม Studio, Sport และความจุห้อง
+    // Additional filter by Studio, Sport, and capacity
     const filtered = availableRoomsFromApi.filter((r) => {
       if (r.StudioCode !== flow.studio.StudioCode) return false;
       if (r.SportTypeID !== flow.sport.SportTypeID) return false;
@@ -187,7 +186,7 @@ async function applyFilters() {
     renderRooms(filtered);
   } catch (error) {
     console.error("Filter error:", error);
-    showModal({ type: "error", title: "Error", message: "ไม่สามารถค้นหาห้องว่างจากระบบได้" });
+    showModal({ type: "error", title: "Error", message: "Cannot search for available rooms" });
   }
 }
 

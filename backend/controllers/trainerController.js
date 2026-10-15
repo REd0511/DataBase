@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-// เทรนเนอร์ทั้งหมด
+// All trainers
 exports.getAllTrainers = (req, res) => {
     const sql = `
         SELECT t.*, s.Location AS StudioLocation, st.SportName
@@ -14,7 +14,7 @@ exports.getAllTrainers = (req, res) => {
     });
 };
 
-// เทรนเนอร์คนเดียว + ตารางสอน
+// Single trainer + teaching schedule
 exports.getTrainerById = (req, res) => {
     const trainerId = req.params.id;
     const sql = `
@@ -31,7 +31,7 @@ exports.getTrainerById = (req, res) => {
     });
 };
 
-// ✅ NEW: bookings ของเทรนเนอร์คนนี้ (ใช้ใน trainer-dashboard.js)
+// ✅ NEW: bookings of this trainer (used in trainer-dashboard.js)
 exports.getTrainerBookings = (req, res) => {
     const sql = `
         SELECT b.BookingID, b.BookingDate, b.StartTime, b.EndTime,
@@ -53,11 +53,11 @@ exports.getTrainerBookings = (req, res) => {
     });
 };
 
-// เทรนเนอร์ว่างในวันและเวลา
+// Available trainers on specified date and time
 exports.getAvailableTrainers = (req, res) => {
     const { date, startTime, endTime } = req.query;
     if (!date || !startTime || !endTime) {
-        return res.status(400).json({ message: 'กรุณาระบุ date, startTime, endTime' });
+        return res.status(400).json({ message: 'Please specify date, startTime, endTime' });
     }
 
     const sql = `

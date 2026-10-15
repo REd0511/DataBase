@@ -31,7 +31,7 @@
         <h3 class="flow-title">Select a Room</h3>
         <p class="flow-subtitle" id="selected-sport-label"></p>
 
-        <!-- Filter ด้านบน -->
+        <!-- Filter  -->
         <div class="filters">
           <label>Date <input type="date" id="filterDate" /></label>
           <label
@@ -58,33 +58,31 @@
     </footer>
 
     <!-- ============================================ -->
-    <!-- Room Modal: เลือกวัน + เวลา -->
+    <!-- Room Modal-->
     <!-- ============================================ -->
     <div class="room-modal-overlay" id="room-modal">
       <div class="room-modal">
-        <!-- ปุ่มปิด -->
+
         <button class="room-modal-close" onclick="closeRoomModal()">×</button>
 
-        <!-- รูป Room -->
-        <!-- รูป Room -->
 <div class="room-modal-image" id="modal-room-image"></div>
 
-        <!-- ชื่อ Room -->
+        <!--Room name -->
         <h3 class="room-modal-title" id="modal-room-name">Room A</h3>
 
-        <!-- เลือกวัน -->
+        <!-- Date -->
         <div class="room-modal-section">
           <h4>Select Date</h4>
           <div class="date-slots" id="date-slots"></div>
         </div>
 
-        <!-- เลือกเวลา -->
+        <!-- Time Slot -->
         <div class="room-modal-section">
           <h4>Select Time Slot</h4>
           <div class="time-slots" id="time-slots"></div>
         </div>
 
-        <!-- ✅ เพิ่มส่วนนี้: จำนวนคน -->
+        <!-- Capacity -->
         <div class="room-modal-section">
           <h4>Number of People</h4>
           <input
@@ -98,7 +96,7 @@
           />
         </div>
 
-        <!-- ปุ่ม Select -->
+        <!-- Select -->
         <button
           class="btn-primary room-modal-select"
           id="modal-select-btn"

@@ -13,8 +13,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     showModal({
       type: "warning",
       title: "Please Login",
-      message: "กรุณาเข้าสู่ระบบก่อนดูประวัติการจอง",
-      buttonText: "ไปที่ Login",
+      message: "Please login to view your booking history",
+      buttonText: "Go to Login",
       redirectTo: "/views/login.html",
     });
     return;
@@ -55,7 +55,7 @@ async function loadBookings() {
       tbody.innerHTML = `
         <tr>
           <td colspan="10" style="text-align:center;padding:40px;color:var(--danger);">
-            โหลดประวัติการจองไม่สำเร็จ: ${error.message}
+            Failed to load booking history: ${error.message}
           </td>
         </tr>
       `;
@@ -97,7 +97,7 @@ function renderHistory(filteredBookings = null) {
               <line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
             <h3>No Bookings Yet</h3>
-            <p>คุณยังไม่มีการจอง เริ่มจองเลย!</p>
+            <p>No bookings yet. Start booking!</p>
             <a href="/views/booking.html" class="btn-primary">Book Now</a>
           </div>
         </td>
@@ -158,7 +158,7 @@ function renderHistory(filteredBookings = null) {
 
 // ==================== CANCEL BOOKING ====================
 async function cancelMyBooking(bookingId) {
-  if (!confirm("คุณแน่ใจหรือไม่ที่จะยกเลิกการจองนี้?")) return;
+  if (!confirm("Are you sure you want to cancel this booking?")) return;
 
   try {
     await SheSparksAPI.delete(`/bookings/${bookingId}`);
@@ -166,7 +166,7 @@ async function cancelMyBooking(bookingId) {
     showModal({
       type: "success",
       title: "Cancelled",
-      message: "ยกเลิกการจองสำเร็จ",
+      message: "Booking cancelled successfully",
       onClose: async () => {
         await loadBookings();
         renderHistory();
@@ -176,7 +176,7 @@ async function cancelMyBooking(bookingId) {
     showModal({
       type: "error",
       title: "Error",
-      message: "ไม่สามารถยกเลิกการจองได้: " + error.message
+      message: "Cannot cancel booking: " + error.message
     });
   }
 }

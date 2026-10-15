@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 // ============================================
-// CREATE BOOKING (คำนวณราคาจริง + แต้ม 1 บาท = 1 แต้ม)
+// CREATE BOOKING  1 baht = 1 point
 // ============================================
 exports.createBooking = async (req, res) => {
   const {
@@ -15,27 +15,27 @@ exports.createBooking = async (req, res) => {
   } = req.body;
 
   if (!BookingDate || !StartTime || !EndTime || !MemberID || !RoomID) {
-    return res.status(400).json({ message: 'กรอกข้อมูลให้ครบ' });
+    return res.status(400).json({ message: 'Please fill in all required fields' });
   }
 
   const today = new Date().toISOString().split('T')[0];
   if (BookingDate < today) {
-    return res.status(400).json({ message: 'ไม่สามารถจองย้อนหลังได้' });
+    return res.status(400).json({ message: 'Cannot book in the past' });
   }
 
   try {
-    // 1. ดึงราคาห้อง
+    // 1. Get room rate
     const [roomRows] = await db.promise().query(
       `SELECT HourlyRate, TrainerRate FROM ROOM WHERE RoomID = ?`,
       [RoomID]
     );
     if (roomRows.length === 0) {
-      return res.status(400).json({ message: 'ไม่พบห้องนี้' });
+      return res.status(400).json({ message: 'Room not found' });
     }
     const hourlyRate = Number(roomRows[0].HourlyRate || 200);
     const trainerRate = Number(roomRows[0].TrainerRate || 500);
 
-    // 2. คำนวณชั่วโมง
+    // 2. Calculate hours
     const startH = parseInt(StartTime.split(':')[0]);
     const startM = parseInt(StartTime.split(':')[1] || '0');
     const endH = parseInt(EndTime.split(':')[0]);
@@ -43,10 +43,10 @@ exports.createBooking = async (req, res) => {
     const hours = ((endH * 60 + endM) - (startH * 60 + startM)) / 60;
 
     if (hours <= 0) {
-      return res.status(400).json({ message: 'เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น' });
+      return res.status(400).json({ message: 'End time must be after start time' });
     }
 
-    // 3. เช็กห้องซ้อน
+    // 3. Check room overlap
     const [overlap] = await db.promise().query(
       `SELECT BookingID FROM BOOKING 
        WHERE RoomID = ? AND BookingDate = ? 
@@ -54,10 +54,10 @@ exports.createBooking = async (req, res) => {
       [RoomID, BookingDate, EndTime, StartTime]
     );
     if (overlap.length > 0) {
-      return res.status(400).json({ message: 'ห้องถูกจองแล้วในช่วงเวลานี้' });
+      return res.status(400).json({ message: 'Room is already booked during this time' });
     }
 
-    // 4. คำนวณราคารวม
+    // 4. Calculate total price
     let amount = hours * hourlyRate;
     if (TrainerIDs && TrainerIDs.length > 0) {
       amount += hours * trainerRate * TrainerIDs.length;
@@ -118,7 +118,7 @@ exports.createBooking = async (req, res) => {
     }
 
     res.status(201).json({
-      message: 'จองสำเร็จ',
+      message: 'Booking successful',
       BookingID: bookingId,
       PaymentID: paymentId,
       Amount: amount,
@@ -140,7 +140,7 @@ exports.getBookingPreview = async (req, res) => {
   const { RoomID, StartTime, EndTime, TrainerCount } = req.query;
 
   if (!RoomID || !StartTime || !EndTime) {
-    return res.status(400).json({ message: 'กรุณาระบุ RoomID, StartTime, EndTime' });
+    return res.status(400).json({ message: 'Please specify RoomID, StartTime, EndTime' });
   }
 
   try {
@@ -149,7 +149,7 @@ exports.getBookingPreview = async (req, res) => {
       [RoomID]
     );
     if (roomRows.length === 0) {
-      return res.status(404).json({ message: 'ไม่พบห้องนี้' });
+      return res.status(404).json({ message: 'Room not found' });
     }
 
     const hourlyRate = Number(roomRows[0].HourlyRate || 200);
@@ -334,13 +334,13 @@ exports.cancelBooking = async (req, res) => {
   try {
     const bookingId = req.params.id;
 
-    // 1. ดึง PaymentID ของ Booking นี้
+    // 1. Get PaymentID for this Booking
     const [payments] = await db.promise().query(
       'SELECT PaymentID FROM PAYMENT WHERE BookingID = ?',
       [bookingId]
     );
 
-    // 2. ดึงแต้มที่เคยได้จาก Booking นี้
+    // 2. Get points earned from this Booking
     let pointsEarned = 0;
     if (payments.length > 0) {
       const [points] = await db.promise().query(
@@ -352,7 +352,7 @@ exports.cancelBooking = async (req, res) => {
       pointsEarned = Number(points[0].Total || 0);
     }
 
-    // 3. ตรวจสอบแต้มพอหักคืนไหม
+    // 3. Check if enough points to deduct back
     const [booking] = await db.promise().query(
       'SELECT MemberID FROM BOOKING WHERE BookingID = ?',
       [bookingId]
@@ -369,12 +369,12 @@ exports.cancelBooking = async (req, res) => {
 
       if (currentBalance - pointsEarned < 0) {
         return res.status(400).json({
-          message: `ไม่สามารถยกเลิกได้ เพราะคุณใช้แต้มไปแล้ว (มี ${currentBalance} แต้ม แต่ต้องหักคืน ${pointsEarned} แต้ม)`
+          message: `Cannot cancel because points have already been used (Balance: ${currentBalance}, Points to deduct: ${pointsEarned})`
         });
       }
     }
 
-    // 4. ลบข้อมูลตามลำดับ
+    // 4. Delete related records in order
     await db.promise().query(
       `DELETE FROM POINT_TRANSACTION 
        WHERE PaymentID IN (SELECT PaymentID FROM PAYMENT WHERE BookingID = ?)`,
@@ -387,10 +387,10 @@ exports.cancelBooking = async (req, res) => {
     const [result] = await db.promise().query('DELETE FROM BOOKING WHERE BookingID = ?', [bookingId]);
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'ไม่พบการจอง' });
+      return res.status(404).json({ message: 'Booking not found' });
     }
 
-    res.json({ message: 'ยกเลิกการจองสำเร็จ' });
+    res.json({ message: 'Booking cancelled successfully' });
   } catch (err) {
     console.error('cancelBooking error:', err);
     res.status(500).json({ error: err.message });

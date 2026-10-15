@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-// สตูดิโอทั้งหมด
+// All studios
 exports.getAllStudios = (req, res) => {
     db.query('SELECT * FROM STUDIO', (err, results) => {
         if (err) return res.status(500).json(err);
@@ -8,7 +8,7 @@ exports.getAllStudios = (req, res) => {
     });
 };
 
-// ห้องทั้งหมด
+// All rooms
 exports.getAllRooms = (req, res) => {
     const sql = `
         SELECT r.*, s.Location AS StudioLocation
@@ -21,7 +21,7 @@ exports.getAllRooms = (req, res) => {
     });
 };
 
-// ประเภทกีฬาทั้งหมด
+// All sport types
 exports.getAllSportTypes = (req, res) => {
     db.query('SELECT * FROM SPORT_TYPE', (err, results) => {
         if (err) return res.status(500).json(err);
@@ -29,11 +29,11 @@ exports.getAllSportTypes = (req, res) => {
     });
 };
 
-// ห้องว่างในวันที่และเวลาที่กำหนด
+// Available rooms on specified date and time
 exports.getAvailableRooms = (req, res) => {
     const { date, startTime, endTime } = req.query;
     if (!date || !startTime || !endTime) {
-        return res.status(400).json({ message: 'กรุณาระบุ date, startTime, endTime' });
+        return res.status(400).json({ message: 'Please specify date, startTime, endTime' });
     }
 
     const sql = `

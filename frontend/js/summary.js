@@ -1,5 +1,5 @@
 /* ============================================
-   summary.js - Summary + Trainer + Equipment + Real Payment
+  Summary + Trainer + Equipment + Real Payment
    ============================================ */
 
 let selectedEquipments = [];
@@ -13,9 +13,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!flow || !flow.room) {
     showModal({
       type: "warning",
-      title: "ไม่พบข้อมูลการจอง",
-      message: "กรุณาเริ่มการจองใหม่",
-      buttonText: "ไปที่ Booking",
+      title: "Booking data not found",
+      message: "Please start a new booking",
+      buttonText: "Go to Booking",
       redirectTo: "/views/booking.html",
     });
     return;
@@ -78,7 +78,7 @@ async function renderSummary(flow) {
   const card = document.getElementById("summary-card");
   if (!card) return;
 
-  card.innerHTML = `<p style="text-align:center;color:var(--text-mid);">กำลังคำนวณราคา...</p>`;
+  card.innerHTML = `<p style="text-align:center;color:var(--text-mid);">Calculating price...</p>`;
 
   await fetchPriceFromBackend(flow);
 
@@ -182,7 +182,7 @@ async function loadAndRenderEquipment(flow) {
   const container = document.getElementById("equipment-grid");
   if (!container) return;
 
-  container.innerHTML = "<p style='text-align:center; width:100%;'>กำลังโหลดข้อมูลอุปกรณ์...</p>";
+  container.innerHTML = "<p style='text-align:center; width:100%;'>Loading equipment...</p>";
 
   try {
     const allAvailableEq = await SheSparksAPI.get(
@@ -197,7 +197,7 @@ async function loadAndRenderEquipment(flow) {
     renderEquipmentHTML(flow.capacity);
   } catch (error) {
     console.error("Equipment API error:", error);
-    container.innerHTML = "<p style='color:var(--danger)'>เกิดข้อผิดพลาดในการโหลดอุปกรณ์</p>";
+    container.innerHTML = "<p style='color:var(--danger)'>Error loading equipment</p>";
   }
 }
 
@@ -210,8 +210,8 @@ function renderEquipmentHTML(maxCapacity) {
     container.innerHTML = `
       <div style="text-align: center; padding: 40px 20px;">
         <h3 style="color: var(--pink-deep); margin-bottom: 8px;">Out of Stock 😢</h3>
-        <p style="color: var(--text-mid); margin-bottom: 20px;">อุปกรณ์กีฬาทั้งหมดถูกยืมไปแล้วในช่วงเวลานี้</p>
-        <button class="btn-primary" onclick="showEquipmentList(false)">ดำเนินการต่อโดยไม่รับอุปกรณ์</button>
+        <p style="color: var(--text-mid); margin-bottom: 20px;">All sports equipment is borrowed during this time</p>
+        <button class="btn-primary" onclick="showEquipmentList(false)">Continue without equipment</button>
       </div>
     `;
     const confirmBtn = container.nextElementSibling;
@@ -289,8 +289,8 @@ async function confirmBooking() {
     showModal({
       type: "warning",
       title: "Please Login",
-      message: "กรุณาเข้าสู่ระบบก่อนทำการจอง",
-      buttonText: "ไปที่ Login",
+      message: "Please login before booking",
+      buttonText: "Go to Login",
       redirectTo: "/views/login.html",
     });
     return;
@@ -298,7 +298,7 @@ async function confirmBooking() {
 
   const memberId = user.MemberID || user.id;
 
-  // ส่งเฉพาะข้อมูลจำเป็น — Backend จะคำนวณราคาและแต้มเอง
+  // Send only necessary data — Backend will calculate price and points itself
   const bookingData = {
     BookingDate: flow.date,
     StartTime: flow.startTime,
@@ -319,7 +319,7 @@ async function confirmBooking() {
 
     showModal({
       type: "success",
-      title: "จองสำเร็จ!",
+      title: "Booking successful!",
       message: `
         <strong>Booking ID:</strong> ${result.BookingID}<br>
         <strong>Studio:</strong> ${flow.studio.Name}<br>
@@ -334,7 +334,7 @@ async function confirmBooking() {
         <strong>Total Paid:</strong> ฿${Number(result.Amount).toLocaleString()}<br>
         <strong>Points Earned:</strong> +${result.PointsEarned} points
       `,
-      buttonText: "ดูประวัติการจอง",
+      buttonText: "View Booking History",
       onClose: () => {
         localStorage.removeItem("bookingFlow");
         window.location.href = "/views/booking-history.html";
@@ -343,8 +343,8 @@ async function confirmBooking() {
   } catch (error) {
     showModal({
       type: "error",
-      title: "จองไม่สำเร็จ",
-      message: error.message || "เกิดข้อผิดพลาด",
+      title: "Booking failed",
+      message: error.message || "An error occurred",
     });
   }
 }

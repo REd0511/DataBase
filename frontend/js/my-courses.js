@@ -13,8 +13,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     showModal({
       type: "warning",
       title: "Please Login",
-      message: "กรุณาเข้าสู่ระบบก่อนดูคอร์สเรียนของคุณ",
-      buttonText: "ไปที่ Login",
+      message: "Please login to view your courses",
+      buttonText: "Go to Login",
       redirectTo: "/views/login.html",
     });
     return;
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function loadEnrollments() {
   const container = document.getElementById("my-courses-list");
   if (container) {
-    container.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:var(--text-mid);">กำลังโหลดข้อมูลคอร์ส...</p>';
+    container.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:var(--text-mid);">Loading courses...</p>';
   }
 
   try {
@@ -42,7 +42,7 @@ async function loadEnrollments() {
     if (container) {
       container.innerHTML = `
         <div class="empty-state-my-courses" style="border-color:var(--danger);">
-          <h3 style="color:var(--danger);">โหลดข้อมูลไม่สำเร็จ</h3>
+          <h3 style="color:var(--danger);">Failed to load data</h3>
           <p>${error.message}</p>
         </div>
       `;
@@ -74,7 +74,7 @@ function renderEnrollments(filtered = null) {
     container.innerHTML = `
       <div class="empty-state-my-courses">
         <h3>No Courses Yet</h3>
-        <p>คุณยังไม่ได้ลงทะเบียนคอร์สเรียนใดๆ เริ่มเลือกคอร์สที่ชอบเลย!</p>
+        <p>You haven't enrolled in any courses yet. Start browsing!</p>
         <a href="/views/course.html" class="btn-primary">Browse Courses</a>
       </div>
     `;

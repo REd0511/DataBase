@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-// ดึงสมาชิกทั้งหมด
+// Get all members
 exports.getAllMembers = (req, res) => {
     db.query('SELECT * FROM MEMBER', (err, results) => {
         if (err) return res.status(500).json(err);
@@ -8,31 +8,31 @@ exports.getAllMembers = (req, res) => {
     });
 };
 
-// ดึงสมาชิกคนเดียว
+// Get single member
 exports.getMemberById = (req, res) => {
     db.query('SELECT * FROM MEMBER WHERE MemberID = ?', [req.params.id], (err, results) => {
         if (err) return res.status(500).json(err);
-        if (results.length === 0) return res.status(404).json({ message: 'ไม่พบสมาชิก' });
+        if (results.length === 0) return res.status(404).json({ message: 'Member not found' });
         res.json(results[0]);
     });
 };
 
-// สมัครสมาชิกใหม่
+// Register new member
 exports.createMember = (req, res) => {
     const { Name, Phone, DOB, MemberLevel, StudioCode } = req.body;
-    if (!Name || !Phone) return res.status(400).json({ message: 'กรอกชื่อและเบอร์โทร' });
+    if (!Name || !Phone) return res.status(400).json({ message: 'Please enter name and phone number' });
 
     const sql = 'INSERT INTO MEMBER (Name, Phone, DOB, MemberLevel, StudioCode) VALUES (?, ?, ?, ?, ?)';
     db.query(sql, [Name, Phone, DOB, MemberLevel || 'Silver', StudioCode || 'ST001'], (err, result) => {
         if (err) {
-            if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ message: 'เบอร์นี้ถูกใช้แล้ว' });
+            if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ message: 'This phone number is already in use' });
             return res.status(500).json(err);
         }
-        res.status(201).json({ message: 'สมัครสมาชิกสำเร็จ', MemberID: result.insertId });
+        res.status(201).json({ message: 'Member registration successful', MemberID: result.insertId });
     });
 };
 
-// ดูแต้มสะสมของสมาชิก
+// Get member points
 exports.getMemberPoints = (req, res) => {
     const memberId = req.params.id;
     const sql = `

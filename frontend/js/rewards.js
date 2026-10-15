@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const container = document.getElementById("reward-list");
 
   if (container) {
-    container.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:var(--text-mid);">กำลังโหลดข้อมูลรางวัล...</p>';
+    container.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:var(--text-mid);">Loading rewards...</p>';
   }
 
   // 1. Load Points
@@ -191,7 +191,7 @@ async function confirmRedeem() {
     showModal({
       type: "error",
       title: "Error",
-      message: "ไม่พบข้อมูลรางวัล กรุณาลองใหม่",
+      message: "Reward not found. Please try again.",
     });
     return;
   }
@@ -237,7 +237,7 @@ async function confirmRedeem() {
     showModal({
       type: "error",
       title: "Redeem Failed",
-      message: error.message || "ไม่สามารถแลกรางวัลได้",
+      message: error.message || "Cannot redeem reward",
     });
   }
 }

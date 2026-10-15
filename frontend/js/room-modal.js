@@ -10,7 +10,7 @@ let currentRoom = null;
 let selectedDate = null;
 let selectedTimeSlot = null;
 
-// ==================== เปิด Modal ====================
+// ==================== Open Modal ====================
 async function openRoomModal(roomID) {
   const room = dbRooms.find((r) => r.RoomID === roomID);
   if (!room) return;
@@ -19,7 +19,7 @@ async function openRoomModal(roomID) {
   selectedDate = null;
   selectedTimeSlot = null;
 
-  // ตั้งค่ารูป
+  // Set image
   const imageContainer = document.getElementById("modal-room-image");
   if (imageContainer) {
     if (room.ImageURL) {
@@ -37,17 +37,17 @@ async function openRoomModal(roomID) {
   const capEl = document.getElementById("modal-capacity");
   if (capEl) capEl.value = 1;
 
-  // ✅ Load booked slots from API
+  // Load booked slots from API
   await loadBookedSlots(roomID);
 
-  // Render วัน + เวลา
+  // Render date + time
   renderDateSlots();
   renderTimeSlots();
 
-  // ปิดปุ่ม Select
+  // Disable Select button
   document.getElementById("modal-select-btn").disabled = true;
 
-  // เปิด Modal
+  // Open Modal
   document.getElementById("room-modal").classList.add("active");
   document.body.classList.add("modal-open");
 }
@@ -63,7 +63,7 @@ async function loadBookedSlots(roomId) {
   }
 }
 
-// ==================== ปิด Modal ====================
+// ==================== Close Modal ====================
 function closeRoomModal() {
   document.getElementById("room-modal").classList.remove("active");
   document.body.classList.remove("modal-open");
@@ -105,7 +105,7 @@ function renderDateSlots() {
     .join("");
 }
 
-// ==================== เลือกวัน ====================
+// ==================== Select Date ====================
 function selectDate(dateStr) {
   selectedDate = dateStr;
   selectedTimeSlot = null;
@@ -151,7 +151,7 @@ function renderTimeSlots() {
     .join("");
 }
 
-// ==================== เลือกเวลา ====================
+// ==================== Select Time Slot ====================
 function selectTimeSlot(slot) {
   selectedTimeSlot = slot;
 
@@ -162,7 +162,7 @@ function selectTimeSlot(slot) {
   document.getElementById("modal-select-btn").disabled = false;
 }
 
-// ==================== ยืนยันการเลือก ====================
+// ==================== Confirm Selection ====================
 function confirmRoomSelection() {
   if (!selectedDate || !selectedTimeSlot) {
     showModal({
@@ -195,13 +195,12 @@ function confirmRoomSelection() {
 
   const [startTime, endTime] = selectedTimeSlot.split("-");
 
-  // ✅ Double check กับ API ก่อน (ป้องกัน Race Condition)
   const isBooked = isRoomBooked(currentRoom.RoomID, selectedDate, startTime, endTime);
   if (isBooked) {
     showModal({
       type: "warning",
       title: "Room Not Available",
-      message: "ห้องนี้ถูกจองไปแล้วในช่วงเวลานี้",
+      message: "This room is already booked during this time",
     });
     return;
   }
@@ -220,11 +219,11 @@ function confirmRoomSelection() {
 
   saveFlow();
 
-  // แสดง Modal ยืนยัน
+  // Show confirm modal
   showConfirmBookingModal();
 }
 
-// ==================== Modal ยืนยัน ====================
+// ==================== Confirm Modal ====================
 function showConfirmBookingModal() {
   const [startTime, endTime] = selectedTimeSlot.split("-");
   const capacity = parseInt(document.getElementById("modal-capacity")?.value) || 1;
@@ -279,20 +278,20 @@ function proceedToSummary() {
   window.location.href = "/views/summary.html";
 }
 
-// ==================== ตรวจสอบการจอง (จาก API Cache) ====================
+// ==================== Check booking ====================
 function isRoomBooked(roomID, date, startTime, endTime) {
   return bookedSlotsCache.some((b) => {
-    // 1. แปลงวันที่จาก API ให้เป็น Local Date (YYYY-MM-DD) ป้องกันปัญหา Timezone Shift คลาดเคลื่อน 1 วัน
+    // 1. Convert date from API to Local Date (YYYY-MM-DD) to prevent timezone shift
     const d = new Date(b.BookingDate);
     const bDate = d.getFullYear() + "-" +
       String(d.getMonth() + 1).padStart(2, '0') + "-" +
       String(d.getDate()).padStart(2, '0');
 
-    // 2. ตัด String ของเวลาให้เหลือแค่ HH:MM (เพราะ MySQL มักส่งมาเป็น 10:00:00)
+    // 2. Trim time string to HH:MM (since MySQL often sends 10:00:00)
     const bStart = (b.StartTime || "").substring(0, 5);
     const bEnd = (b.EndTime || "").substring(0, 5);
 
-    // 3. เช็กว่าห้องเดียวกัน วันเดียวกัน และเวลาทับซ้อนกันหรือไม่
+    // 3. Check if same room, same date, and overlapping times
     return (
       Number(b.RoomID || roomID) === Number(roomID) &&
       bDate === date &&
@@ -302,7 +301,7 @@ function isRoomBooked(roomID, date, startTime, endTime) {
   });
 }
 
-// ==================== ปิด Modal เมื่อคลิกข้างนอก ====================
+// ==================== Close Modal on Outside Click ====================
 document.addEventListener("click", (e) => {
   const modal = document.getElementById("room-modal");
   if (modal && e.target === modal) {

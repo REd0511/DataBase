@@ -1,13 +1,10 @@
 /* ============================================
    manager-dashboard.js - Studio Manager Dashboard (API Connected)
-   FEATURES:
-   - โหลดข้อมูล Master Data และ Bookings ทั้งหมดจาก API
-   - สลับดูข้อมูลของแต่ละ Studio ได้
    ============================================ */
 
 let currentStudioCode = null;
 
-// เก็บข้อมูลที่โหลดมาจาก Database
+// Store from Database
 let dbStudios = [];
 let dbRooms = [];
 let dbTrainers = [];
@@ -17,7 +14,7 @@ let dbEquipment = [];
 window.addEventListener("DOMContentLoaded", async () => {
   const user = JSON.parse(localStorage.getItem("user"));
 
-  // ตรวจสอบสิทธิ์: Admin หรือ Manager
+  // Check: Admin or Manager
   if (!user || (user.role !== "manager" && user.role !== "admin")) {
     alert("Please login as Studio Manager or Admin");
     window.location.href = "/views/login.html";
@@ -25,7 +22,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    // โหลดข้อมูลทั้งหมดจาก API รวดเดียว
+    // Load from API
     const api = window.SheSparksAPI;
     [dbStudios, dbRooms, dbTrainers, dbBookings, dbEquipment] = await Promise.all([
       api.studios(),
@@ -35,10 +32,10 @@ window.addEventListener("DOMContentLoaded", async () => {
       api.get('/equipments')
     ]);
 
-    // สร้างตัวเลือก Dropdown สำหรับสลับสาขา
+    // Dropdown 
     populateStudioSwitcher();
 
-    // กำหนด Studio เริ่มต้นตาม Role ของผู้ใช้
+    //  Studio > Role 
     if (user.role === "manager") {
       currentStudioCode = user.studioCode || dbStudios[0]?.StudioCode;
     } else {
@@ -47,7 +44,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("studioSwitcher").value = currentStudioCode;
 
-    // เริ่มแสดงข้อมูล Dashboard
+    // Show Dashboard
     loadManagerDashboard(currentStudioCode);
 
   } catch (error) {
@@ -88,7 +85,6 @@ function loadManagerDashboard(studioCode) {
   document.getElementById("manager-sporttypes").textContent = `⚙️ Studio Management`;
 
   // ==================== FILTER DATA ====================
-  // กรองข้อมูลให้ตรงกับสาขาที่เลือก
   const studioRooms = dbRooms.filter((r) => r.StudioCode === studio.StudioCode);
   const studioTrainers = dbTrainers.filter((t) => t.StudioCode === studio.StudioCode);
   const studioEquipment = dbEquipment.filter((e) => e.StudioCode === studio.StudioCode);

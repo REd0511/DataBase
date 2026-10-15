@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 // ============================================
-// 1. READ: ดึงคอร์สทั้งหมด
+// READ: Get all courses
 // ============================================
 exports.getAllCourses = (req, res) => {
     const sql = `
@@ -18,13 +18,13 @@ exports.getAllCourses = (req, res) => {
 };
 
 // ============================================
-// 2. CREATE: เพิ่มคอร์สใหม่
+// CREATE: Add new course
 // ============================================
 exports.createCourse = (req, res) => {
     const { Title, Level, DurationHours, StandardFee, SportTypeID, StudioCode, RoomID, TrainerID, PrerequisiteCourseID, ImageURL } = req.body;
 
     if (!Title || !DurationHours || !StandardFee || !SportTypeID) {
-        return res.status(400).json({ message: 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน' });
+        return res.status(400).json({ message: 'Please fill in all required fields' });
     }
 
     const insertSql = `
@@ -46,16 +46,16 @@ exports.createCourse = (req, res) => {
             const prereqSql = 'INSERT INTO COURSE_PREREQUISITE (CourseID, PrerequisiteCourseID) VALUES (?, ?)';
             db.query(prereqSql, [newCourseId, PrerequisiteCourseID], (prereqErr) => {
                 if (prereqErr) return res.status(500).json(prereqErr);
-                return res.status(201).json({ message: 'สร้างคอร์สและวิชาบังคับก่อนสำเร็จ', CourseID: newCourseId });
+                return res.status(201).json({ message: 'Course and prerequisite created successfully', CourseID: newCourseId });
             });
         } else {
-            res.status(201).json({ message: 'สร้างคอร์สสำเร็จ', CourseID: newCourseId });
+            res.status(201).json({ message: 'Course created successfully', CourseID: newCourseId });
         }
     });
 };
 
 // ============================================
-// 3. UPDATE
+// UPDATE
 // ============================================
 exports.updateCourse = (req, res) => {
     const courseId = req.params.id;
@@ -75,7 +75,7 @@ exports.updateCourse = (req, res) => {
 
     db.query(updateSql, values, (err, result) => {
         if (err) return res.status(500).json(err);
-        if (result.affectedRows === 0) return res.status(404).json({ message: 'ไม่พบคอร์สนี้' });
+        if (result.affectedRows === 0) return res.status(404).json({ message: 'Course not found' });
 
         db.query('DELETE FROM COURSE_PREREQUISITE WHERE CourseID=?', [courseId], (delErr) => {
             if (delErr) return res.status(500).json(delErr);
@@ -83,22 +83,22 @@ exports.updateCourse = (req, res) => {
             if (PrerequisiteCourseID) {
                 db.query('INSERT INTO COURSE_PREREQUISITE (CourseID, PrerequisiteCourseID) VALUES (?, ?)', [courseId, PrerequisiteCourseID], (inErr) => {
                     if (inErr) return res.status(500).json(inErr);
-                    return res.json({ message: 'อัปเดตคอร์สสำเร็จ' });
+                    return res.json({ message: 'Course updated successfully' });
                 });
             } else {
-                res.json({ message: 'อัปเดตคอร์สสำเร็จ' });
+                res.json({ message: 'Course updated successfully' });
             }
         });
     });
 };
 
 // ============================================
-// 4. DELETE
+// DELETE
 // ============================================
 exports.deleteCourse = (req, res) => {
     const courseId = req.params.id;
 
-    // ลบ Payment ที่ผูกกับ Enrollment ของ Course นี้ก่อน
+    // Delete Payment linked to Enrollment of this Course first
     db.query(
         `DELETE FROM POINT_TRANSACTION 
          WHERE PaymentID IN (
@@ -126,8 +126,8 @@ exports.deleteCourse = (req, res) => {
 
                             db.query('DELETE FROM COURSE WHERE CourseID = ?', [courseId], (err3, result) => {
                                 if (err3) return res.status(500).json(err3);
-                                if (result.affectedRows === 0) return res.status(404).json({ message: 'ไม่พบคอร์สนี้' });
-                                res.json({ message: 'ลบคอร์สสำเร็จ' });
+                                if (result.affectedRows === 0) return res.status(404).json({ message: 'Course not found' });
+                                res.json({ message: 'Course deleted successfully' });
                             });
                         });
                     });
@@ -138,20 +138,20 @@ exports.deleteCourse = (req, res) => {
 };
 
 // ============================================
-// 5. ENROLL COURSE (✅ ได้แต้ม! 1 บาท = 1 แต้ม + ผูก EnrollmentID ใน Payment)
+// ENROLL COURSE 
 // ============================================
 exports.enrollCourse = (req, res) => {
     const { MemberID, CourseID, EnrollmentDate, PaymentStatus } = req.body;
     if (!MemberID || !CourseID || !EnrollmentDate) {
-        return res.status(400).json({ message: 'กรอกข้อมูลให้ครบ' });
+        return res.status(400).json({ message: 'Please fill in all required fields' });
     }
 
-    // 1. ดึงข้อมูลคอร์ส
+    // 1. Get course info
     const courseSql = 'SELECT CourseID, Title, StandardFee FROM COURSE WHERE CourseID = ?';
     db.query(courseSql, [CourseID], (err, courseRows) => {
         if (err) return res.status(500).json(err);
         if (courseRows.length === 0) {
-            return res.status(404).json({ message: 'ไม่พบคอร์สนี้' });
+            return res.status(404).json({ message: 'Course not found' });
         }
 
         const course = courseRows[0];
@@ -167,14 +167,14 @@ exports.enrollCourse = (req, res) => {
         db.query(enrollSql, [MemberID, CourseID, EnrollmentDate, status], (err2, enrollResult) => {
             if (err2) {
                 if (err2.code === 'ER_DUP_ENTRY') {
-                    return res.status(400).json({ message: 'ลงทะเบียนคอร์สนี้แล้ว' });
+                    return res.status(400).json({ message: 'Already enrolled in this course' });
                 }
                 return res.status(500).json(err2);
             }
 
             const enrollmentId = enrollResult.insertId;
 
-            // 3. ถ้าจ่ายเงิน → สร้าง Payment + PointTransaction
+            // 3. If paid → create Payment + PointTransaction
             if (status === 'PAID' && pointsEarned > 0) {
                 const paymentSql = `
                     INSERT INTO PAYMENT (Amount, PaymentDate, PaymentMethod, PaymentStatus, BookingID, RedemptionID, EnrollmentID)
@@ -184,7 +184,7 @@ exports.enrollCourse = (req, res) => {
                     if (err3) {
                         console.warn('Cannot create payment for course:', err3.message);
                         return res.status(201).json({
-                            message: 'ลงทะเบียนสำเร็จ (ไม่ได้แต้ม - Payment error)',
+                            message: 'Enrollment successful (no points earned - Payment error)',
                             EnrollmentID: enrollmentId,
                             PointsEarned: 0,
                         });
@@ -201,14 +201,14 @@ exports.enrollCourse = (req, res) => {
                         if (err4) {
                             console.warn('Cannot create point transaction:', err4.message);
                             return res.status(201).json({
-                                message: 'ลงทะเบียนสำเร็จ (Point error)',
+                                message: 'Enrollment successful (Point error)',
                                 EnrollmentID: enrollmentId,
                                 PointsEarned: 0,
                             });
                         }
 
                         res.status(201).json({
-                            message: 'ลงทะเบียนสำเร็จ ได้รับแต้มแล้ว!',
+                            message: 'Enrollment successful! Points earned!',
                             EnrollmentID: enrollmentId,
                             PointsEarned: pointsEarned,
                             PaymentID: paymentId,
@@ -217,7 +217,7 @@ exports.enrollCourse = (req, res) => {
                 });
             } else {
                 res.status(201).json({
-                    message: 'ลงทะเบียนสำเร็จ (รอชำระเงิน - ยังไม่ได้แต้ม)',
+                    message: 'Enrollment successful (Pending payment - no points yet)',
                     EnrollmentID: enrollmentId,
                     PointsEarned: 0,
                 });
@@ -227,7 +227,7 @@ exports.enrollCourse = (req, res) => {
 };
 
 // ============================================
-// 6. GET MEMBER ENROLLMENTS
+// GET MEMBER ENROLLMENTS
 // ============================================
 exports.getMemberEnrollments = (req, res) => {
     const sql = `

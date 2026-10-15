@@ -99,7 +99,7 @@
   border-radius: var(--radius-sm);
   overflow: hidden;
   border: 1px solid var(--border);
-  table-layout: auto; /* ✅ ปรับความกว้างอัตโนมัติ */
+  table-layout: auto; 
 }
 
 .booking-table thead th {
@@ -120,9 +120,9 @@
   color: var(--text-dark);
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
-  word-wrap: break-word; /* ✅ ตัดบรรทัดถ้ายาว */
-  white-space: normal; /* ✅ ให้ wrap ได้ */
-  max-width: 200px; /* ✅ จำกัดความกว้างช่อง */
+  word-wrap: break-word; 
+  white-space: normal; 
+  max-width: 200px; 
 }
 
 .booking-table tbody tr:last-child td {
@@ -174,7 +174,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  white-space: nowrap; /* ✅ ไม่ตัดบรรทัด */
+  white-space: nowrap; 
 }
 
 .status-badge.confirmed {
@@ -226,7 +226,7 @@
   }
 
   .booking-table tbody td {
-    max-width: 120px; /* ✅ ลดความกว้างช่อง */
+    max-width: 120px; 
   }
 }
 
@@ -246,20 +246,19 @@
     align-items: stretch;
   }
 
-  /* ✅ Mobile: ให้เลื่อนแนวนอนได้เพราะพื้นที่จำกัด */
   .report {
     overflow-x: auto;
   }
 
   .booking-table {
-    min-width: 900px; /* ✅ กว้างขั้นต่ำ 900px */
+    min-width: 900px; 
   }
 
   .booking-table thead th,
   .booking-table tbody td {
     padding: 10px 8px;
     font-size: 0.75rem;
-    white-space: nowrap; /* ✅ ไม่ตัดบรรทัดใน Mobile */
+    white-space: nowrap; 
     max-width: none;
   }
 }

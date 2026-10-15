@@ -10,7 +10,6 @@ app.use(express.static(require('path').join(__dirname, '../frontend')));
 app.use(express.json());
 
 // Import Routes
-const authRoutes = require('./routes/authRoutes');
 const memberRoutes = require('./routes/memberRoutes');
 const roomRoutes = require('./routes/roomRoutes');
 const trainerRoutes = require('./routes/trainerRoutes');
@@ -22,7 +21,6 @@ const rewardRoutes = require('./routes/rewardRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 
 // Mount Routes
-app.use('/api/auth', authRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api', roomRoutes);          // → /api/studios, /api/rooms, /api/sports
 app.use('/api/trainers', trainerRoutes);

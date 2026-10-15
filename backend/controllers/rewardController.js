@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 // ============================================
-// รางวัลทั้งหมด
+// All rewards
 // ============================================
 exports.getAllRewards = (req, res) => {
     db.query('SELECT * FROM REWARD_ITEM WHERE IsActive = TRUE ORDER BY PointCost', (err, results) => {
@@ -11,16 +11,15 @@ exports.getAllRewards = (req, res) => {
 };
 
 // ============================================
-// แลกรางวัล (BR18: PointTransaction ต้องมี PaymentID)
-// ✅ แก้: ให้ TransactionDate ใช้ NOW() เพื่อเก็บเวลาจริง
+// Redeem reward
 // ============================================
 exports.redeemReward = (req, res) => {
     const { MemberID, RewardID, RedemptionDate, PointsUsed } = req.body;
     if (!MemberID || !RewardID || !PointsUsed) {
-        return res.status(400).json({ message: 'กรอกข้อมูลให้ครบ' });
+        return res.status(400).json({ message: 'Please fill in all required fields' });
     }
 
-    // 1. คำนวณแต้มคงเหลือ
+    // 1. Calculate remaining points
     const pointsSql = `
         SELECT COALESCE(SUM(PointsChange), 0) AS Balance
         FROM POINT_TRANSACTION
@@ -31,7 +30,7 @@ exports.redeemReward = (req, res) => {
         const balance = Number(results[0].Balance);
 
         if (balance < PointsUsed) {
-            return res.status(400).json({ message: `แต้มไม่พอ (มี ${balance}, ต้องใช้ ${PointsUsed})` });
+            return res.status(400).json({ message: `Insufficient points (Balance: ${balance}, Required: ${PointsUsed})` });
         }
 
         const redeemDate = RedemptionDate || new Date();
@@ -42,7 +41,7 @@ exports.redeemReward = (req, res) => {
             if (err) return res.status(500).json(err);
             const redemptionId = result.insertId;
 
-            // 3. INSERT PAYMENT (Amount=0, ผูก RedemptionID)
+            // 3. INSERT PAYMENT (Amount=0, link RedemptionID)
             const paymentSql = `
                 INSERT INTO PAYMENT 
                 (Amount, PaymentDate, PaymentMethod, PaymentStatus, BookingID, RedemptionID, EnrollmentID)
@@ -59,7 +58,7 @@ exports.redeemReward = (req, res) => {
                 const paymentId = paymentResult.insertId;
 
                 // 4. INSERT POINT_TRANSACTION
-                // ✅ แก้: ใช้ NOW() แทน redeemDate → เก็บเวลาจริงตอน redeem
+                // ✅ Fix: use NOW() instead of redeemDate → store real time at redemption
                 const pointsSql2 = `
                     INSERT INTO POINT_TRANSACTION (MemberID, PaymentID, PointsChange, Reason, TransactionDate)
                     VALUES (?, ?, ?, 'REDEEM_REWARD', NOW())
@@ -70,7 +69,7 @@ exports.redeemReward = (req, res) => {
                         return res.status(500).json({ error: err3.message });
                     }
                     res.status(201).json({
-                        message: 'แลกรางวัลสำเร็จ',
+                        message: 'Reward redeemed successfully',
                         RedemptionID: redemptionId,
                         PaymentID: paymentId,
                     });
@@ -81,8 +80,7 @@ exports.redeemReward = (req, res) => {
 };
 
 // ============================================
-// ประวัติการแลกรางวัลของสมาชิก
-// ✅ แก้: เรียงตาม RedemptionDate + RedemptionID DESC
+// Member redemption history
 // ============================================
 exports.getMemberRedemptions = (req, res) => {
     const sql = `

@@ -66,7 +66,7 @@ h4 {
 }
 
 /* ============================================
-   Page Padding (สำหรับหน้าที่ไม่ใช่ Home)
+   Page Padding
    ============================================ */
 body:not(.home-page):not(.login-page) {
   padding-top: 110px;
